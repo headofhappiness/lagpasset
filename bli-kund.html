@@ -104,8 +104,7 @@ input::placeholder,textarea::placeholder{color:#b8c8b8}
         <div class="ff"><label>Ort *</label><input type="text" id="city" placeholder="Ex. Åsa"></div>
         <div class="ff"><label>Distrikt / Förbund <span class="opt">(valfritt)</span></label><input type="text" id="district" placeholder="Ex. Hallands FF"></div>
       </div>
-      <div class="ff"><label>Föreningens webbplats <span class="opt">(valfritt)</span></label><input type="text" id="website" placeholder="www.asaif.se"></div>
-      <div class="ff" style="margin-bottom:0"><label>Logotyp <span class="opt">(valfritt)</span></label><input type="text" id="logo_url" placeholder="URL till er logotyp (PNG/SVG)"><div class="hint">Visas i föräldravyn och på utskrifter. Kan också mejlas till oss efter registrering.</div></div>
+      <div class="ff" style="margin-bottom:0"><label>Föreningens webbplats <span class="opt">(valfritt)</span></label><input type="text" id="website" placeholder="www.asaif.se"></div>
     </div>
 
     <!-- FAKTURA -->
@@ -125,21 +124,7 @@ input::placeholder,textarea::placeholder{color:#b8c8b8}
       <div class="card-label">Kontaktperson (admin-inloggning)</div>
       <div class="ff"><label>Namn *</label><input type="text" id="contact_name" autocomplete="name" placeholder="Förnamn Efternamn"></div>
       <div class="ff"><label>E-post *</label><input type="email" id="contact_email" placeholder="namn@foreningen.se"><div class="hint">Används som inloggning till föreningens admin. Kan ändras senare.</div></div>
-      <div class="ff" style="margin-bottom:0"><label>Mobilnummer *</label><input type="tel" id="contact_mobile" autocomplete="tel" placeholder="+46 70 ..."><div class="hint">Vi ringer om vi behöver hjälpa er med uppstarten.</div></div>
-    </div>
-
-    <!-- FÖRSTA EVENT -->
-    <div class="card">
-      <div class="card-label">Ert första event <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(valfritt – hjälper oss förbereda)</span></div>
-      <div class="ff"><label>Eventnamn</label><input type="text" id="event_name" placeholder="Ex. Åsacupen 2026"></div>
-      <div class="row">
-        <div class="ff"><label>Ungefärligt datum</label><input type="text" id="event_date" placeholder="Ex. 26–28 juni 2026"></div>
-        <div class="ff"><label>Ungefärligt antal barn</label><input type="text" id="event_size" placeholder="Ex. 200"></div>
-      </div>
-      <div class="ff" style="margin-bottom:0">
-        <label>Har ni ett gammalt passschema? <span class="opt">(valfritt)</span></label>
-        <textarea id="event_notes" rows="3" placeholder="Klistra in text från förra årets Word-dokument, beskriv hur det ser ut, eller mejla det till oss efter registrering. Vi hjälper er läsa in det med AI."></textarea>
-      </div>
+      <div class="ff" style="margin-bottom:0"><label>Mobilnummer *</label><input type="tel" id="contact_mobile" autocomplete="tel" placeholder="+46 70 ..."></div>
     </div>
 
     <!-- VILLKOR -->
@@ -171,7 +156,7 @@ input::placeholder,textarea::placeholder{color:#b8c8b8}
       <p>Vi har tagit emot er anmälan och skickat en kopia till er e-post. Vi hör av oss inom ett dygn med er inloggning och nästa steg. Välkomna till Lagpasset!</p>
       <div style="margin-top:2rem;display:flex;flex-direction:column;gap:.75rem;align-items:center">
         <a href="admin_demo.html" style="font-size:15px;color:var(--green);font-weight:600;text-decoration:none">🏟️ Utforska admindemon medan ni väntar →</a>
-        <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-premeny" target="_blank" style="font-size:14px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en genomgång direkt i kalendern</a>
+        <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="font-size:14px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en genomgång direkt i kalendern</a>
       </div>
     </div>
   </div>
@@ -211,12 +196,10 @@ async function submitSignup(){
   var payload = {
     plan: selectedPlan,
     club_name: val('club_name'), city: val('city'), district: val('district'),
-    website: val('website'), logo_url: val('logo_url'),
+    website: val('website'),
     orgnr: val('orgnr'), address: val('address'), zip: val('zip'), invoice_city: val('invoice_city'),
     invoice_email: val('invoice_email'),
-    contact_name: val('contact_name'), contact_email: val('contact_email'), contact_mobile: val('contact_mobile'),
-    event_name: val('event_name'), event_date: val('event_date'), event_size: val('event_size'),
-    event_notes: val('event_notes')
+    contact_name: val('contact_name'), contact_email: val('contact_email'), contact_mobile: val('contact_mobile')
   };
 
   var btn = document.getElementById('submitBtn');
