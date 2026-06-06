@@ -946,9 +946,13 @@ let currentBookingTab = 'all';
 // ═══════════════════════════════════════
 function showSection(id){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('active');
+  const sec = document.getElementById('sec-'+id);
+  if(sec) sec.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  try { if(event && event.currentTarget) event.currentTarget.classList.add('active'); } catch(e){}
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
+  });
   const titles={dashboard:'Dashboard',children:'Deltagare',shifts:'Passschema',bookings:'Bokade pass',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
