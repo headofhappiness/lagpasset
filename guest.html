@@ -254,32 +254,27 @@ textarea.feedback-text:focus{border-color:var(--green);background:var(--surface)
       <div class="si-dot active" id="sd1">1</div>
       <div class="si-line" id="sl1"></div>
       <div class="si-dot" id="sd2">2</div>
-      <div class="si-line" id="sl2"></div>
-      <div class="si-dot" id="sd3">3</div>
-      <div class="si-line" id="sl3"></div>
-      <div class="si-dot" id="sd4">4</div>
     </div>
     <div class="si-labels" id="siLabels">
-      <span class="si-label active" id="sl-1">Välj lag</span>
-      <span class="si-label" id="sl-2">Välj barn</span>
-      <span class="si-label" id="sl-3">Välj pass</span>
-      <span class="si-label" id="sl-4">Dina uppgifter</span>
+      <span class="si-label active" id="sl-1">Välj pass</span>
+      <span class="si-label" id="sl-2">Dina uppgifter</span>
     </div>
 
     <div id="guestMsg" style="display:none" class="msg"></div>
 
-    <!-- STEG 1: VÄLJ LAG -->
+    <!-- STEG 1: VÄLJ PASS (direkt – personlig länk) -->
     <div id="step1">
       <div class="step-header">
-        <h1>Välj ditt lags namn</h1>
+        <h1 id="step1Title">Välj ditt pass</h1>
         <div class="green-line"></div>
+        <p class="step-sub" id="step1Sub"></p>
       </div>
       <div class="event-box" id="eventBox"><span class="event-icon">🏆</span><span id="eventInfo"></span></div>
 
       <!-- URGENCY BANNER -->
       <div class="urgency-banner" id="urgencyBanner">
         <div class="urgency-top">
-          <div class="urgency-headline" id="urgencyHeadline">Många pass är redan tagna!</div>
+          <div class="urgency-headline" id="urgencyHeadline">Passen fylls på – välj ditt favoritpass nu</div>
           <div class="urgency-pct" id="urgencyPct">–</div>
         </div>
         <div class="urgency-track"><div class="urgency-fill" id="urgencyFill" style="width:0%"></div></div>
@@ -290,45 +285,16 @@ textarea.feedback-text:focus{border-color:var(--green);background:var(--surface)
         <div class="urgency-deadline" id="urgencyDeadline"></div>
       </div>
 
-      <p id="pageGreeting" style="font-size:15px;color:var(--muted);margin-bottom:1.1rem;line-height:1.7"></p>
-      <div class="lag-grid" id="lagGrid"></div>
+      <div id="alreadyBooked" style="display:none" class="msg info"></div>
+      <div id="passListWrap"></div>
+      <div id="noPassMsg" style="display:none" class="msg err">Inga pass hittades. Kontakta föreningen.</div>
     </div>
 
-    <!-- STEG 2: VÄLJ BARN I LAGET -->
+    <!-- STEG 2: UPPGIFTER -->
     <div id="step2" style="display:none" class="slide-down">
       <div class="step-header">
         <div class="lag-list-header">
-          <button class="lag-back-btn" onclick="goToStep1()">← Byt lag</button>
-          <div id="lagStatsPill" class="lag-stats-pill lag-stats-ok"></div>
-        </div>
-        <h1 id="step2Title">Välj ditt barn</h1>
-        <div class="green-line"></div>
-        <p class="step-sub">Gröna bockar = pass redan valt. Välj ditt barns namn för att se tillgängliga pass.</p>
-      </div>
-      <div class="child-list" id="childList"></div>
-    </div>
-
-    <!-- STEG 3: VÄLJ PASS -->
-    <div id="step3" style="display:none" class="slide-down">
-      <div class="step-header">
-        <div class="lag-list-header">
-          <button class="lag-back-btn" onclick="goToStep2()">← Byt barn</button>
-          <span id="step3ChildBadge" style="font-size:13px;font-weight:600;color:var(--green)"></span>
-        </div>
-        <h1>Välj ett pass</h1>
-        <div class="green-line"></div>
-        <p class="step-sub" id="step3Sub"></p>
-      </div>
-      <div id="alreadyBooked" style="display:none" class="msg info"></div>
-      <div id="passListWrap"></div>
-      <div id="noPassMsg" style="display:none" class="msg err">Inga pass hittades för det här laget. Kontakta föreningen.</div>
-    </div>
-
-    <!-- STEG 4: UPPGIFTER -->
-    <div id="step4" style="display:none" class="slide-down">
-      <div class="step-header">
-        <div class="lag-list-header">
-          <button class="lag-back-btn" onclick="goToStep3()">← Byt pass</button>
+          <button class="lag-back-btn" onclick="goToStep1()">← Ändra pass</button>
         </div>
         <h1>Dina uppgifter</h1>
         <div class="green-line"></div>
@@ -347,7 +313,7 @@ textarea.feedback-text:focus{border-color:var(--green);background:var(--surface)
       </div>
       <div id="msgBottom" style="display:none" class="msg err"></div>
       <button class="btn btn-primary" id="submitBtn" onclick="submitBooking()">Välj det här passet ✓</button>
-      <button class="btn btn-outline" onclick="goToStep3()">← Ändra pass</button>
+      <button class="btn btn-outline" onclick="goToStep1()">← Ändra pass</button>
       <p style="font-size:13px;color:var(--muted);text-align:center;margin-top:.8rem;line-height:1.6">Öppna länken igen och välj barnets namn om du vill ändra.</p>
     </div>
   </div>
@@ -416,6 +382,7 @@ textarea.feedback-text:focus{border-color:var(--green);background:var(--surface)
 // ════════════════════════════════════════════════
 const DEMO = {
   club:{ name:"Åsa IF", logo_url:null, accent:"#1a8c3a" },
+  person:{ name:"Anna Mellbin", team:"FJ" }, // sätts via token i personlig länk
   event:{ name:"Åsacupen 2026", deadline:"2026-06-18", reminder_days:5, contact_email:"kansli@asaif.com" },
 
   // Lag med barn — quota = antal pass laget ska ta (auto: 1/barn, kan justeras manuellt)
@@ -490,7 +457,7 @@ const DEMO = {
 // ════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════
-let currentTeam = null;
+let currentTeam = null; // sätts via personlig länk
 let currentChild = null;
 let currentShift = null;
 let isClosed = false;
@@ -533,8 +500,12 @@ function init(){
     '<strong>'+d.event.name+'</strong> · ' +
     (isClosed ? '<span style="color:var(--red)">Anmälan stängd</span>' : '<span style="color:var(--green);font-weight:600">Sista anmälningsdag '+dl.getDate()+' '+fullMo[dl.getMonth()]+'</span>');
 
-  document.getElementById('pageGreeting').textContent =
-    'Varje familj väljer ett pass per barn. Välj ditt lags namn för att se ditt barn och lediga pass.';
+  const person = DEMO.person || {name:'', team:'FJ'};
+  currentTeam = DEMO.teams.find(t=>t.id===person.team) || DEMO.teams[0];
+  currentChild = currentTeam.children[0] || null;
+  const greeting = person.name ? 'Hej '+person.name+'! Välj ett pass nedan.' : 'Välj ditt pass nedan.';
+  const sub = document.getElementById('step1Sub');
+  if(sub) sub.textContent = greeting;
 
   if(isClosed) document.getElementById('closedBanner').style.display='block';
 
@@ -567,7 +538,7 @@ function init(){
     dlEl.className='urgency-deadline';
   }
 
-  renderLagGrid();
+  renderPassList();
   document.getElementById('loadingState').style.display='none';
   document.getElementById('mainContent').style.display='block';
 }
@@ -591,7 +562,7 @@ function renderLagGrid(){
 function selectTeam(teamId){
   currentTeam = DEMO.teams.find(t=>t.id===teamId);
   currentChild = null; currentShift = null;
-  renderLagGrid();
+  renderPassList();
   setStep(2);
   renderChildList();
   document.getElementById('step2Title').textContent = currentTeam.name;
@@ -641,7 +612,7 @@ function pickChild(childId){
   DEMO.teams.forEach(t=>{ const c=t.children.find(ch=>ch.id===childId); if(c){ currentChild=c; currentTeam=t; }});
   currentShift = null;
   renderChildList();
-  setStep(3);
+  goToStep2();
   renderPassList();
   document.getElementById('step3ChildBadge').textContent = currentChild.name + ' · ' + currentTeam.name;
   document.getElementById('step3Sub').textContent = 'Visar pass tillgängliga för '+currentTeam.name+'. Klicka för att välja.';
@@ -707,6 +678,7 @@ function renderPassList(){
 }
 
 function pickShift(shiftId){
+  // Steg 1→2
   currentShift = DEMO.shifts.find(s=>s.id===shiftId);
   document.querySelectorAll('.pass-item').forEach(el=>el.classList.remove('selected'));
   document.getElementById('pi_'+shiftId)?.classList.add('selected');
@@ -719,7 +691,7 @@ function pickShift(shiftId){
     '<strong>'+s.title+'</strong> · '+s.day+' · '+s.time+
     (s.note?'<br><span style="font-size:13px;color:var(--muted)">'+s.note+'</span>':'')+
     '<br><span style="font-size:13px;color:var(--muted)">'+currentChild.name+' · '+currentTeam.name+'</span>';
-  setTimeout(()=>{setStep(4);window.scrollTo({top:0,behavior:'smooth'});},180);
+  setTimeout(()=>{goToStep2();window.scrollTo({top:0,behavior:'smooth'});},180);
 }
 
 // ════════════════════════════════════════════════
@@ -818,24 +790,34 @@ async function submitFeedback(){
 // ════════════════════════════════════════════════
 // STEG-NAVIGERING
 // ════════════════════════════════════════════════
-function goToStep1(){ setStep(1); window.scrollTo({top:0,behavior:'smooth'}); }
-function goToStep2(){ if(!currentTeam)return; setStep(2); renderChildList(); window.scrollTo({top:0,behavior:'smooth'}); }
-function goToStep3(){ if(!currentChild)return; setStep(3); renderPassList(); window.scrollTo({top:0,behavior:'smooth'}); }
+// Navigering hanteras av goToStep1/goToStep2 nedan
 
 function setStep(n){
-  ['step1','step2','step3','step4'].forEach((id,i)=>{
-    document.getElementById(id).style.display=(i+1===n)?'block':'none';
+  ['step1','step2'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=(i+1===n)?'block':'none';
   });
-  [1,2,3,4].forEach(i=>{
+  [1,2].forEach(i=>{
     const d=document.getElementById('sd'+i);
     const l=document.getElementById('sl-'+i);
     if(d){ d.className='si-dot'+(i<n?' done':i===n?' active':''); }
     if(l){ l.className='si-label'+(i===n?' active':''); }
   });
-  [1,2,3].forEach(i=>{
-    const line=document.getElementById('sl'+i);
-    if(line) line.className='si-line'+(n>i?' done':'');
-  });
+  const line=document.getElementById('sl1');
+  if(line) line.className='si-line'+(n>1?' done':'');
+}
+
+function goToStep1(){
+  currentShift=null;
+  setStep(1);
+  renderPassList();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goToStep2(){
+  if(!currentShift) return;
+  setStep(2);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 window.addEventListener('DOMContentLoaded',init);
