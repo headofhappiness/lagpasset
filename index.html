@@ -183,12 +183,42 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
 @media(max-width:768px){
   .nav-links{display:none}.hamburger{display:flex}
   .hero{padding:5.5rem 1.25rem 3.5rem;min-height:auto}
-  h1{font-size:2.4rem}.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:2rem}
-  section{padding:3.5rem 1.25rem}h2{font-size:2rem}
-  .steps{grid-template-columns:1fr}.prob-grid{grid-template-columns:1fr;gap:1.25rem}
-  .features-grid{grid-template-columns:1fr}.price-grid{grid-template-columns:1fr;max-width:100%}
-  .hero-cta{flex-direction:column;align-items:flex-start}
-  .btn-hero{width:100%;justify-content:center}
+  h1{font-size:2.2rem}
+  .hero-tagline{font-size:1.1rem}
+  .hero-sub{font-size:16px}
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+  .stat-num{font-size:1.9rem}
+  .stat-label{font-size:12px}
+  section{padding:3rem 1.25rem}
+  h2{font-size:1.85rem}
+  .section-sub{font-size:15px}
+  .steps{grid-template-columns:1fr}
+  .step{padding:1.25rem}
+  .prob-grid{grid-template-columns:1fr;gap:1rem}
+  .features-grid{grid-template-columns:1fr}
+  .price-grid{grid-template-columns:1fr;max-width:100%}
+  .hero-cta{flex-direction:column;align-items:stretch}
+  .btn-hero{width:100%;justify-content:center;padding:14px 20px}
+  .btn-cta,.btn-cta-outline{width:100%;justify-content:center}
+  .demo-section .hero-cta, .cta-section div[style*="flex"]{flex-direction:column;align-items:stretch}
+}
+@media(max-width:600px){
+  h1{font-size:1.9rem}
+  h2{font-size:1.65rem}
+  .hero{padding:5rem 1rem 3rem}
+  section{padding:2.5rem 1rem}
+  .hero-stats{grid-template-columns:1fr 1fr;gap:.75rem}
+  .stat-num{font-size:1.7rem}
+  .price-amount{font-size:2.2rem}
+  nav{padding:.85rem 1rem}
+  .step-num{font-size:2.2rem}
+  .feat{padding:1.25rem}
+  .prob-box{padding:1.25rem}
+  .demo-section{padding:2.5rem 1rem}
+  .cta-section{padding:3.5rem 1rem}
+  .btn-nav-solid,.btn-nav-ghost{padding:8px 16px;font-size:13px}
+  footer{padding:1.75rem 1rem}
+  .resp-grid-2{grid-template-columns:1fr !important;gap:2rem !important}
 }
 </style>
 </head>
@@ -384,7 +414,7 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
 <!-- URGENCY SECTION -->
 <section style="background:var(--dark);padding:5rem 2rem">
   <div class="container">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center">
+    <div class="resp-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center">
       <div>
         <div class="section-tag" style="color:rgba(100,210,130,.9)">Inbyggd urgency</div>
         <h2 style="color:#e0f0e0">Föräldrar väljer snabbare<br><em>när de ser att det fylls.</em></h2>
