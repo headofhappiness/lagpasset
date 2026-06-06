@@ -15,7 +15,7 @@
   --sidebar:220px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{overflow-x:hidden;background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:15px;font-weight:400;min-height:100vh;display:flex}
+body{overflow-x:hidden;background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:15px;font-weight:400;min-height:calc(var(--vh,1vh)*100);display:flex}
 
 /* SIDEBAR */
 .sidebar{width:var(--sidebar);background:#060e07;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:20;transition:transform .25s}
@@ -32,8 +32,8 @@ body{overflow-x:hidden;background:var(--bg);color:var(--text);font-family:"Outfi
 .sidebar-footer{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.15);font-size:12px;color:rgba(200,230,200,.45)}
 
 /* MAIN */
-.main{margin-left:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
-.topbar{background:var(--surface);border-bottom:1.5px solid var(--border);padding:.85rem 1.75rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.main{margin-left:var(--sidebar);flex:1;min-height:calc(var(--vh,1vh)*100);display:flex;flex-direction:column;overflow-x:hidden}
+.topbar{background:var(--surface);border-bottom:1.5px solid var(--border);padding:.85rem 1.75rem;display:flex;align-items:center;justify-content:space-between;position:-webkit-sticky;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .topbar-title{font-size:16px;font-weight:700;color:var(--dark)}
 .topbar-actions{display:flex;gap:.6rem;align-items:center}
 .content{padding:1.75rem;flex:1;max-width:100%;box-sizing:border-box}
@@ -159,7 +159,7 @@ textarea{resize:vertical;min-height:70px}
 .demo-banner a:hover{text-decoration:underline}
 .demo-banner-lock{font-size:12px;background:rgba(26,140,58,.1);border:1px solid rgba(26,140,58,.2);border-radius:100px;padding:2px 10px;color:var(--green);font-weight:700}
 .demo-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--dark);color:#e0f0e0;padding:11px 22px;border-radius:100px;font-size:14px;font-weight:500;z-index:1000;display:none;box-shadow:0 4px 24px rgba(0,0,0,.25);border:1px solid var(--border);white-space:nowrap}
-.demo-welcome-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:1rem}
+.demo-welcome-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);-webkit--webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:1rem}
 .demo-welcome-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;padding:2rem 2.25rem;width:100%;max-width:480px;text-align:center}
 .demo-welcome-logo{font-family:"Nunito",sans-serif;font-size:1.3rem;font-weight:700;color:var(--dark);margin-bottom:.25rem}
 .demo-welcome-logo span{color:var(--green)}
@@ -193,7 +193,13 @@ textarea{resize:vertical;min-height:70px}
 }
 .lp-green{color:#22c55e !important;letter-spacing:0;font-size:inherit;display:inline}
 @media(max-width:600px){.hide-mobile{display:none}}
+@media(max-width:900px){input,select,textarea{font-size:16px !important}}
 </style>
+<script>
+// iOS Safari 100vh fix
+function setVH(){document.documentElement.style.setProperty('--vh',window.innerHeight*.01+'px');}
+setVH(); window.addEventListener('resize',setVH);
+</script>
 </head>
 <body>
 

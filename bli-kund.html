@@ -12,8 +12,8 @@
 <style>
 :root{--bg:#faf8f4;--surface:#fff;--surface2:#f2f9f3;--border:#e0ece0;--green:#1a8c3a;--green-light:#e8f7ec;--dark:#111c13;--text:#1e2e20;--muted:#6a8a6e;--red:#c0392b}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-weight:400;min-height:100vh;font-size:16px;line-height:1.65}
-.nav{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(250,248,244,.96);position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-weight:400;min-height:calc(var(--vh,1vh)*100);font-size:16px;line-height:1.65}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(250,248,244,.96);position:-webkit-sticky;position:sticky;top:0;z-index:10;-webkit--webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .nav-logo{font-family:"Nunito",sans-serif;font-size:1.2rem;color:var(--dark);text-decoration:none;font-weight:700}
 
 .nav-right{font-size:14px;color:var(--muted);font-weight:500}
@@ -67,7 +67,13 @@ input::placeholder,textarea::placeholder{color:#b8c8b8}
 .gdpr-note a{color:var(--green);text-decoration:none}
 @media(max-width:600px){body{font-size:17px}.page{padding:1.5rem 1rem 4rem}h1{font-size:1.75rem}.plan-options{grid-template-columns:1fr}}
 .lp-green{color:#22c55e !important;letter-spacing:0;font-size:inherit;display:inline}
+@media(max-width:900px){input,select,textarea{font-size:16px !important}}
 </style>
+<script>
+// iOS Safari 100vh fix
+function setVH(){document.documentElement.style.setProperty('--vh',window.innerHeight*.01+'px');}
+setVH(); window.addEventListener('resize',setVH);
+</script>
 </head>
 <body>
 <nav class="nav">
