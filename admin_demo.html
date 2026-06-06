@@ -200,7 +200,7 @@ textarea{resize:vertical;min-height:70px}
     <div class="demo-welcome-sub">Det här är föreningens adminvy. Klicka runt fritt – inget du gör här sparas.</div>
     <div class="demo-step-list">
       <div class="demo-step"><div class="demo-step-num">1</div><span>Se <strong>Dashboard</strong> – live-status per lag och pass</span></div>
-      <div class="demo-step"><div class="demo-step-num">2</div><span>Gå till <strong>Barn &amp; föräldrar</strong> – se hur skyddade barn hanteras</span></div>
+      <div class="demo-step"><div class="demo-step-num">2</div><span>Gå till <strong>Barn &amp; föräldrar</strong> – se alla lag och föräldrar</span></div>
       <div class="demo-step"><div class="demo-step-num">3</div><span>Öppna <strong>Passschema</strong> – skapa pass med kvoter per lag</span></div>
       <div class="demo-step"><div class="demo-step-num">4</div><span>Prova <strong>Mejla föräldrar</strong> – välj mottagare och skriv meddelande</span></div>
       <div class="demo-step"><div class="demo-step-num">5</div><span>Klicka <strong>Skriv ut lista</strong> under Bokningar – se utskriftsvyn</span></div>
@@ -909,7 +909,7 @@ const CHILDREN = [
   {id:"c02",name:"Agnes Marklinder",  team:"FJ",  email:"agnes.m@hotmail.com",   protected:false, booked:false, linkSent:true},
   {id:"c03",name:"Alba Franzén",      team:"FJ",  email:"franzenfam@gmail.com",  protected:false, booked:false, linkSent:true},
   {id:"c04",name:"Alice Todelius",    team:"FJ",  email:"k.todelius@gmail.com",  protected:false, booked:true,  linkSent:true},
-  {id:"c05",name:"Robin Grön",        team:"FJ",  email:"**skyddad**",           protected:true,  booked:true,  linkSent:true},
+  {id:"c05",name:"Robin Grön",        team:"FJ",  email:"🔒 dold",           protected:true,  booked:true,  linkSent:true},
   {id:"c06",name:"Alva Svarén",       team:"FJ",  email:"henrik.svaren@gmail.com",protected:false,booked:false, linkSent:false},
   {id:"p01",name:"P13 barn 1",        team:"P13", email:"parent.p13.1@gmail.com",protected:false, booked:true,  linkSent:true},
   {id:"p02",name:"P13 barn 2",        team:"P13", email:"parent.p13.2@gmail.com",protected:false, booked:false, linkSent:true},
@@ -938,7 +938,7 @@ function showSection(id){
   const titles={dashboard:'Dashboard',children:'Barn & föräldrar',shifts:'Passschema',bookings:'Bokade pass',email:'Mejla föräldrar',feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
-  if(id==='shifts') renderShiftTable();
+  if(id==='shifts'){ renderShiftTable(); setTimeout(()=>openCategory('servering'),50); }
   if(id==='bookings') renderBookingsTable();
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) closeSidebar();
@@ -1056,7 +1056,7 @@ function renderBookingsTable(){
     {shift:"Infotält",  day:"Fredag 09:00–13:00", child:"Alice Todelius",  team:"FJ", parent:"Karin Todelius",phone:"070-444 55 66", type:"infotalt"},
     {shift:"Bygg",      day:"Torsdag 18:00",       child:"Bonnie Amnäs",   team:"FJ", parent:"Emil Amnäs",   phone:"070-777 88 99", type:"bygg"},
     {shift:"Servering", day:"Lördag 09:00–13:00",  child:"P13 barn 1",    team:"P13",parent:"Förälder P13-1",phone:"070-100 20 30", type:"servering"},
-    {shift:"Nattvakt",  day:"Lördag 21:00–02:00",  child:"Robin Grön",    team:"FJ", parent:"(skyddad)",    phone:"(skyddad)",     type:"nattvakt", protected:true},
+    {shift:"Nattvakt",  day:"Lördag 21:00–02:00",  child:"Robin Grön",    team:"FJ", parent:"Anna S.",      phone:"🔒",     type:"nattvakt", protected:true},
   ];
   const filtered = currentBookingTab==='all' ? rows : rows.filter(r=>r.type===currentBookingTab);
   document.getElementById('bookingsTable').innerHTML = filtered.map(r=>`<tr>
