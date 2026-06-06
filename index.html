@@ -96,7 +96,7 @@ h2 em{color:var(--green);font-style:italic}
 .how h2{color:#e0f0e0}
 .how .section-tag{color:rgba(100,210,130,.9)}
 .how .section-sub{color:rgba(224,240,224,.85)}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-top:3.5rem}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3.5rem}
 .step{padding:1.75rem;background:rgba(26,140,58,.07);border:1.5px solid rgba(26,140,58,.16);border-radius:16px;transition:all .3s}
 .step:hover{background:rgba(26,140,58,.13);border-color:rgba(26,140,58,.32);transform:translateY(-3px)}
 .step-num{font-family:"Nunito",sans-serif;font-size:2.8rem;color:#22c55e;font-weight:900;line-height:1;margin-bottom:.65rem}
@@ -139,7 +139,7 @@ h2 em{color:var(--green);font-style:italic}
 .feat-new{font-size:10.5px;font-weight:700;background:rgba(26,140,58,.15);color:var(--green);border-radius:100px;padding:2px 8px;margin-bottom:.5rem;display:inline-block}
 
 /* PRICING */
-.pricing{background:var(--bg)}
+.pricing{background:var(--surface)}
 .pricing h2{color:var(--dark)}
 .pricing .section-tag{color:var(--green)}
 .pricing .section-sub{color:var(--muted)}
@@ -156,10 +156,10 @@ h2 em{color:var(--green);font-style:italic}
 .price-list li{display:flex;align-items:flex-start;gap:.7rem;font-size:14.5px;color:rgba(224,240,224,.8);line-height:1.5}
 .price-list li::before{content:"✓";color:rgba(100,210,130,.8);flex-shrink:0;font-weight:700}
 .price-note{font-size:12.5px;color:rgba(224,240,224,.28);margin-top:1.5rem;line-height:1.6}
-.price-badge{background:rgba(26,140,58,.4);color:rgba(100,210,130,.95);font-size:11px;font-weight:700;padding:3px 11px;border-radius:100px;letter-spacing:.04em}
+.price-badge{background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:3px 11px;border-radius:100px;letter-spacing:.04em}
 
 /* CTA / DEMO SECTION */
-.demo-section{background:var(--surface);text-align:center;padding:6rem 2rem}
+.demo-section{background:var(--bg);text-align:center;padding:6rem 2rem}
 .cta-section{background:var(--green);text-align:center;padding:7rem 2rem}
 .cta-section h2{color:#fff;max-width:640px;margin:.75rem auto 1.25rem}
 .cta-section .section-tag{color:rgba(255,255,255,.85)}
@@ -193,7 +193,7 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
   section{padding:3rem 1.25rem}
   h2{font-size:1.85rem}
   .section-sub{font-size:15px}
-  .steps{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
   .step{padding:1.25rem}
   .prob-grid{grid-template-columns:1fr;gap:1rem}
   .features-grid{grid-template-columns:1fr}
@@ -262,7 +262,7 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
       <p class="hero-sub fu">Föräldrar och medlemmar väljer sitt pass direkt i mobilen. Automatisk påminnelse och tilldelning vid deadline.<br>Minimal admin. Maximal översikt.</p>
       <div class="hero-cta fu">
         <a href="admin_demo.html" class="btn-hero btn-hero-solid">Se admindemon →</a>
-        <a href="guest.html" target="_blank" class="btn-hero btn-hero-outline">Se föräldravyn</a>
+        <a href="guest.html" target="_blank" class="btn-hero btn-hero-outline">Se medlemsvyn</a>
         <a href="bli-kund.html" class="btn-hero btn-hero-ghost">Kom igång</a>
       </div>
       <p class="hero-note fu">Ingen app. Ingen installation.</p>
@@ -273,11 +273,11 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
         <div><div class="stat-num">1 klick</div><div class="stat-label">Utskrift</div></div>
       </div>
     </div>
-    <div class="hero-phone" style="background:#fff;border-radius:32px;padding:0;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.22)">
+    <div class="hero-phone" style="background:#fff;border-radius:28px;padding:0;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.22);max-width:265px;margin:0 auto">
       <!-- Header -->
       <div style="background:#1a8c3a;padding:.5rem 1.2rem .4rem;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:#fff">Lag<span class="lp-green">Passet</span></span>
-        <span style="font-size:11px;color:rgba(255,255,255,.85);font-weight:600">Admin · Åsacupen 2026</span>
+        <span style="font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:#fff">Lag<span style="color:#a8f0c0">Passet</span></span>
+        <span style="font-size:11px;color:#fff;font-weight:700">Höstkuppen 2027</span>
       </div>
       <div style="padding:1rem 1.1rem;background:#faf8f4">
 
@@ -362,7 +362,7 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
   <div class="container">
     <div class="section-tag">Så fungerar det</div>
     <h2>Från medlemslista till bemannat schema</h2>
-    <p class="section-sub">Scheman och inbjudningar sparas – nästa gång är det ännu enklare.</p>
+    <p class="section-sub">Scheman och inbjudningar sparas och finns kvar även när frivilliga byts.</p>
     <div class="steps">
       <div class="step">
         <div class="step-num">01</div><div class="step-icon">📝</div>
@@ -384,10 +384,10 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
         <div class="step-title">Automatisk påminnelse</div>
         <div class="step-desc">Föreningen väljer hur många dagar före sista dag påminnelsen skickas. De som inte valt pass ännu får ett mejl automatiskt – ingen behöver jagas manuellt.</div>
       </div>
-      <div class="step highlight">
+      <div class="step">
         <div class="step-num">05</div><div class="step-icon">⚡</div>
         <div class="step-title">Automatisk tilldelning vid deadline</div>
-        <div class="step-desc">Om deadline passerar utan att alla valt – tilldelar systemet pass automatiskt till de som inte valt. De får ett mejl med sitt tilldelade pass. Föreningen slipper ringa runt.</div>
+        <div class="step-desc">Valfritt: om deadline passerar tilldelar systemet pass automatiskt till de som inte valt. De får ett mejl med sitt tilldelade pass. Föreningen slipper ringa runt.</div>
       </div>
       <div class="step">
         <div class="step-num">06</div><div class="step-icon">🖨️</div>
@@ -431,32 +431,32 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
 </section>
 
 <!-- URGENCY SECTION -->
-<section style="background:#1a2e1c;padding:5rem 2rem">
+<section style="background:var(--dark);padding:5rem 2rem">
   <div class="container">
     <div class="resp-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center">
       <div>
-        <div class="section-tag" style="color:rgba(100,210,130,.9)">Inbyggd urgency</div>
-        <h2 style="color:#e0f0e0">Föräldrar väljer snabbare<br><em>när de ser att det fylls.</em></h2>
-        <p style="font-size:16px;color:rgba(224,240,224,.75);line-height:1.8;margin-top:1rem;max-width:440px">Det är svårt att få föräldrar att ta ett pass. Lagpasset har urgency inbyggt från start – precis som när man bokar en flygbiljett och ser "3 platser kvar".</p>
+        <div class="section-tag" style="color:#4ade80">Inbyggd urgency</div>
+        <h2 style="color:#e0f0e0">Föräldrar väljer snabbare<br><em style="color:#4ade80">när de ser att det fylls.</em></h2>
+        <p style="font-size:16px;color:rgba(224,240,224,.8);line-height:1.8;margin-top:1rem;max-width:440px">Det är svårt att få föräldrar att ta ett pass. Lagpasset har urgency inbyggt från start – precis som när man bokar en flygbiljett och ser "3 platser kvar".</p>
         <div style="display:flex;flex-direction:column;gap:.85rem;margin-top:1.75rem">
-          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px;color:rgba(224,240,224,.85)">
-            <span style="color:#22c55e;font-weight:700;flex-shrink:0">✓</span>
-            <span>En progress-bar på varje pass visar hur många platser som tagits</span>
+          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px">
+            <span style="color:#4ade80;font-weight:700;flex-shrink:0">✓</span>
+            <span style="color:rgba(224,240,224,.85)">En progress-bar på varje pass visar hur många platser som tagits</span>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px;color:rgba(224,240,224,.85)">
-            <span style="color:#22c55e;font-weight:700;flex-shrink:0">✓</span>
-            <span>Totalt antal bokade pass visas direkt när föräldrar öppnar länken</span>
+          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px">
+            <span style="color:#4ade80;font-weight:700;flex-shrink:0">✓</span>
+            <span style="color:rgba(224,240,224,.85)">Totalt antal bokade pass visas direkt när medlemmar öppnar länken</span>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px;color:rgba(224,240,224,.85)">
-            <span style="color:#22c55e;font-weight:700;flex-shrink:0">✓</span>
-            <span>Rubriken skiftar automatiskt: "🔥 Mer än hälften av passen tagna" när det börjar fyllas</span>
+          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px">
+            <span style="color:#4ade80;font-weight:700;flex-shrink:0">✓</span>
+            <span style="color:rgba(224,240,224,.85)">Rubriken skiftar automatiskt: "🔥 Mer än hälften av passen tagna" när det börjar fyllas</span>
           </div>
-          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px;color:rgba(224,240,224,.85)">
-            <span style="color:#22c55e;font-weight:700;flex-shrink:0">✓</span>
-            <span>Föräldrar ser att andra redan valt – och väljer snabbare för att slippa sämre pass</span>
+          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px">
+            <span style="color:#4ade80;font-weight:700;flex-shrink:0">✓</span>
+            <span style="color:rgba(224,240,224,.85)">Medlemmar ser att andra redan valt – och väljer snabbare för att slippa sämre pass</span>
           </div>
         </div>
-        <a href="guest.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:1.75rem;background:rgba(34,197,94,.15);border:1.5px solid rgba(34,197,94,.35);color:#6dbf6a;padding:10px 20px;border-radius:100px;font-size:14px;font-weight:600;text-decoration:none;transition:all .2s">👤 Se hur det ser ut för föräldrar →</a>
+        <a href="guest.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:1.75rem;background:rgba(34,197,94,.15);border:1.5px solid rgba(34,197,94,.35);color:#e0f0e0;padding:10px 20px;border-radius:100px;font-size:14px;font-weight:600;text-decoration:none;transition:all .2s">Se hur det ser ut för medlemmar →</a>
       </div>
       <!-- INNAN / EFTER mockup -->
       <div style="display:flex;flex-direction:column;gap:1rem">
@@ -563,8 +563,8 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
     <div class="features-grid">
       <div class="feat star">
         <div class="feat-icon">🤖</div>
-        <div class="feat-title">Automatisk tilldelning</div>
-        <div class="feat-desc">När deadline passerar tilldelar systemet automatiskt pass till de som inte valt. De får ett mejl. Föreningen behöver inte göra någonting.</div>
+        <div class="feat-title">Automatisk tilldelning vid deadline</div>
+        <div class="feat-desc">Systemet delar ut resterande pass rättvist bland de som inte valt. Varje person får ett mejl med sitt tilldelade pass. Inga samtal, inget manuellt arbete.</div>
       </div>
       <div class="feat star">
         <div class="feat-icon">⏳</div>
@@ -583,8 +583,8 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
       </div>
       <div class="feat">
         <div class="feat-icon">📝</div>
-        <div class="feat-title">Enkel uppladdning av medlemslista</div>
-        <div class="feat-desc">Föreningen laddar in sin befintliga lista med namn och e-post. Inga tekniska kunskaper behövs.</div>
+        <div class="feat-title">Importera befintlig lista</div>
+        <div class="feat-desc">Ladda upp er Excel- eller CSV-fil direkt. Systemet matchar namn och e-post automatiskt – ni behöver inte ändra ett dugg i er nuvarande lista.</div>
       </div>
       <div class="feat">
         <div class="feat-icon">🤖</div>
@@ -593,13 +593,13 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
       </div>
       <div class="feat">
         <div class="feat-icon">🔔</div>
-        <div class="feat-title">Automatisk påminnelse</div>
-        <div class="feat-desc">Föreningen väljer antal dagar före sista dag. Medlemmar och ansvariga vuxna som inte valt pass ännu får ett mejl automatiskt.</div>
+        <div class="feat-title">Påminnelse bara till de som inte valt</div>
+        <div class="feat-desc">Inte ett mejl till alla – bara till de som faktiskt inte valt ännu. Ni väljer hur många dagar före deadline påminnelsen skickas.</div>
       </div>
       <div class="feat">
         <div class="feat-icon">🖨️</div>
-        <div class="feat-title">Utskriftsklara listor</div>
-        <div class="feat-desc">En lista per arbetsställe med namn och telefon. Redo att skriva ut med ett klick – inga kalkylblad att klippa ihop.</div>
+        <div class="feat-title">Utskriftsklara listor – per station</div>
+        <div class="feat-desc">En lista per passtyp med namn, telefon och lag. Sorterbar, utskriftsvänlig och redo på sekunder – ta med den direkt till Servering eller Infotält.</div>
       </div>
       <div class="feat">
         <div class="feat-icon">📅</div>
@@ -626,58 +626,47 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
     <div class="section-tag">Pris</div>
     <h2>Priset anpassas efter er förening.</h2>
     <p class="section-sub" style="margin-bottom:2rem">Samma funktioner för alla — ni väljer storlek baserat på antal aktiva medlemmar.</p>
-    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem">
-      <span style="font-size:13px;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;padding:5px 14px;color:var(--muted)"><strong style="color:var(--dark)">S</strong> — under 1 000 aktiva</span>
-      <span style="font-size:13px;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;padding:5px 14px;color:var(--muted)"><strong style="color:var(--dark)">M</strong> — 1 000–3 000 aktiva</span>
-      <span style="font-size:13px;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;padding:5px 14px;color:var(--muted)"><strong style="color:var(--dark)">L</strong> — över 3 000 aktiva</span>
-    </div>
+
     <!-- Vad ingår – visas en gång -->
-    <div style="background:var(--green-light);border:2px solid rgba(26,140,58,.3);border-radius:14px;padding:1.25rem 1.75rem;max-width:640px;margin:0 auto 2rem;display:flex;flex-wrap:wrap;gap:.5rem 2rem">
-      <span style="font-size:13px;color:rgba(224,240,224,.8)">✓ Obegränsat antal lag</span>
-      <span style="font-size:13px;color:rgba(224,240,224,.8)">✓ Automatisk påminnelse & tilldelning</span>
-      <span style="font-size:13px;color:rgba(224,240,224,.8)">✓ AI-import av schema</span>
-      <span style="font-size:13px;color:rgba(224,240,224,.8)">✓ Utskriftsklara listor</span>
-      <span style="font-size:13px;color:rgba(224,240,224,.8)">✓ Föräldravy & adminvy</span>
-      <span style="font-size:13px;color:rgba(224,240,224,.8)">✓ Support ingår</span>
-    </div>
+    <p style="text-align:center;font-size:13.5px;color:var(--muted);margin-bottom:2rem">Samma funktioner för alla och support ingår.</p>
 
     <!-- Två kolumner: Per event vs Årsabonnemang -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;max-width:720px;margin:0 auto">
 
       <!-- Per event -->
-      <div class="price-card" style="background:var(--surface);border:1.5px solid var(--border)">
+      <div class="price-card" style="background:#fff;border:2px solid var(--border)">
         <div class="price-card-label" style="color:var(--muted)">Per event</div>
         <div style="margin:1rem 0 .5rem">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Liten förening</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Liten förening <span style="font-size:11px;opacity:.7">· S · under 1 000 aktiva</span></div>
           <div style="display:flex;align-items:baseline;gap:.3rem"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">3 995</span><span style="color:var(--muted);font-size:.9rem">kr</span></div>
         </div>
         <div style="margin-bottom:.5rem">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Medelstor förening</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Medelstor förening <span style="font-size:11px;opacity:.7">· M · 1 000–3 000 aktiva</span></div>
           <div style="display:flex;align-items:baseline;gap:.3rem"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">5 995</span><span style="color:var(--muted);font-size:.9rem">kr</span></div>
         </div>
         <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Stor förening</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Stor förening <span style="font-size:11px;opacity:.7">· L · över 3 000 aktiva</span></div>
           <div style="display:flex;align-items:baseline;gap:.3rem"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">9 995</span><span style="color:var(--muted);font-size:.9rem">kr</span></div>
         </div>
         <div class="price-note" style="margin-top:1rem;color:var(--muted)">Betala per tillfälle. Inga bindningar.</div>
       </div>
 
       <!-- Årsabonnemang – featured -->
-      <div class="price-card featured" style="background:var(--green-light);border:2px solid var(--green)">
+      <div class="price-card featured" style="background:var(--green-light);border:2.5px solid var(--green);box-shadow:0 4px 20px rgba(26,140,58,.15)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
           <div class="price-card-label" style="color:var(--green);margin:0">Årsabonnemang</div>
           <span class="price-badge">Populärast</span>
         </div>
         <div style="margin:1rem 0 .5rem">
-          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Liten förening</div>
+          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Liten förening <span style="font-size:11px;opacity:.7">· S · under 1 000 aktiva</span></div>
           <div style="display:flex;align-items:baseline;gap:.3rem"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">4 995</span><span style="color:#2d6a3a;font-size:.9rem">kr/år</span></div>
         </div>
         <div style="margin-bottom:.5rem">
-          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Medelstor förening</div>
+          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Medelstor förening <span style="font-size:11px;opacity:.7">· M · 1 000–3 000 aktiva</span></div>
           <div style="display:flex;align-items:baseline;gap:.3rem"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">7 995</span><span style="color:#2d6a3a;font-size:.9rem">kr/år</span></div>
         </div>
         <div>
-          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Stor förening</div>
+          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Stor förening <span style="font-size:11px;opacity:.7">· L · över 3 000 aktiva</span></div>
           <div style="display:flex;align-items:baseline;gap:.3rem"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">14 995</span><span style="color:#2d6a3a;font-size:.9rem">kr/år</span></div>
         </div>
         <div class="price-note" style="margin-top:1rem;color:#1a5c24;font-weight:600">Obegränsat antal event under året.</div>
@@ -693,10 +682,10 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
   <div class="container">
     <div class="section-tag">Prova själv</div>
     <h2 style="color:var(--dark)">Se hur det fungerar</h2>
-    <p class="section-sub" style="margin:0 auto 3rem;text-align:center;max-width:480px">Klicka runt fritt i demon – inget sparas. Se admindemon för att förstå föreningens vy, eller se föräldravyn för att uppleva det ur familjens perspektiv.</p>
+    <p class="section-sub" style="margin:0 auto 3rem;text-align:center;max-width:480px">Klicka runt fritt i demon – inget sparas. Se admindemon för att förstå föreningens vy, eller se medlemsvyn för att uppleva det ur familjens perspektiv.</p>
     <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap">
       <a href="admin_demo.html" class="btn-hero btn-hero-solid">🏟️ Se admindemon</a>
-      <a href="guest.html" target="_blank" class="btn-hero btn-hero-outline">👤 Se föräldravyn</a>
+      <a href="guest.html" target="_blank" class="btn-hero btn-hero-outline">👤 Se medlemsvyn</a>
     </div>
     <p style="font-size:13.5px;color:var(--muted);margin-top:1.25rem;text-align:center">Vill du ha en personlig genomgång? <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="color:var(--green);font-weight:600;text-decoration:none">Boka 30 min →</a></p>
   </div>
