@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="favicon.png">
 <title>Demo – Lagpasset admin</title>
 <meta name="description" content="Klicka runt i en demo av Lagpasset och se hur enkelt föreningen hanterar föräldrapass.">
 <meta property="og:title" content="Lagpasset – Se admindemon">
 <meta property="og:description" content="Se hur föreningen hanterar föräldrapass – klicka runt fritt, inget sparas.">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#f4f7f4;--surface:#fff;--border:#dde8dd;
@@ -22,7 +23,7 @@ body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font
 /* SIDEBAR */
 .sidebar{width:var(--sidebar);background:#0a1509;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:20;transition:transform .25s}
 .sidebar-logo{padding:1.4rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
-.sidebar-logo a{font-family:"Playfair Display",serif;font-size:1.15rem;color:#e8f5e8;text-decoration:none;font-weight:700}
+.sidebar-logo a{font-family:"Nunito",sans-serif;font-size:1.15rem;color:#e8f5e8;text-decoration:none;font-weight:700}
 .sidebar-logo span{color:#4dbf6a}
 .club-name{font-size:12px;color:rgba(200,230,200,.5);margin-top:4px;font-weight:500}
 .nav-items{padding:.75rem 0;flex:1}
@@ -52,7 +53,7 @@ body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font
 
 /* STAT CARDS */
 .stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.1rem 1.3rem}
-.stat-num{font-family:"Playfair Display",serif;font-size:2rem;font-weight:700;color:var(--dark);line-height:1}
+.stat-num{font-family:"Nunito",sans-serif;font-size:2rem;font-weight:700;color:var(--dark);line-height:1}
 .stat-label{font-size:12.5px;color:var(--muted);margin-top:5px;font-weight:500}
 .stat-card.green{background:var(--green-light);border-color:rgba(26,140,58,.25)}
 .stat-card.green .stat-num{color:var(--green)}
@@ -163,7 +164,7 @@ textarea{resize:vertical;min-height:70px}
 .demo-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--dark);color:#e0f0e0;padding:11px 22px;border-radius:100px;font-size:14px;font-weight:500;z-index:1000;display:none;box-shadow:0 4px 24px rgba(0,0,0,.25);border:1px solid var(--border);white-space:nowrap}
 .demo-welcome-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:1rem}
 .demo-welcome-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;padding:2rem 2.25rem;width:100%;max-width:480px;text-align:center}
-.demo-welcome-logo{font-family:"Playfair Display",serif;font-size:1.3rem;font-weight:700;color:var(--dark);margin-bottom:.25rem}
+.demo-welcome-logo{font-family:"Nunito",sans-serif;font-size:1.3rem;font-weight:700;color:var(--dark);margin-bottom:.25rem}
 .demo-welcome-logo span{color:var(--green)}
 .demo-welcome-title{font-size:1.35rem;font-weight:700;color:var(--dark);margin:.75rem 0 .4rem}
 .demo-welcome-sub{font-size:14.5px;color:var(--muted);line-height:1.7;margin-bottom:1.5rem}
@@ -457,7 +458,7 @@ Tack för att ni hjälper till under Åsacupen 2026. Vi ser fram emot ett fantas
 
 Har du frågor, kontakta oss på kansli@asaif.com.
 
-H�lsningar,
+H�lsningar,
 Åsa IF</textarea>
         </div>
         <div style="display:flex;gap:.6rem">
