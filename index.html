@@ -4,29 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lagpasset – Välj ditt pass. Hjälp laget.</title>
-<meta name="description" content="Digitala föräldrapass för idrottsföreningar. Föräldrarna väljer pass direkt i mobilen – inga Word-dokument, ingen manuell sammanställning.">
+<meta name="description" content="Digitala volontärpass för idrottsföreningar. Från medlemslista till bemannat schema – automatiskt.">
 <meta property="og:title" content="Lagpasset – Välj ditt pass. Hjälp laget.">
-<meta property="og:description" content="Idrottsföreningar samlar in föräldrapass digitalt – enkelt för föräldrar, enkelt för föreningen.">
+<meta property="og:description" content="Föreningen laddar upp medlemslistan. Föräldrar och medlemmar väljer pass. Ingen behöver jagas.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://lagpasset.se">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#faf8f4;
-  --surface:#fff;
-  --surface2:#f2f9f3;
-  --border:#e0ece0;
-  --green:#1a8c3a;
-  --green-mid:#22a847;
-  --green-light:#e8f7ec;
-  --green-pale:rgba(26,140,58,.07);
-  --dark:#111c13;
-  --text:#1e2e20;
-  --muted:#6a8a6e;
+  --bg:#faf8f4;--surface:#fff;--surface2:#f2f9f3;--border:#e0ece0;
+  --green:#1a8c3a;--green-mid:#22a847;--green-light:#e8f7ec;--green-pale:rgba(26,140,58,.07);
+  --dark:#111c13;--text:#1e2e20;--muted:#6a8a6e;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-weight:400;overflow-x:hidden;font-size:17px;line-height:1.7}
 
-/* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;background:rgba(250,248,244,.96);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
 .nav-logo{font-family:"Playfair Display",serif;font-size:1.35rem;color:var(--dark);text-decoration:none;font-weight:700}
 .nav-logo span{color:var(--green)}
@@ -34,10 +27,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;display:fl
 .nav-links a{font-size:14px;color:var(--muted);text-decoration:none;transition:color .2s;font-weight:500}
 .nav-links a:hover{color:var(--dark)}
 .btn-nav{padding:9px 22px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:14px;font-weight:600;text-decoration:none;transition:all .2s;letter-spacing:.01em;cursor:pointer;border:none}
-.btn-nav-ghost{background:transparent;border:1.5px solid var(--border);color:var(--muted)}
-.btn-nav-ghost:hover{border-color:var(--green);color:var(--green)}
-.btn-nav-solid{background:var(--green);color:#fff !important}
-.btn-nav-solid:hover{background:#15752e}
+.btn-nav-ghost{background:transparent;border:1.5px solid var(--border);color:var(--muted)}.btn-nav-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-nav-solid{background:var(--green);color:#fff !important}.btn-nav-solid:hover{background:#15752e}
 .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none}
 .hamburger span{width:22px;height:2.5px;background:var(--dark);border-radius:2px;transition:all .3s;display:block}
 .mobile-menu{display:none;position:fixed;inset:0;background:var(--bg);z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:2.25rem}
@@ -52,17 +43,18 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;display:fl
 .hero-ring{position:absolute;width:600px;height:600px;border-radius:50%;border:2px solid rgba(26,140,58,.12);top:-80px;right:-140px;z-index:1}
 .hero-ring2{position:absolute;width:380px;height:380px;border-radius:50%;border:1.5px solid rgba(26,140,58,.09);top:60px;right:20px;z-index:1}
 .hero-inner{position:relative;z-index:2;max-width:1100px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 400px;gap:4.5rem;align-items:center}
-.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(26,140,58,.1);border:1px solid rgba(26,140,58,.22);border-radius:100px;padding:6px 16px;font-size:12px;color:var(--green);letter-spacing:.06em;font-weight:600;text-transform:uppercase;margin-bottom:1.75rem}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(26,140,58,.1);border:1px solid rgba(26,140,58,.22);border-radius:100px;padding:6px 16px;font-size:12px;color:var(--green);letter-spacing:.06em;font-weight:700;text-transform:uppercase;margin-bottom:1.75rem}
 .hero-tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green)}
 h1{font-family:"Playfair Display",serif;font-size:clamp(2.8rem,5.5vw,4.8rem);font-weight:700;line-height:1.08;color:var(--dark);margin-bottom:.6rem}
 h1 em{color:var(--green);font-style:italic}
 .hero-tagline{font-family:"Playfair Display",serif;font-size:clamp(1.1rem,2vw,1.4rem);color:var(--green);font-weight:400;margin-bottom:1.6rem;font-style:italic}
-.hero-sub{font-size:17px;color:#2d4a30;line-height:1.8;max-width:480px;margin-bottom:2.5rem;font-weight:400}
+.hero-sub{font-size:17px;color:#2d4a30;line-height:1.8;max-width:480px;margin-bottom:2.5rem}
 .hero-cta{display:flex;gap:1rem;flex-wrap:wrap}
-.btn-hero{padding:15px 32px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:600;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:none;letter-spacing:.01em}
+.btn-hero{padding:15px 32px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:700;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:none;letter-spacing:.01em}
 .btn-hero-solid{background:var(--green);color:#fff}.btn-hero-solid:hover{background:#15752e;transform:translateY(-1px)}
 .btn-hero-outline{background:rgba(26,140,58,.08);border:2px solid rgba(26,140,58,.25);color:var(--dark)}.btn-hero-outline:hover{border-color:var(--green);color:var(--green)}
-.hero-note{font-size:13.5px;color:var(--muted);margin-top:1.1rem;font-weight:400}
+.btn-hero-ghost{background:transparent;border:2px solid var(--border);color:var(--muted)}.btn-hero-ghost:hover{border-color:var(--green);color:var(--green)}
+.hero-note{font-size:13.5px;color:var(--muted);margin-top:1.1rem}
 .hero-stats{display:flex;gap:2.75rem;margin-top:3.5rem;padding-top:2rem;border-top:1.5px solid var(--border)}
 .stat-num{font-family:"Playfair Display",serif;font-size:2.3rem;color:var(--dark);font-weight:700;line-height:1}
 .stat-label{font-size:13.5px;color:var(--muted);margin-top:4px;font-weight:500;line-height:1.4}
@@ -73,7 +65,7 @@ h1 em{color:var(--green);font-style:italic}
 .ph-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;padding-bottom:.75rem;border-bottom:1px solid rgba(255,255,255,.07)}
 .ph-logo{font-family:"Playfair Display",serif;font-size:.95rem;color:#d0e8d0;font-weight:700}.ph-logo span{color:#4dbf6a}
 .ph-pill{font-size:10px;background:rgba(26,140,58,.3);color:#6dbf6a;border-radius:100px;padding:3px 9px;border:1px solid rgba(77,191,106,.2);font-weight:600}
-.ph-h{font-family:"Playfair Display",serif;font-size:1.05rem;color:#e8f4e8;margin-bottom:.15rem;font-weight:700}
+.ph-h{font-family:"Playfair Display",serif;font-size:1.05rem;color:#e8f4e8;font-weight:700;margin-bottom:.15rem}
 .ph-sub{font-size:11px;color:#4a6a4c;margin-bottom:.9rem;line-height:1.5;font-weight:500}
 .ph-label{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a6a4c;margin-bottom:.45rem}
 .ph-children{display:flex;flex-direction:column;gap:5px;margin-bottom:.85rem}
@@ -88,30 +80,35 @@ h1 em{color:var(--green);font-style:italic}
 .ph-pass.sel{border-color:#4dbf6a;background:rgba(26,140,58,.12)}
 .ph-pass-title{font-size:11.5px;font-weight:600;color:#d0e8d0}
 .ph-pass-meta{font-size:10px;color:#4a6a4c;margin-top:2px;font-weight:500}
-.ph-btn{background:#1a8c3a;color:#fff;border-radius:100px;padding:10px;text-align:center;font-size:12px;font-weight:700;margin-top:.7rem;letter-spacing:.01em}
+.ph-btn{background:#1a8c3a;color:#fff;border-radius:100px;padding:10px;text-align:center;font-size:12px;font-weight:700;margin-top:.7rem}
 
-/* SECTION BASE */
+/* SECTIONS */
 section{padding:6rem 2rem}
 .container{max-width:1100px;margin:0 auto}
 .section-tag{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:.9rem}
 h2{font-family:"Playfair Display",serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;line-height:1.15;color:var(--dark);margin-bottom:1rem}
 h2 em{color:var(--green);font-style:italic}
-.section-sub{font-size:17px;color:var(--muted);line-height:1.75;max-width:500px;font-weight:400}
+.section-sub{font-size:17px;color:var(--muted);line-height:1.75;max-width:500px}
 
 /* HOW */
 .how{background:var(--dark)}
 .how h2{color:#e0f0e0}
 .how .section-tag{color:rgba(100,210,130,.9)}
-.how .section-sub{color:rgba(224,240,224,.7)}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.5rem;margin-top:3.5rem}
+.how .section-sub{color:rgba(224,240,224,.85)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-top:3.5rem}
 .step{padding:1.75rem;background:rgba(26,140,58,.07);border:1.5px solid rgba(26,140,58,.16);border-radius:16px;transition:all .3s}
 .step:hover{background:rgba(26,140,58,.13);border-color:rgba(26,140,58,.32);transform:translateY(-3px)}
-.step-num{font-family:"Playfair Display",serif;font-size:2.8rem;color:rgba(100,200,130,.45);font-weight:700;line-height:1;margin-bottom:.65rem}
+.step-num{font-family:"Playfair Display",serif;font-size:2.8rem;color:#22c55e;font-weight:700;line-height:1;margin-bottom:.65rem}
 .step-icon{font-size:1.6rem;margin-bottom:.6rem}
 .step-title{font-size:16px;font-weight:700;color:#fff;margin-bottom:.45rem}
-.step-desc{font-size:14px;color:rgba(224,240,224,.7);line-height:1.65;font-weight:400}
+.step-desc{font-size:14px;color:rgba(224,240,224,.88);line-height:1.65}
 
-/* PROBLEM / SOLUTION */
+/* AUTO-ASSIGN highlight */
+.step.highlight{background:rgba(26,140,58,.18);border-color:rgba(26,140,58,.5)}
+.step.highlight .step-title{color:#6dbf6a}
+.step-new-badge{display:inline-block;font-size:10px;font-weight:700;background:rgba(26,140,58,.4);color:#6dbf6a;border-radius:100px;padding:2px 8px;margin-bottom:.4rem;letter-spacing:.04em}
+
+/* PROBLEM */
 .problem{background:var(--surface)}
 .prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:3rem;align-items:start}
 .prob-box{border-radius:16px;padding:2rem}
@@ -121,7 +118,7 @@ h2 em{color:var(--green);font-style:italic}
 .prob-box.before .prob-box-label{color:#c06030}
 .prob-box.after .prob-box-label{color:var(--green)}
 .prob-list{list-style:none;display:flex;flex-direction:column;gap:.85rem}
-.prob-list li{display:flex;align-items:flex-start;gap:.75rem;font-size:15.5px;line-height:1.55;font-weight:400}
+.prob-list li{display:flex;align-items:flex-start;gap:.75rem;font-size:15.5px;line-height:1.55}
 .prob-list li::before{flex-shrink:0;margin-top:1px;font-weight:700}
 .prob-box.before .prob-list li{color:#6a3010}
 .prob-box.before .prob-list li::before{content:"✕";color:#c06030}
@@ -134,14 +131,11 @@ h2 em{color:var(--green);font-style:italic}
 .feat{padding:1.6rem;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;transition:all .25s;position:relative;overflow:hidden}
 .feat::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:0;transition:opacity .25s}
 .feat:hover{border-color:rgba(26,140,58,.32);transform:translateY(-2px)}.feat:hover::before{opacity:1}
+.feat.star{border-color:rgba(26,140,58,.35);background:var(--green-light)}
 .feat-icon{font-size:1.6rem;margin-bottom:.85rem}
 .feat-title{font-size:16px;font-weight:700;color:var(--dark);margin-bottom:.4rem}
-.feat-desc{font-size:14.5px;color:var(--muted);line-height:1.65;font-weight:400}
-
-/* AI BLOCK */
-.ai-block{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.5rem 1.75rem;margin-top:1.25rem;display:flex;gap:1rem;align-items:flex-start}
-.ai-icon{font-size:1.6rem;flex-shrink:0;margin-top:2px}
-.ai-badge{display:inline-block;background:rgba(26,140,58,.1);border:1px solid rgba(26,140,58,.22);border-radius:100px;padding:3px 11px;font-size:11px;color:var(--green);font-weight:700;letter-spacing:.04em;margin-bottom:.45rem}
+.feat-desc{font-size:14.5px;color:var(--muted);line-height:1.65}
+.feat-new{font-size:10.5px;font-weight:700;background:rgba(26,140,58,.15);color:var(--green);border-radius:100px;padding:2px 8px;margin-bottom:.5rem;display:inline-block}
 
 /* PRICING */
 .pricing{background:var(--dark)}
@@ -158,33 +152,31 @@ h2 em{color:var(--green);font-style:italic}
 .price-per{font-size:14px;color:rgba(224,240,224,.4);margin-top:5px;font-weight:500}
 .price-divider{height:1px;background:rgba(255,255,255,.09);margin:1.5rem 0}
 .price-list{list-style:none;display:flex;flex-direction:column;gap:.8rem}
-.price-list li{display:flex;align-items:flex-start;gap:.7rem;font-size:14.5px;color:rgba(224,240,224,.8);line-height:1.5;font-weight:400}
+.price-list li{display:flex;align-items:flex-start;gap:.7rem;font-size:14.5px;color:rgba(224,240,224,.8);line-height:1.5}
 .price-list li::before{content:"✓";color:rgba(100,210,130,.8);flex-shrink:0;font-weight:700}
-.price-note{font-size:12.5px;color:rgba(224,240,224,.28);margin-top:1.5rem;line-height:1.6;font-weight:400}
+.price-note{font-size:12.5px;color:rgba(224,240,224,.28);margin-top:1.5rem;line-height:1.6}
 .price-badge{background:rgba(26,140,58,.4);color:rgba(100,210,130,.95);font-size:11px;font-weight:700;padding:3px 11px;border-radius:100px;letter-spacing:.04em}
 
-/* CTA */
+/* CTA / DEMO SECTION */
+.demo-section{background:var(--surface);text-align:center;padding:6rem 2rem}
 .cta-section{background:var(--green);text-align:center;padding:7rem 2rem}
 .cta-section h2{color:#fff;max-width:640px;margin:.75rem auto 1.25rem}
-.cta-section .section-tag{color:rgba(255,255,255,.7)}
-.cta-input{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);border-radius:100px;padding:13px 20px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:400;color:#fff;outline:none;transition:border-color .2s;width:100%;margin-bottom:.65rem}
-.cta-input::placeholder{color:rgba(255,255,255,.5)}
-.cta-input:focus{border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.22)}
-.btn-cta{background:#fff;color:var(--green);padding:14px 28px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:700;border:none;cursor:pointer;transition:all .2s;width:100%;display:block;letter-spacing:.01em}
+.cta-section .section-tag{color:rgba(255,255,255,.85)}
+.btn-cta{background:#fff;color:var(--green);padding:14px 32px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:700;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;letter-spacing:.01em}
 .btn-cta:hover{background:#f0f8f0;transform:translateY(-1px)}
+.btn-cta-outline{background:rgba(0,0,0,.15);color:#fff;border:2px solid rgba(255,255,255,.6);padding:14px 32px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:700;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-cta-outline:hover{background:rgba(0,0,0,.25);border-color:#fff}
+.demo-card{background:var(--bg);border:1.5px solid var(--border);border-radius:16px;padding:2rem;max-width:380px;margin:0 auto;text-align:left}
 
 footer{background:var(--dark);border-top:1px solid rgba(255,255,255,.06);padding:2.25rem 2rem;text-align:center}
 .footer-logo{font-family:"Playfair Display",serif;font-size:1.15rem;color:#e0f0e0;margin-bottom:.4rem;font-weight:700}
 .footer-logo span{color:rgba(100,210,130,.85)}
-footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
+footer p{font-size:13px;color:rgba(224,240,224,.55)}
 
-/* ANIMATIONS */
 @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 .fu{opacity:0;animation:fadeUp .65s ease forwards}
-.fu:nth-child(1){animation-delay:.1s}
-.fu:nth-child(2){animation-delay:.2s}
-.fu:nth-child(3){animation-delay:.3s}
-.fu:nth-child(4){animation-delay:.4s}
+.fu:nth-child(1){animation-delay:.1s}.fu:nth-child(2){animation-delay:.2s}
+.fu:nth-child(3){animation-delay:.3s}.fu:nth-child(4){animation-delay:.4s}
 .fu:nth-child(5){animation-delay:.5s}
 
 @media(max-width:960px){.hero-inner{grid-template-columns:1fr}.hero-phone{display:none}.hero-ring,.hero-ring2{display:none}}
@@ -192,16 +184,11 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
   .nav-links{display:none}.hamburger{display:flex}
   .hero{padding:5.5rem 1.25rem 3.5rem;min-height:auto}
   h1{font-size:2.4rem}.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:2rem}
-  .stat-num{font-size:2rem}
-  section{padding:3.5rem 1.25rem}
-  h2{font-size:2rem}
-  .steps{grid-template-columns:1fr}
-  .prob-grid{grid-template-columns:1fr;gap:1.25rem}
-  .features-grid{grid-template-columns:1fr}
-  .price-grid{grid-template-columns:1fr;max-width:100%}
+  section{padding:3.5rem 1.25rem}h2{font-size:2rem}
+  .steps{grid-template-columns:1fr}.prob-grid{grid-template-columns:1fr;gap:1.25rem}
+  .features-grid{grid-template-columns:1fr}.price-grid{grid-template-columns:1fr;max-width:100%}
   .hero-cta{flex-direction:column;align-items:flex-start}
   .btn-hero{width:100%;justify-content:center}
-  .cta-section{padding:4rem 1.25rem}
 }
 </style>
 </head>
@@ -213,8 +200,8 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
     <a href="#how">Så fungerar det</a>
     <a href="#features">Funktioner</a>
     <a href="#pricing">Pris</a>
-    <a href="guest.html" class="btn-nav btn-nav-ghost">Se demo</a>
-    <a href="#contact" class="btn-nav btn-nav-solid">Kom igång →</a>
+    <a href="admin_demo.html" class="btn-nav btn-nav-ghost">Se demo</a>
+    <a href="bli-kund.html" class="btn-nav btn-nav-solid">Kom igång →</a>
   </div>
   <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Meny">
     <span></span><span></span><span></span>
@@ -225,69 +212,48 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
   <a href="#how" onclick="toggleMenu()">Så fungerar det</a>
   <a href="#features" onclick="toggleMenu()">Funktioner</a>
   <a href="#pricing" onclick="toggleMenu()">Pris</a>
-  <a href="guest.html" onclick="toggleMenu()">Se demo</a>
-  <a href="#contact" onclick="toggleMenu()" style="color:var(--green)">Kom igång</a>
+  <a href="admin_demo.html" onclick="toggleMenu()">Se demo</a>
+  <a href="bli-kund.html" onclick="toggleMenu()" style="color:var(--green)">Kom igång</a>
 </div>
 
 <!-- HERO -->
 <section class="hero" id="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-grain"></div>
-  <div class="hero-ring"></div>
-  <div class="hero-ring2"></div>
+  <div class="hero-bg"></div><div class="hero-grain"></div>
+  <div class="hero-ring"></div><div class="hero-ring2"></div>
   <div class="hero-inner">
     <div class="hero-left">
       <div class="hero-tag fu">För idrottsföreningar</div>
       <h1 class="fu">Välj ditt pass.<br><em>Hjälp laget.</em></h1>
-      <p class="hero-tagline fu">Digitala föräldrapass – klart på en minut.</p>
-      <p class="hero-sub fu">Föräldrarna väljer pass direkt i mobilen. Föreningen slipper Word-dokument, manuell sammanställning och att jaga folk.</p>
+      <p class="hero-tagline fu">Från medlemslista till bemannat schema.</p>
+      <p class="hero-sub fu">Föräldrar och medlemmar väljer pass direkt i mobilen. Ingen behöver jagas. Och om deadline passerar utan att alla valt – tilldelar systemet pass automatiskt.</p>
       <div class="hero-cta fu">
-        <a href="guest.html" class="btn-hero btn-hero-solid">Se demo →</a>
-        <a href="#contact" class="btn-hero btn-hero-outline">Kom igång</a>
+        <a href="admin_demo.html" class="btn-hero btn-hero-solid">Se admindemon →</a>
+        <a href="guest.html" target="_blank" class="btn-hero btn-hero-outline">Se föräldravyn</a>
+        <a href="bli-kund.html" class="btn-hero btn-hero-ghost">Kom igång</a>
       </div>
-      <p class="hero-note fu">Fungerar på svenska, norska och danska. Ingen app att installera.</p>
+      <p class="hero-note fu">Svenska, norska, danska. Ingen app. Ingen installation.</p>
       <div class="hero-stats fu">
         <div><div class="stat-num">1 min</div><div class="stat-label">Att välja ett pass</div></div>
         <div><div class="stat-num">0</div><div class="stat-label">Excel-filer</div></div>
-        <div><div class="stat-num">Auto</div><div class="stat-label">Påminnelse</div></div>
+        <div><div class="stat-num">Auto</div><div class="stat-label">Tilldelning vid deadline</div></div>
         <div><div class="stat-num">1 klick</div><div class="stat-label">Utskrift</div></div>
       </div>
     </div>
     <div class="hero-phone">
       <div class="phone-screen">
-        <div class="ph-nav">
-          <div class="ph-logo">Lag<span>passet</span></div>
-          <div class="ph-pill">Sista dag: 18 jun</div>
-        </div>
+        <div class="ph-nav"><div class="ph-logo">Lag<span>passet</span></div><div class="ph-pill">Sista dag: 18 jun</div></div>
         <div class="ph-h">Välkommen!</div>
         <div class="ph-sub">Åsacupen 2026 · Välj ett pass per barn</div>
         <div class="ph-label">Dina barn</div>
         <div class="ph-children">
-          <div class="ph-child sel">
-            <div class="ph-child-av done">✓</div>
-            <div class="ph-child-name">Vilda Wallroth</div>
-            <div class="ph-child-status">Servering lör</div>
-          </div>
-          <div class="ph-child">
-            <div class="ph-child-av">AW</div>
-            <div class="ph-child-name">Alva Wallroth</div>
-            <div class="ph-child-status" style="color:#4a6a4c">Välj pass</div>
-          </div>
+          <div class="ph-child sel"><div class="ph-child-av done">✓</div><div class="ph-child-name">Vilda Wallroth</div><div class="ph-child-status">Servering lör</div></div>
+          <div class="ph-child"><div class="ph-child-av">AW</div><div class="ph-child-name">Alva Wallroth</div><div class="ph-child-status" style="color:#4a6a4c">Välj pass</div></div>
         </div>
         <div class="ph-label">Välj pass – FJ</div>
         <div class="ph-passes">
-          <div class="ph-pass sel">
-            <div class="ph-pass-title">Infotält · Fre 09:00–13:00</div>
-            <div class="ph-pass-meta">2 platser kvar</div>
-          </div>
-          <div class="ph-pass">
-            <div class="ph-pass-title">Nattvakt · Lör 21:00–02:00</div>
-            <div class="ph-pass-meta">4 platser kvar</div>
-          </div>
-          <div class="ph-pass">
-            <div class="ph-pass-title">Servering · Sön 09:30–13:30</div>
-            <div class="ph-pass-meta">6 platser kvar</div>
-          </div>
+          <div class="ph-pass sel"><div class="ph-pass-title">Infotält · Fre 09:00–13:00</div><div class="ph-pass-meta">2 platser kvar</div></div>
+          <div class="ph-pass"><div class="ph-pass-title">Nattvakt · Lör 21:00–02:00</div><div class="ph-pass-meta">4 platser kvar</div></div>
+          <div class="ph-pass"><div class="ph-pass-title">Servering · Sön 09:30–13:30</div><div class="ph-pass-meta">6 platser kvar</div></div>
         </div>
         <div class="ph-btn">Välj det här passet ✓</div>
       </div>
@@ -299,38 +265,39 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
 <section class="how" id="how">
   <div class="container">
     <div class="section-tag">Så fungerar det</div>
-    <h2>Från barnlista till bemannat schema</h2>
-    <p class="section-sub">Föreningen gör det enkelt. Föräldrarna sköter resten.</p>
+    <h2>Från medlemslista till bemannat schema</h2>
+    <p class="section-sub">Föreningen gör grundjobbet en gång. Resten sköter sig självt.</p>
     <div class="steps">
       <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-icon">📝</div>
-        <div class="step-title">Skriv in barnlistan</div>
-        <div class="step-desc">Föreningen skriver in barnens namn med tillhörande e-postadress till föräldern. Enkelt formulär – inga tekniska kunskaper behövs.</div>
+        <div class="step-num">01</div><div class="step-icon">📝</div>
+        <div class="step-title">Ladda in medlemslistan</div>
+        <div class="step-desc">Föreningen laddar in sin befintliga medlemslista med namn och e-postadress. Inget krångel – enkelt formulär, inga tekniska kunskaper behövs.</div>
       </div>
       <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-icon">📋</div>
+        <div class="step-num">02</div><div class="step-icon">📋</div>
         <div class="step-title">Skapa passchemat</div>
-        <div class="step-desc">Lägg till pass med typ, dag, tid och hur många platser varje lag har. Har ni ett gammalt Word-dokument kan AI:n läsa av det och föreslå schemat åt er.</div>
+        <div class="step-desc">Lägg till pass med typ, dag, tid och antal platser per lag. Har ni ett gammalt Word-dokument läser AI:n av det och föreslår schemat åt er.</div>
       </div>
       <div class="step">
-        <div class="step-num">03</div>
-        <div class="step-icon">📧</div>
-        <div class="step-title">Föräldrarna får länk</div>
-        <div class="step-desc">Systemet skickar automatiskt en personlig länk till alla föräldrar. Föräldrar med flera barn ser alla sina barn på ett ställe och väljer ett pass per barn.</div>
+        <div class="step-num">03</div><div class="step-icon">📧</div>
+        <div class="step-title">Föräldrar och medlemmar får länk</div>
+        <div class="step-desc">Systemet skickar en personlig länk till varje förälder eller ansvarig vuxen. De öppnar länken, väljer sitt barn och klickar på ett pass – klart på en minut.</div>
       </div>
       <div class="step">
-        <div class="step-num">04</div>
-        <div class="step-icon">🔔</div>
+        <div class="step-num">04</div><div class="step-icon">🔔</div>
         <div class="step-title">Automatisk påminnelse</div>
         <div class="step-desc">Föreningen väljer hur många dagar före sista dag påminnelsen skickas. De som inte valt pass ännu får ett mejl automatiskt – ingen behöver jagas manuellt.</div>
       </div>
+      <div class="step highlight">
+        <div class="step-new-badge">NY FUNKTION</div>
+        <div class="step-num">05</div><div class="step-icon">⚡</div>
+        <div class="step-title">Automatisk tilldelning vid deadline</div>
+        <div class="step-desc">Om deadline passerar utan att alla valt – tilldelar systemet pass automatiskt till de som inte valt. De får ett mejl med sitt tilldelade pass. Föreningen slipper ringa runt.</div>
+      </div>
       <div class="step">
-        <div class="step-num">05</div>
-        <div class="step-icon">🖨️</div>
+        <div class="step-num">06</div><div class="step-icon">🖨️</div>
         <div class="step-title">Skriv ut och kör</div>
-        <div class="step-desc">En lista per arbetsställe med namn och telefon. Utskriftsvänlig layout – ett klick och den är klar att ta med på cupen.</div>
+        <div class="step-desc">En lista per arbetsställe med namn och telefon. Utskriftsvänlig layout – ett klick och den är klar att ta med på eventet.</div>
       </div>
     </div>
   </div>
@@ -346,9 +313,9 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
         <div class="prob-box-label">Så här är det idag</div>
         <ul class="prob-list">
           <li>Manuell sammanställning från flera dokument och mejltrådar</li>
-          <li>Kräver kontaktpersoner i varje lag som ska jaga föräldrar</li>
-          <li>Svårt att få varje förälder att faktiskt välja ett pass</li>
-          <li>Svårt att få in svar i tid – alltid någon som saknas</li>
+          <li>Behöver kontaktpersoner i varje lag som jagar föräldrar</li>
+          <li>Svårt att få varje förälder eller ansvarig vuxen att faktiskt välja ett pass</li>
+          <li>Svårt att få in svar i tid – alltid någon som saknas kvällen innan</li>
           <li>Svårt att få en samlad översikt – vem jobbar vad, när?</li>
         </ul>
       </div>
@@ -356,9 +323,9 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
         <div class="prob-box-label">Med Lagpasset</div>
         <ul class="prob-list">
           <li>Allt samlat på ett ställe – föreningen ser status i realtid</li>
-          <li>Inga kontaktpersoner behövs – föräldrarna sköter det själva</li>
-          <li>Barnet försvinner ur listan när passet är valt – tydligt och enkelt</li>
-          <li>Automatisk påminnelse när sista dagen närmar sig</li>
+          <li>Inga kontaktpersoner behövs – föräldrar och medlemmar sköter det själva</li>
+          <li>Barnet försvinner ur listan när passet är valt – enkelt och tydligt</li>
+          <li>Automatisk påminnelse och auto-tilldelning om deadline passeras</li>
           <li>Utskriftsvänlig lista per arbetsställe – klar att ta med</li>
         </ul>
       </div>
@@ -372,6 +339,12 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
     <div class="section-tag">Funktioner</div>
     <h2>Allt ni behöver.<br><em>Inget ni inte behöver.</em></h2>
     <div class="features-grid">
+      <div class="feat star">
+        <div class="feat-new">⚡ Ny funktion</div>
+        <div class="feat-icon">🤖</div>
+        <div class="feat-title">Automatisk tilldelning</div>
+        <div class="feat-desc">När deadline passerar tilldelar systemet automatiskt pass till de som inte valt. De får ett mejl. Föreningen behöver inte göra någonting.</div>
+      </div>
       <div class="feat">
         <div class="feat-icon">👨‍👩‍👧‍👦</div>
         <div class="feat-title">Flera barn per familj</div>
@@ -380,7 +353,12 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
       <div class="feat">
         <div class="feat-icon">🏷️</div>
         <div class="feat-title">Lagsorterade pass</div>
-        <div class="feat-desc">Varje förälder ser bara de pass som gäller deras lags kvoter. Inga felval och ingen förvirring om vilket lag som ska bemannas.</div>
+        <div class="feat-desc">Varje förälder eller ansvarig vuxen ser bara de pass som gäller deras lags kvoter. Inga felval och ingen förvirring.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">📝</div>
+        <div class="feat-title">Enkel uppladdning av medlemslista</div>
+        <div class="feat-desc">Föreningen laddar in sin befintliga lista med namn och e-post. Inga tekniska kunskaper behövs.</div>
       </div>
       <div class="feat">
         <div class="feat-icon">🤖</div>
@@ -390,7 +368,7 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
       <div class="feat">
         <div class="feat-icon">🔔</div>
         <div class="feat-title">Automatisk påminnelse</div>
-        <div class="feat-desc">Föreningen väljer antal dagar före sista dag. Föräldrar som inte valt pass ännu får ett mejl automatiskt.</div>
+        <div class="feat-desc">Föreningen väljer antal dagar före sista dag. Föräldrar och ansvariga vuxna som inte valt pass ännu får ett mejl automatiskt.</div>
       </div>
       <div class="feat">
         <div class="feat-icon">🖨️</div>
@@ -398,19 +376,14 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
         <div class="feat-desc">En lista per arbetsställe med namn och telefon. Redo att skriva ut med ett klick – inga kalkylblad att klippa ihop.</div>
       </div>
       <div class="feat">
-        <div class="feat-icon">✏️</div>
-        <div class="feat-title">Lätt att ändra</div>
-        <div class="feat-desc">Föräldern öppnar länken igen, väljer barnets namn och byter pass. Fungerar fram till sista anmälningsdag.</div>
-      </div>
-      <div class="feat">
-        <div class="feat-icon">🏟️</div>
-        <div class="feat-title">Föreningens egna profil</div>
-        <div class="feat-desc">Varje förening syns med sin logotyp och sina färger. Proffsigt mot föräldrar och enkelt för den som administrerar.</div>
-      </div>
-      <div class="feat">
         <div class="feat-icon">📅</div>
         <div class="feat-title">Flera event per år</div>
-        <div class="feat-desc">Årsabonnenter kan skapa hur många event som helst – cup, städdag, föräldramöte. Välj vilka lag som ska hjälpa till för varje event.</div>
+        <div class="feat-desc">Årsabonnenter kan skapa obegränsat antal event – cup, städdag, föräldramöte. Välj vilka lag som ska hjälpa till för varje event.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">⚙️</div>
+        <div class="feat-title">Obligatoriskt eller frivilligt</div>
+        <div class="feat-desc">Föreningen väljer om passvalet är obligatoriskt för alla eller en förfrågan. Kommuniceras tydligt till föräldrar och ansvariga vuxna.</div>
       </div>
     </div>
   </div>
@@ -421,23 +394,22 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
   <div class="container">
     <div class="section-tag">Pris</div>
     <h2>Enkelt och förutsägbart</h2>
-    <p class="section-sub" style="margin-bottom:3rem">Betala per event eller välj årsabonnemang om ni arrangerar flera event under året.</p>
+    <p class="section-sub" style="margin-bottom:3rem">Betala per event eller välj årsabonnemang för obegränsat antal event.</p>
     <div class="price-grid">
       <div class="price-card">
         <div class="price-card-label">Per event</div>
         <div class="price-amount">3 995 <span style="font-size:1.4rem">kr</span></div>
-        <div class="price-per">engångsbelopp</div>
+        <div class="price-per">engångsbelopp · faktureras inför eventet</div>
         <div class="price-divider"></div>
         <ul class="price-list">
           <li>Ett event (ex. en cup eller städdag)</li>
-          <li>Obegränsat antal barn och föräldrar</li>
+          <li>Obegränsat antal deltagare</li>
           <li>Alla pass-typer med lagkvoter</li>
-          <li>Automatisk påminnelse</li>
+          <li>Automatisk påminnelse och tilldelning</li>
           <li>Utskriftsklara listor</li>
           <li>AI-import av gammalt schema</li>
-          <li>Support via mejl</li>
         </ul>
-        <div class="price-note">Passar föreningar som har ett stort event per år.</div>
+        <div class="price-note">Passar föreningar med ett stort event per år.</div>
       </div>
       <div class="price-card featured">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
@@ -449,19 +421,31 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
         <div class="price-divider"></div>
         <ul class="price-list">
           <li>Obegränsat antal event under året</li>
-          <li>Välj vilka lag som hjälper till för varje event</li>
-          <li>Obegränsat antal barn och föräldrar</li>
-          <li>Alla pass-typer med lagkvoter</li>
-          <li>Automatisk påminnelse per event</li>
-          <li>Utskriftsklara listor</li>
-          <li>AI-import av gamla scheman</li>
+          <li>Välj vilka lag som hjälper till per event</li>
+          <li>Allt i Per event-planen</li>
           <li>Föreningens logotyp och färger</li>
+          <li>Mejlkommunikation direkt i systemet</li>
+          <li>Feedbacksammanställning efter event</li>
           <li>Prioriterad support</li>
         </ul>
-        <div class="price-note">Passar föreningar med cup, städdag, föräldramöten och andra event under året.</div>
+        <div class="price-note">Passar föreningar med cup, städdag och andra event under året.</div>
       </div>
     </div>
-    <p style="font-size:13.5px;color:rgba(224,240,224,.35);margin-top:2rem;font-weight:400">Ingen bindningstid på engångsköp. Årsabonnemang kan sägas upp med en månads varsel.</p>
+    <p style="font-size:13.5px;color:rgba(224,240,224,.55);margin-top:2rem">Inga dolda avgifter. Årsabonnemang kan sägas upp med en månads varsel.</p>
+  </div>
+</section>
+
+<!-- DEMO + KONTAKT -->
+<section class="demo-section" id="demo">
+  <div class="container">
+    <div class="section-tag">Prova själv</div>
+    <h2 style="color:var(--dark)">Se hur det fungerar</h2>
+    <p class="section-sub" style="margin:0 auto 3rem;text-align:center;max-width:480px">Klicka runt fritt i demon – inget sparas. Se admindemon för att förstå föreningens vy, eller se föräldravyn för att uppleva det ur familjens perspektiv.</p>
+    <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap">
+      <a href="admin_demo.html" class="btn-hero btn-hero-solid">🏟️ Se admindemon</a>
+      <a href="guest.html" target="_blank" class="btn-hero btn-hero-outline">👤 Se föräldravyn</a>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:1.25rem;text-align:center">Vill du ha en personlig genomgång? <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="color:var(--green);font-weight:600;text-decoration:none">Boka 30 min →</a></p>
   </div>
 </section>
 
@@ -470,20 +454,13 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
 <section class="cta-section">
   <div class="container">
     <div class="section-tag">Kom igång</div>
-    <h2>Välj ditt pass.<br><em style="font-style:italic;color:rgba(255,255,255,.8)">Hjälp laget.</em></h2>
-    <p style="color:rgba(255,255,255,.75);font-size:17px;margin-bottom:2.5rem;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.75;font-weight:400">Fyll i nedan – vi hör av oss inom 24h och sätter upp er förening. Ni är igång samma dag.</p>
-    <div style="max-width:380px;margin:0 auto" id="contactForm">
-      <input type="text"  class="cta-input" id="c-name"  placeholder="Ert namn">
-      <input type="text"  class="cta-input" id="c-club"  placeholder="Förening (ex. Åsa IF)">
-      <input type="email" class="cta-input" id="c-email" placeholder="Er e-postadress">
-      <input type="text"  class="cta-input" id="c-event" placeholder="Vilket event? (ex. Åsacupen 2026)">
-      <button class="btn-cta" onclick="submitContact(this)">Skicka →</button>
+    <h2>Välj ditt pass.<br><em style="color:rgba(255,255,255,.8)">Hjälp laget.</em></h2>
+    <p style="color:rgba(255,255,255,.9);font-size:17px;margin-bottom:2.5rem;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.75">Fyll i formuläret – vi sätter upp er förening och ni är igång inom ett dygn.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="bli-kund.html" class="btn-cta">Bli kund →</a>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" class="btn-cta-outline">📅 Boka genomgång</a>
     </div>
-    <div id="contact-confirm" style="display:none;color:rgba(255,255,255,.9);font-size:16px;margin-top:1.5rem;line-height:1.8;font-weight:500">
-      Tack! Vi hör av oss inom kort.<br>
-      <a href="guest.html" style="color:rgba(255,255,255,.6);font-size:13.5px;text-decoration:underline;text-underline-offset:3px;margin-top:.5rem;display:inline-block;font-weight:400">Titta på demo-vyn →</a>
-    </div>
-    <p style="font-size:13px;color:rgba(255,255,255,.3);margin-top:2rem;font-weight:400">Ingen bindningstid. Inga dolda avgifter.</p>
+    <p style="font-size:13px;color:rgba(255,255,255,.65);margin-top:2rem">Ingen bindningstid. Inga dolda avgifter.</p>
   </div>
 </section>
 
@@ -495,20 +472,8 @@ footer p{font-size:13px;color:rgba(224,240,224,.22);font-weight:400}
 <script>
 function toggleMenu(){
   document.getElementById('hamburger').classList.toggle('open');
-  var m=document.getElementById('mobileMenu');
-  m.classList.toggle('open');
+  var m=document.getElementById('mobileMenu');m.classList.toggle('open');
   document.body.style.overflow=m.classList.contains('open')?'hidden':'';
-}
-async function submitContact(btn){
-  var name =document.getElementById('c-name').value.trim();
-  var club =document.getElementById('c-club').value.trim();
-  var email=document.getElementById('c-email').value.trim();
-  var event=document.getElementById('c-event').value.trim();
-  if(!email||!email.includes('@')){document.getElementById('c-email').style.borderColor='rgba(255,100,100,.7)';return;}
-  btn.textContent='Skickar...';btn.disabled=true;
-  try{await fetch('https://formspree.io/f/xzdwrllo',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({name,club,email,event,source:'lagpasset.se'})});}catch(e){}
-  document.getElementById('contactForm').style.display='none';
-  document.getElementById('contact-confirm').style.display='block';
 }
 var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});},{threshold:.08});
 document.querySelectorAll('.feat,.step,.price-card,.prob-box').forEach(function(el){el.style.opacity='0';el.style.transform='translateY(18px)';el.style.transition='opacity .5s ease,transform .5s ease';obs.observe(el);});
