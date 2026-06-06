@@ -1492,50 +1492,13 @@ function useTemplate(type) {
   const body = document.getElementById('emailBody');
   if(type === 'reminder') {
     subj.value = 'Påminnelse: välj ditt pass – Åsacupen 2026';
-    body.value = 'Hej!
-
-Vi påminner om att du ännu inte valt ett pass inför Åsacupen 2026. Sista dag är 18 juni.
-
-Öppna din personliga länk för att välja:
-[PERSONLIG LÄNK]
-
-Har du frågor, hör av dig till kansli@asaif.com.
-
-Hälsningar,
-Åsa IF';
+    body.value = `Hej!\n\nVi påminner om att du ännu inte valt ett pass inför Åsacupen 2026. Sista dag är 18 juni.\n\nÖppna din personliga länk för att välja:\n[PERSONLIG LÄNK]\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF`;
   } else if(type === 'info') {
     subj.value = 'Ditt pass – Åsacupen 2026';
-    body.value = 'Hej!
-
-Tack för att du hjälper till under Åsacupen 2026. Här är information om ditt pass:
-
-Pass: [PASSTYP]
-Dag: [DAG]
-Tid: [TID]
-Plats: [PLATS]
-
-Vi ses på cupen!
-
-Hälsningar,
-Åsa IF';
+    body.value = `Hej!\n\nTack för att du hjälper till under Åsacupen 2026. Här är information om ditt pass:\n\nPass: [PASSTYP]\nDag: [DAG]\nTid: [TID]\nPlats: [PLATS]\n\nVi ses på cupen!\n\nHälsningar,\nÅsa IF`;
   } else if(type === 'thanks') {
     subj.value = 'Tack för din insats – Åsacupen 2026! 🙏';
-    body.value = 'Hej!
-
-Åsacupen 2026 är avslutad och vi vill ta tillfället att säga ett stort TACK!
-
-Tack vare er hjälp kunde vi genomföra ett fantastiskt event. 124 volontärer lade ner sin tid – utan er hade det inte blivit möjligt.
-
-Hur gick det?
-• 18 av er lämnade feedback – snittbetyg 4,2 av 5
-• Stämningen och organisationen fick extra beröm
-• Vi har noterat era förbättringsförslag till nästa år
-
-Vi ses på Åsacupen 2027! ⚽
-
-Hälsningar,
-Åsa IF & cupkommittén';
-    document.getElementById('emailSubject').value = 'Tack för din insats – Åsacupen 2026! 🙏';
+    body.value = `Hej!\n\nÅsacupen 2026 är avslutad och vi vill ta tillfället att säga ett stort TACK!\n\nTack vare er hjälp kunde vi genomföra ett fantastiskt event. 124 volontärer lade ner sin tid – utan er hade det inte blivit möjligt.\n\nHur gick det?\n• 18 av er lämnade feedback – snittbetyg 4,2 av 5\n• Stämningen och organisationen fick extra beröm\n• Vi har noterat era förbättringsförslag till nästa år\n\nVi ses på Åsacupen 2027! ⚽\n\nHälsningar,\nÅsa IF & cupkommittén`;
   }
 }
 
