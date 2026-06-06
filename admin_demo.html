@@ -238,7 +238,7 @@ textarea{resize:vertical;min-height:70px}
       <span class="nav-icon">📋</span> Passschema
     </a>
     <a class="nav-item" onclick="showSection('bookings')" href="#">
-      <span class="nav-icon">✅</span> Bokningar
+      <span class="nav-icon">✅</span> Bokade pass
     </a>
     <div class="nav-section">Kommunikation</div>
     <a class="nav-item" onclick="showSection('email')" href="#">
@@ -384,27 +384,105 @@ textarea{resize:vertical;min-height:70px}
     <div class="section" id="sec-shifts">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
         <div>
-          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Passschema</h2>
-          <p style="font-size:13px;color:var(--muted);margin-top:2px">Skapa och hantera pass. Kvoter per lag räknas automatiskt från antal barn, men kan justeras manuellt.</p>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)" id="shiftsTitle">Passschema</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px" id="shiftsSubtitle">Klicka på en passtyp för att se och hantera enskilda pass.</p>
         </div>
         <div style="display:flex;gap:.6rem">
-          <button class="btn btn-ghost" onclick="openModal('modalImportAI')">🤖 AI-import</button>
-          <button class="btn btn-primary" onclick="openModal('modalAddShift')">+ Nytt pass</button>
+          <button class="btn btn-ghost" id="btnAiImport" onclick="openModal('modalImportAI')">🤖 AI-import</button>
+          <button class="btn btn-primary" id="btnNyttPass" onclick="openModal('modalAddShift')">+ Nytt pass</button>
         </div>
       </div>
 
-      <div class="card" style="padding:0;overflow:hidden">
-        <table>
-          <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Typ</th><th>Platser</th><th>Lag &amp; kvoter</th><th></th></tr></thead>
-          <tbody id="shiftTable"></tbody>
-        </table>
+      <!-- KATEGORI-VY (default) -->
+      <div id="shiftCategoryView">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem">
+
+          <!-- Servering -->
+          <div class="card" onclick="openCategory('servering')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:var(--dark)">Servering</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">3 tillfällen · Fre–Lör–Sön</div>
+              </div>
+              <span style="font-size:11px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:2px 8px">77%</span>
+            </div>
+            <div style="height:5px;background:#e0ece0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
+              <div style="height:5px;width:77%;background:#e8a020;border-radius:3px"></div>
+            </div>
+            <div style="font-size:12px;color:var(--muted)">75 av 98 platser bokade</div>
+          </div>
+
+          <!-- Infotält -->
+          <div class="card" onclick="openCategory('infotalt')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:var(--dark)">Infotält</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">2 tillfällen · Fre–Lör</div>
+              </div>
+              <span style="font-size:11px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:2px 8px">73%</span>
+            </div>
+            <div style="height:5px;background:#e0ece0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
+              <div style="height:5px;width:73%;background:#e8a020;border-radius:3px"></div>
+            </div>
+            <div style="font-size:12px;color:var(--muted)">44 av 60 platser bokade</div>
+          </div>
+
+          <!-- Bygg & Riv -->
+          <div class="card" onclick="openCategory('bygg')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#c0392b'" onmouseout="this.style.borderColor=''">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:var(--dark)">Bygg &amp; Riv</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">2 tillfällen · Tor–Sön</div>
+              </div>
+              <span style="font-size:11px;font-weight:700;background:#fdf2f2;color:#c0392b;border-radius:100px;padding:2px 8px">⚠️ 26%</span>
+            </div>
+            <div style="height:5px;background:#f0d0d0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
+              <div style="height:5px;width:26%;background:#c0392b;border-radius:3px"></div>
+            </div>
+            <div style="font-size:12px;color:#c0392b;font-weight:600">12 av 46 platser bokade</div>
+          </div>
+
+          <!-- Nattvakt -->
+          <div class="card" onclick="openCategory('nattvakt')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+              <div>
+                <div style="font-size:15px;font-weight:700;color:var(--dark)">Nattvakt</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">2 tillfällen · Fre natt–Lör natt</div>
+              </div>
+              <span style="font-size:11px;font-weight:700;background:#e8f7ec;color:#1a8c3a;border-radius:100px;padding:2px 8px">✓ 100%</span>
+            </div>
+            <div style="height:5px;background:#c4dcc4;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
+              <div style="height:5px;width:100%;background:#1a8c3a;border-radius:3px"></div>
+            </div>
+            <div style="font-size:12px;color:#1a8c3a;font-weight:600">14 av 14 platser bokade ✓</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DRILL-DOWN VY (dold initialt) -->
+      <div id="shiftDetailView" style="display:none">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+          <button class="btn btn-ghost btn-sm" onclick="closeCategory()">← Tillbaka</button>
+          <h3 style="font-size:16px;font-weight:700;color:var(--dark)" id="categoryTitle"></h3>
+        </div>
+
+        <!-- Dag-filter tabs -->
+        <div class="tabs" id="dayTabs" style="margin-bottom:1rem"></div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <table>
+            <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag &amp; kvoter</th><th></th></tr></thead>
+            <tbody id="shiftDetailTable"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <!-- ═══ BOKNINGAR ═══ -->
     <div class="section" id="sec-bookings">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-        <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bokningar</h2>
+        <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bokade pass</h2>
         <div style="display:flex;gap:.6rem">
           <button class="btn btn-ghost" onclick="openModal('modalPrint')">🖨️ Skriv ut lista</button>
           <button class="btn btn-ghost">📥 Exportera</button>
@@ -487,36 +565,72 @@ H�lsningar,
 
     <!-- ═══ FEEDBACK ═══ -->
     <div class="section" id="sec-feedback">
-      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Feedback från föräldrar</h2>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Föräldrar kan lämna feedback via sin bokningslänk när som helst efter sitt pass.</p>
-      <div class="grid-3" style="margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem">
+        <div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Feedback från föräldrar</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Föräldrar lämnar feedback via sin bokningslänk efter sitt pass.</p>
+        </div>
+        <div style="display:flex;gap:.6rem">
+          <button class="btn btn-ghost" onclick="aiSummarizeFeedback()">🤖 AI-sammanställning</button>
+          <button class="btn btn-ghost">📥 Exportera</button>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin:1.25rem 0">
         <div class="stat-card green"><div class="stat-num">4.2</div><div class="stat-label">Snittbetyg (av 5)</div></div>
         <div class="stat-card"><div class="stat-num">18</div><div class="stat-label">Svar inkomna</div></div>
         <div class="stat-card amber"><div class="stat-num">3</div><div class="stat-label">Med förbättringsförslag</div></div>
       </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Senaste feedback</div>
-          <button class="btn btn-ghost btn-sm">📥 Exportera alla</button>
+
+      <!-- AI-sammanställning (dold initialt) -->
+      <div id="aiSummaryBox" style="display:none" class="card" style="background:#f0f7ff;border:1.5px solid #bcd5f5">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+          <span style="font-size:16px">🤖</span>
+          <div style="font-size:14px;font-weight:700;color:var(--dark)">AI-sammanställning</div>
         </div>
+        <div id="aiSummaryText" style="font-size:13.5px;color:var(--text);line-height:1.7"></div>
+      </div>
+
+      <!-- Filter per passtyp -->
+      <div class="tabs" style="margin-bottom:1rem">
+        <div class="tab active" onclick="filterFeedback('all',this)">Alla</div>
+        <div class="tab" onclick="filterFeedback('servering',this)">Servering</div>
+        <div class="tab" onclick="filterFeedback('infotalt',this)">Infotält</div>
+        <div class="tab" onclick="filterFeedback('bygg',this)">Bygg &amp; Riv</div>
+        <div class="tab" onclick="filterFeedback('nattvakt',this)">Nattvakt</div>
+      </div>
+
+      <div class="card" style="padding:0">
         <div id="feedbackList">
-          <div class="feedback-row">
+          <div class="feedback-row" data-type="servering">
             <div class="feedback-stars">⭐⭐⭐⭐⭐</div>
-            <div class="feedback-text"><strong>Bra:</strong> Bra upplägg, tydlig information vid passet. Kände att vi var välbehövda.</div>
-            <div class="feedback-text"><strong>Förbättring:</strong> Vatten till de som jobbade på grillpasset hade varit bra!</div>
+            <div class="feedback-text"><strong>Bra:</strong> Bra upplägg, tydlig information. Kände att vi var välbehövda.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Vatten till de som jobbade hade varit bra!</div>
             <div class="feedback-meta">Servering · Lördag 09:00–13:00 · FJ</div>
           </div>
-          <div class="feedback-row">
+          <div class="feedback-row" data-type="infotalt">
             <div class="feedback-stars">⭐⭐⭐⭐</div>
-            <div class="feedback-text"><strong>Bra:</strong> Lagom bemanning, ingen stress. Bra att det var tydligt vem som var ansvarig.</div>
+            <div class="feedback-text"><strong>Bra:</strong> Lagom bemanning, ingen stress. Tydligt vem som var ansvarig.</div>
             <div class="feedback-text"><strong>Förbättring:</strong> Lite oklart vad vi skulle göra i början – en kort briefing hade hjälpt.</div>
             <div class="feedback-meta">Infotält · Fredag 09:00–13:00 · P15</div>
           </div>
-          <div class="feedback-row">
+          <div class="feedback-row" data-type="servering">
             <div class="feedback-stars">⭐⭐⭐</div>
             <div class="feedback-text"><strong>Bra:</strong> Härlig stämning.</div>
-            <div class="feedback-text"><strong>Förbättring:</strong> Vi var för många på det passet – 3 hade räckt, vi var 7.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Vi var för många – 3 hade räckt, vi var 7.</div>
             <div class="feedback-meta">Servering · Fredag 12:30–17:00 · P18</div>
+          </div>
+          <div class="feedback-row" data-type="bygg">
+            <div class="feedback-stars">⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Effektivt och roligt att se arenan ta form.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Behövs fler verktyg – vi stod och väntade i 30 min.</div>
+            <div class="feedback-meta">Bygg &amp; Riv · Torsdag 18:00 · FJ</div>
+          </div>
+          <div class="feedback-row" data-type="nattvakt">
+            <div class="feedback-stars">⭐⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Lugnt och stämningsfullt. Bra att vara två.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Ingen förbättring – suveränt organiserat!</div>
+            <div class="feedback-meta">Nattvakt · Lördag 21:00–02:00 · FJ</div>
           </div>
         </div>
       </div>
@@ -821,7 +935,7 @@ function showSection(id){
   document.getElementById('sec-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   event.currentTarget.classList.add('active');
-  const titles={dashboard:'Dashboard',children:'Barn & föräldrar',shifts:'Passschema',bookings:'Bokningar',email:'Mejla föräldrar',feedback:'Feedback',settings:'Inställningar'};
+  const titles={dashboard:'Dashboard',children:'Barn & föräldrar',shifts:'Passschema',bookings:'Bokade pass',email:'Mejla föräldrar',feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='shifts') renderShiftTable();
@@ -1036,6 +1150,120 @@ function previewEmail(){ demoBlock(); }
 
 // Sidebar club label
 document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
+
+// ── Passschema kategori drill-down ──
+const categoryData = {
+  servering: {
+    title: 'Servering',
+    days: ['Alla','Fredag','Lördag','Söndag'],
+    shifts: [
+      {dag:'Fredag', tid:'08:30–12:45', platser:'2/7', lag:'F15, F16, P18', pct:29, color:'#c0392b'},
+      {dag:'Lördag', tid:'09:00–13:00', platser:'5/17', lag:'FJ, F15, F16, P18, P13', pct:29, color:'#c0392b'},
+      {dag:'Lördag', tid:'16:30–20:30', platser:'38/42', lag:'FJ, P13, P15', pct:90, color:'#1a8c3a'},
+      {dag:'Söndag', tid:'10:00–14:00', platser:'30/32', lag:'F15, F16', pct:94, color:'#1a8c3a'},
+    ]
+  },
+  infotalt: {
+    title: 'Infotält',
+    days: ['Alla','Fredag','Lördag'],
+    shifts: [
+      {dag:'Fredag', tid:'09:00–13:00', platser:'0/2', lag:'FJ, P15', pct:0, color:'#c0392b'},
+      {dag:'Lördag', tid:'09:00–17:00', platser:'44/58', lag:'P13, P15, P18', pct:76, color:'#e8a020'},
+    ]
+  },
+  bygg: {
+    title: 'Bygg & Riv',
+    days: ['Alla','Torsdag','Söndag'],
+    shifts: [
+      {dag:'Torsdag', tid:'18:00–klart', platser:'3/28', lag:'FJ, F15, F16, P13, P15, P18', pct:11, color:'#c0392b'},
+      {dag:'Söndag', tid:'14:00–klart', platser:'9/18', lag:'FJ, P13, P18', pct:50, color:'#e8a020'},
+    ]
+  },
+  nattvakt: {
+    title: 'Nattvakt',
+    days: ['Alla','Fre natt','Lör natt'],
+    shifts: [
+      {dag:'Fre natt', tid:'21:00–02:00', platser:'7/7', lag:'FJ', pct:100, color:'#1a8c3a'},
+      {dag:'Lör natt', tid:'21:00–02:00', platser:'7/7', lag:'FJ', pct:100, color:'#1a8c3a'},
+    ]
+  }
+};
+
+function openCategory(cat) {
+  const data = categoryData[cat];
+  document.getElementById('shiftCategoryView').style.display = 'none';
+  document.getElementById('shiftDetailView').style.display = 'block';
+  document.getElementById('categoryTitle').textContent = data.title;
+  document.getElementById('shiftsSubtitle').textContent = data.title + ' – enskilda pass';
+  const tabs = document.getElementById('dayTabs');
+  tabs.innerHTML = data.days.map((d,i) =>
+    `<div class="tab ${i===0?'active':''}" onclick="filterShiftDay('${d}',this,'${cat}')">${d}</div>`
+  ).join('');
+  renderShiftDetail(cat, 'Alla');
+}
+
+function filterShiftDay(day, el, cat) {
+  document.querySelectorAll('#dayTabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderShiftDetail(cat, day);
+}
+
+function renderShiftDetail(cat, day) {
+  const data = categoryData[cat];
+  const rows = data.shifts.filter(s => day === 'Alla' || s.dag === day);
+  document.getElementById('shiftDetailTable').innerHTML = rows.map(s => `
+    <tr>
+      <td><strong>${data.title}</strong></td>
+      <td>${s.dag}</td>
+      <td>${s.tid}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:80px;height:5px;background:#e0ece0;border-radius:3px;overflow:hidden">
+            <div style="height:5px;width:${s.pct}%;background:${s.color};border-radius:3px"></div>
+          </div>
+          <span style="font-size:12px;font-weight:600;color:${s.color}">${s.platser}</span>
+        </div>
+      </td>
+      <td style="font-size:12px;color:var(--muted)">${s.lag}</td>
+      <td><div style="display:flex;gap:.35rem">
+        <button class="btn btn-ghost btn-sm">✏️</button>
+        <button class="btn btn-ghost btn-sm" style="color:#c0392b">🗑</button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+function closeCategory() {
+  document.getElementById('shiftCategoryView').style.display = 'block';
+  document.getElementById('shiftDetailView').style.display = 'none';
+  document.getElementById('shiftsSubtitle').textContent = 'Klicka på en passtyp för att se och hantera enskilda pass.';
+}
+
+// ── Feedback filter ──
+function filterFeedback(type, el) {
+  document.querySelectorAll('#sec-feedback .tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#feedbackList .feedback-row').forEach(row => {
+    row.style.display = (type === 'all' || row.dataset.type === type) ? '' : 'none';
+  });
+}
+
+// ── AI-sammanställning ──
+function aiSummarizeFeedback() {
+  const box = document.getElementById('aiSummaryBox');
+  const txt = document.getElementById('aiSummaryText');
+  box.style.display = 'block';
+  txt.innerHTML = '<em style="color:#999">Sammanställer feedback...</em>';
+  setTimeout(() => {
+    txt.innerHTML = `
+      <strong>Övergripande:</strong> Snittbetyg 4.2/5. Stämningen och organisationen får genomgående beröm.<br><br>
+      <strong>Servering</strong> — Bra: tydlig info, god stämning. Förbättring: vatten/dryck till volontärer saknas, ett pass var överbemannt.<br><br>
+      <strong>Infotält</strong> — Bra: bra bemanning. Förbättring: önskan om kort briefing vid passstart.<br><br>
+      <strong>Bygg &amp; Riv</strong> — Bra: engagerande uppgift. Förbättring: brist på verktyg orsakade onödig väntetid.<br><br>
+      <strong>Nattvakt</strong> — Mycket nöjda. Inga förbättringsförslag.
+    `;
+  }, 1200);
+}
 
 // INIT
 renderDashboard();
