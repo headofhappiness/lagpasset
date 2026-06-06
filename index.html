@@ -241,21 +241,68 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
     </div>
     <div class="hero-phone">
       <div class="phone-screen">
-        <div class="ph-nav"><div class="ph-logo">Lag<span>passet</span></div><div class="ph-pill">Sista dag: 18 jun</div></div>
-        <div class="ph-h">Välkommen!</div>
-        <div class="ph-sub">Åsacupen 2026 · Välj ett pass per barn</div>
-        <div class="ph-label">Dina barn</div>
-        <div class="ph-children">
-          <div class="ph-child sel"><div class="ph-child-av done">✓</div><div class="ph-child-name">Vilda Wallroth</div><div class="ph-child-status">Servering lör</div></div>
-          <div class="ph-child"><div class="ph-child-av">AW</div><div class="ph-child-name">Alva Wallroth</div><div class="ph-child-status" style="color:#4a6a4c">Välj pass</div></div>
+        <div class="ph-nav">
+          <div class="ph-logo">Lag<span>passet</span></div>
+          <div class="ph-pill">8 dagar kvar</div>
         </div>
-        <div class="ph-label">Välj pass – FJ</div>
-        <div class="ph-passes">
-          <div class="ph-pass sel"><div class="ph-pass-title">Infotält · Fre 09:00–13:00</div><div class="ph-pass-meta">2 platser kvar</div></div>
-          <div class="ph-pass"><div class="ph-pass-title">Nattvakt · Lör 21:00–02:00</div><div class="ph-pass-meta">4 platser kvar</div></div>
-          <div class="ph-pass"><div class="ph-pass-title">Servering · Sön 09:30–13:30</div><div class="ph-pass-meta">6 platser kvar</div></div>
+        <div class="ph-h">Välj ditt pass</div>
+        <div class="ph-sub">Åsacupen 2026 · FJ – Flickjuniorer</div>
+        <!-- Mini urgency bar -->
+        <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:.55rem .7rem;margin-bottom:.85rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem">
+            <span style="font-size:10px;font-weight:700;color:#4dbf6a">🔥 Mer än hälften tagna</span>
+            <span style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:#22c55e">63%</span>
+          </div>
+          <div style="height:5px;background:#1e3020;border-radius:3px;overflow:hidden">
+            <div style="height:5px;width:63%;background:linear-gradient(90deg,#1a8c3a,#22c55e);border-radius:3px"></div>
+          </div>
+          <div style="font-size:9.5px;color:#4a6a4c;margin-top:.3rem;font-weight:500">44 av 70 pass bokade · 26 kvar</div>
         </div>
-        <div class="ph-btn">Välj det här passet ✓</div>
+        <!-- Pass 1 -->
+        <div style="background:#131f14;border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:.65rem .75rem;margin-bottom:.4rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem">
+            <div><div style="font-size:11.5px;font-weight:700;color:#d0e8d0">Infotält</div><div style="font-size:10px;color:#4a6a4c;margin-top:1px">Fredag 09:00–13:00</div></div>
+            <span style="font-size:10px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:2px 7px;white-space:nowrap;flex-shrink:0">1 kvar!</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:.4rem">
+            <div style="flex:1;height:4px;background:#1e3020;border-radius:2px;overflow:hidden"><div style="height:4px;width:67%;background:#e8a020;border-radius:2px"></div></div>
+            <span style="font-size:9.5px;color:#4a6a4c">2 av 3 tagna</span>
+          </div>
+        </div>
+        <!-- Pass 2: Fullt -->
+        <div style="background:#131f14;border:1px solid rgba(255,255,255,.05);border-radius:9px;padding:.65rem .75rem;margin-bottom:.4rem;opacity:.4">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem">
+            <div><div style="font-size:11.5px;font-weight:700;color:#d0e8d0">Infotält</div><div style="font-size:10px;color:#4a6a4c;margin-top:1px">Lördag 07:00–11:00</div></div>
+            <span style="font-size:10px;font-weight:700;color:#ef4444">Fullt</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:.4rem">
+            <div style="flex:1;height:4px;background:#1e3020;border-radius:2px;overflow:hidden"><div style="height:4px;width:100%;background:#c0392b;border-radius:2px"></div></div>
+            <span style="font-size:9.5px;color:#4a6a4c">3 av 3 tagna</span>
+          </div>
+        </div>
+        <!-- Pass 3 -->
+        <div style="background:#131f14;border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:.65rem .75rem;margin-bottom:.4rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem">
+            <div><div style="font-size:11.5px;font-weight:700;color:#d0e8d0">Servering</div><div style="font-size:10px;color:#4a6a4c;margin-top:1px">Lördag 09:00–13:00</div></div>
+            <span style="font-size:10px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:2px 7px;white-space:nowrap;flex-shrink:0">1 kvar!</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:.4rem">
+            <div style="flex:1;height:4px;background:#1e3020;border-radius:2px;overflow:hidden"><div style="height:4px;width:80%;background:#e8a020;border-radius:2px"></div></div>
+            <span style="font-size:9.5px;color:#4a6a4c">4 av 5 tagna</span>
+          </div>
+        </div>
+        <!-- Pass 4 -->
+        <div style="background:#131f14;border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:.65rem .75rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem">
+            <div><div style="font-size:11.5px;font-weight:700;color:#d0e8d0">Servering – matsal</div><div style="font-size:10px;color:#4a6a4c;margin-top:1px">Lördag 16:30–20:30</div></div>
+            <span style="font-size:10px;font-weight:700;background:rgba(34,197,94,.15);color:#22c55e;border-radius:100px;padding:2px 7px;white-space:nowrap;flex-shrink:0">2 kvar</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:.4rem">
+            <div style="flex:1;height:4px;background:#1e3020;border-radius:2px;overflow:hidden"><div style="height:4px;width:50%;background:#1a8c3a;border-radius:2px"></div></div>
+            <span style="font-size:9.5px;color:#4a6a4c">2 av 4 tagna</span>
+          </div>
+        </div>
+        <div class="ph-btn" style="margin-top:.75rem">Välj det här passet ✓</div>
       </div>
     </div>
   </div>
@@ -329,6 +376,118 @@ footer p{font-size:13px;color:rgba(224,240,224,.55)}
           <li>Varje pass visar hur många platser som tagits – folk väljer snabbare när de ser att det fylls</li>
           <li>Utskriftsvänlig lista per arbetsställe – klar att ta med</li>
         </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- URGENCY SECTION -->
+<section style="background:var(--dark);padding:5rem 2rem">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center">
+      <div>
+        <div class="section-tag" style="color:rgba(100,210,130,.9)">Inbyggd urgency</div>
+        <h2 style="color:#e0f0e0">Föräldrar väljer snabbare<br><em>när de ser att det fylls.</em></h2>
+        <p style="font-size:16px;color:rgba(224,240,224,.75);line-height:1.8;margin-top:1rem;max-width:440px">Det är svårt att få föräldrar att ta ett pass. Lagpasset har urgency inbyggt från start – precis som när man bokar en flygbiljett och ser "3 platser kvar".</p>
+        <div style="display:flex;flex-direction:column;gap:.85rem;margin-top:1.75rem">
+          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px;color:rgba(224,240,224,.85)">
+            <span style="color:#22c55e;font-weight:700;flex-shrink:0">✓</span>
+            <span>En progress-bar på varje pass visar hur många platser som tagits</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px;color:rgba(224,240,224,.85)">
+            <span style="color:#22c55e;font-weight:700;flex-shrink:0">✓</span>
+            <span>Totalt antal bokade pass visas direkt när föräldrar öppnar länken</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px;color:rgba(224,240,224,.85)">
+            <span style="color:#22c55e;font-weight:700;flex-shrink:0">✓</span>
+            <span>Rubriken skiftar automatiskt: "🔥 Mer än hälften av passen tagna" när det börjar fyllas</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:.75rem;font-size:15px;color:rgba(224,240,224,.85)">
+            <span style="color:#22c55e;font-weight:700;flex-shrink:0">✓</span>
+            <span>Föräldrar ser att andra redan valt – och väljer snabbare för att slippa sämre pass</span>
+          </div>
+        </div>
+        <a href="guest.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:1.75rem;background:rgba(34,197,94,.15);border:1.5px solid rgba(34,197,94,.35);color:#6dbf6a;padding:10px 20px;border-radius:100px;font-size:14px;font-weight:600;text-decoration:none;transition:all .2s">👤 Se hur det ser ut för föräldrar →</a>
+      </div>
+      <!-- SKÄRMBILD-MOCKUP i guest.html-stil -->
+      <div style="background:#f4f7f4;border-radius:20px;padding:1.25rem;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+        <!-- Fake browser bar -->
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid #dde8dd">
+          <div style="width:10px;height:10px;border-radius:50%;background:#ff5f57"></div>
+          <div style="width:10px;height:10px;border-radius:50%;background:#febc2e"></div>
+          <div style="width:10px;height:10px;border-radius:50%;background:#28c840"></div>
+          <div style="flex:1;background:#e0ece0;border-radius:100px;padding:4px 12px;font-size:11px;color:#6a8a6e;margin:0 .5rem">lagpasset.se/guest?t=abc123</div>
+        </div>
+        <!-- Dag-label -->
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6a8a6e;padding:.4rem 0 .5rem;border-bottom:1.5px solid #dde8dd;margin-bottom:.6rem">Fredag</div>
+        <!-- Pass 1: 1 plats kvar -->
+        <div style="background:#fff;border:1.5px solid #dde8dd;border-radius:12px;padding:14px 16px;margin-bottom:8px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #dde8dd;flex-shrink:0;margin-top:2px"></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:700;color:#1e2e20">Infotält</div>
+              <div style="font-size:13px;color:#6a8a6e;margin-top:1px">09:00–13:00</div>
+              <div style="font-size:12.5px;color:#6a8a6e;font-style:italic;margin-top:2px">Tag gärna cykel</div>
+              <div style="display:inline-block;font-size:11px;font-weight:600;background:#e8f4e8;color:#1a5c24;border-radius:100px;padding:2px 9px;margin-top:6px">Infotält</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                <div style="flex:1;height:5px;background:#e0ece0;border-radius:3px;max-width:100px;overflow:hidden"><div style="height:5px;width:67%;background:#e8a020;border-radius:3px"></div></div>
+                <span style="font-size:12px;color:#6a8a6e;font-weight:500">2 av 3 tagna</span>
+              </div>
+            </div>
+            <div style="flex-shrink:0"><span style="font-size:12px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:3px 10px;white-space:nowrap">1 plats kvar!</span></div>
+          </div>
+        </div>
+        <!-- Pass 2: Fullt -->
+        <div style="background:#fff;border:1.5px solid #dde8dd;border-radius:12px;padding:14px 16px;margin-bottom:8px;opacity:.5">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #dde8dd;flex-shrink:0;margin-top:2px"></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:700;color:#1e2e20">Infotält</div>
+              <div style="font-size:13px;color:#6a8a6e;margin-top:1px">13:00–17:00</div>
+              <div style="display:inline-block;font-size:11px;font-weight:600;background:#e8f4e8;color:#1a5c24;border-radius:100px;padding:2px 9px;margin-top:6px">Infotält</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                <div style="flex:1;height:5px;background:#e0ece0;border-radius:3px;max-width:100px;overflow:hidden"><div style="height:5px;width:100%;background:#c0392b;border-radius:3px"></div></div>
+                <span style="font-size:12px;color:#6a8a6e;font-weight:500">3 av 3 tagna</span>
+              </div>
+            </div>
+            <div style="flex-shrink:0"><span style="font-size:12px;font-weight:700;color:#c0392b">Fullt</span></div>
+          </div>
+        </div>
+        <!-- Dag-label Lördag -->
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6a8a6e;padding:.6rem 0 .5rem;border-bottom:1.5px solid #dde8dd;margin-bottom:.6rem">Lördag</div>
+        <!-- Pass 3: 1 plats kvar -->
+        <div style="background:#fff;border:1.5px solid #dde8dd;border-radius:12px;padding:14px 16px;margin-bottom:8px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #dde8dd;flex-shrink:0;margin-top:2px"></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:700;color:#1e2e20">Servering</div>
+              <div style="font-size:13px;color:#6a8a6e;margin-top:1px">09:00–13:00</div>
+              <div style="display:inline-block;font-size:11px;font-weight:600;background:#e8f4e8;color:#1a5c24;border-radius:100px;padding:2px 9px;margin-top:6px">Servering</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                <div style="flex:1;height:5px;background:#e0ece0;border-radius:3px;max-width:100px;overflow:hidden"><div style="height:5px;width:80%;background:#e8a020;border-radius:3px"></div></div>
+                <span style="font-size:12px;color:#6a8a6e;font-weight:500">4 av 5 tagna</span>
+              </div>
+            </div>
+            <div style="flex-shrink:0"><span style="font-size:12px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:3px 10px;white-space:nowrap">1 plats kvar!</span></div>
+          </div>
+        </div>
+        <!-- Pass 4: 2 platser kvar -->
+        <div style="background:#fff;border:1.5px solid #dde8dd;border-radius:12px;padding:14px 16px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:20px;height:20px;border-radius:50%;border:1.5px solid #dde8dd;flex-shrink:0;margin-top:2px"></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:700;color:#1e2e20">Servering – matsal</div>
+              <div style="font-size:13px;color:#6a8a6e;margin-top:1px">16:30–20:30</div>
+              <div style="font-size:12.5px;color:#6a8a6e;font-style:italic;margin-top:2px">Matsalen</div>
+              <div style="display:inline-block;font-size:11px;font-weight:600;background:#e8f4e8;color:#1a5c24;border-radius:100px;padding:2px 9px;margin-top:6px">Servering</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                <div style="flex:1;height:5px;background:#e0ece0;border-radius:3px;max-width:100px;overflow:hidden"><div style="height:5px;width:50%;background:#1a8c3a;border-radius:3px"></div></div>
+                <span style="font-size:12px;color:#6a8a6e;font-weight:500">2 av 4 tagna</span>
+              </div>
+            </div>
+            <div style="flex-shrink:0"><span style="font-size:12px;font-weight:700;background:#e8f7ec;color:#1a8c3a;border-radius:100px;padding:3px 10px;white-space:nowrap">2 platser kvar</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
