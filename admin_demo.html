@@ -185,11 +185,28 @@ textarea{resize:vertical;min-height:70px}
   .grid-2,.grid-3{grid-template-columns:1fr}
   .inline-2,.inline-3{grid-template-columns:1fr}
   .content{padding:1rem}
+  .demo-banner{gap:.4rem;padding:.4rem .75rem}
+  .topbar-actions .btn{display:none}
+  table{font-size:12px}
+  .card{padding:1rem}
+  .resp-grid-2{grid-template-columns:1fr !important}
+  .demo-welcome-card{padding:1.25rem 1.25rem;max-width:100%}
+  .demo-step-list{margin:.5rem 0 1rem}
+  .topbar{padding:.65rem 1rem}
+}
+@media(max-width:600px){
+  .demo-banner a:nth-child(3){display:none}
+  .section h2{font-size:16px}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
 .lp-green{color:#22c55e !important;letter-spacing:0;font-size:inherit;display:inline}
+@media(max-width:600px){.hide-mobile{display:none}}
 </style>
 </head>
 <body>
+
+<!-- SIDEBAR OVERLAY för mobil -->
+<div id="sidebarOverlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:19"></div>
 
 <!-- DEMO WELCOME OVERLAY -->
 <div class="demo-welcome-overlay" id="demoWelcome" style="display:flex">
@@ -264,12 +281,12 @@ textarea{resize:vertical;min-height:70px}
     </div>
     <div class="topbar-actions">
       <span style="font-size:13px;color:var(--muted);font-weight:500" id="topbarEvent">Åsacupen 2026</span>
-      <button class="btn btn-primary btn-sm" onclick="openModal('modalSendLinks')">📧 Skicka länkarna</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modalSendLinks')" title="Skicka länkarna">📧 <span class="hide-mobile">Skicka länkarna</span></button>
     </div>
   </header>
 
   <!-- DEMO BANNER – inuti main så den inte täcker sidebaren -->
-  <div class="demo-banner" id="demoBanner">
+  <div class="demo-banner" id="demoBanner" style="padding:.5rem 1rem;gap:.6rem">
     <span class="demo-banner-lock">🔒 Demo – inget sparas</span>
     <a href="guest.html" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(26,140,58,.15);border:1.5px solid rgba(26,140,58,.35);color:var(--green);padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">👤 Medlemsvyn →</a>
     <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(232,160,32,.12);border:1.5px solid rgba(232,160,32,.4);color:#b07000;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">📅 Boka genomgång</a>
@@ -372,8 +389,7 @@ textarea{resize:vertical;min-height:70px}
         </div>
       </div>
 
-      <div class="card" style="padding:0;overflow:hidden">
-        <table>
+      <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
           <thead><tr><th>Deltagare</th><th>Lag</th><th>Förälderns e-post</th><th>Status</th><th>Länk skickad</th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
@@ -476,8 +492,7 @@ textarea{resize:vertical;min-height:70px}
         <!-- Pass-vy -->
         <div id="shiftPassView">
           <div class="tabs" id="dayTabs" style="margin-bottom:1rem"></div>
-          <div class="card" style="padding:0;overflow:hidden">
-            <table>
+          <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
               <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag &amp; kvoter</th><th></th></tr></thead>
               <tbody id="shiftDetailTable"></tbody>
             </table>
@@ -534,8 +549,7 @@ textarea{resize:vertical;min-height:70px}
         <div class="tab" onclick="switchBookingTab('bygg',this)">Bygg & Riv</div>
         <div class="tab" onclick="switchBookingTab('nattvakt',this)">Nattvakt</div>
       </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <table>
+      <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
           <thead><tr><th>Pass</th><th>Dag · Tid</th><th>Deltagare</th><th>Lag</th><th>Förälder</th><th>Telefon</th></tr></thead>
           <tbody id="bookingsTable"></tbody>
         </table>
@@ -1001,8 +1015,17 @@ function showSection(id){
   if(window.innerWidth<900) closeSidebar();
 }
 
-function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
-function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); }
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.style.display = sb.classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  const ov = document.getElementById('sidebarOverlay');
+  if(ov) ov.style.display = 'none';
+}
 
 // ═══════════════════════════════════════
 // DASHBOARD
