@@ -38,7 +38,19 @@ body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font
 /* PAGE */
 .page{max-width:560px;margin:0 auto;padding:1.75rem 1.25rem 5rem}
 
-/* STEG-HEADER */
+/* URGENCY BANNER */
+.urgency-banner{background:var(--surface);border:2px solid rgba(26,140,58,.25);border-radius:14px;padding:1.1rem 1.25rem;margin-bottom:1.25rem;overflow:hidden;position:relative}
+.urgency-banner::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(26,140,58,.05) 0%,transparent 60%);pointer-events:none}
+.urgency-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;gap:.75rem}
+.urgency-headline{font-size:15px;font-weight:700;color:var(--dark);line-height:1.3}
+.urgency-pct{font-family:"Playfair Display",serif;font-size:1.6rem;font-weight:700;color:var(--green);line-height:1;flex-shrink:0}
+.urgency-track{height:10px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:.6rem}
+.urgency-fill{height:10px;border-radius:5px;background:linear-gradient(90deg,#1a8c3a,#22c55e);transition:width .6s ease}
+.urgency-bottom{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.urgency-taken{color:var(--green);font-weight:700}
+.urgency-remain{color:var(--amber);font-weight:700}
+.urgency-deadline{font-size:12.5px;color:var(--muted);font-weight:500;margin-top:.5rem;display:flex;align-items:center;gap:.35rem}
+.urgency-deadline.soon{color:#b85c00;font-weight:700}
 .step-header{margin-bottom:1.5rem}
 h1{font-family:"Playfair Display",serif;font-size:1.85rem;font-weight:700;color:var(--dark);margin-bottom:.2rem}
 .green-line{width:28px;height:3px;background:var(--green);margin:.4rem 0 .9rem;border-radius:2px}
@@ -248,6 +260,21 @@ textarea.feedback-text:focus{border-color:var(--green);background:var(--surface)
         <div class="green-line"></div>
       </div>
       <div class="event-box" id="eventBox"><span class="event-icon">🏆</span><span id="eventInfo"></span></div>
+
+      <!-- URGENCY BANNER -->
+      <div class="urgency-banner" id="urgencyBanner">
+        <div class="urgency-top">
+          <div class="urgency-headline" id="urgencyHeadline">Många pass är redan tagna!</div>
+          <div class="urgency-pct" id="urgencyPct">–</div>
+        </div>
+        <div class="urgency-track"><div class="urgency-fill" id="urgencyFill" style="width:0%"></div></div>
+        <div class="urgency-bottom">
+          <span class="urgency-taken" id="urgencyTaken">–</span>
+          <span class="urgency-remain" id="urgencyRemain">–</span>
+        </div>
+        <div class="urgency-deadline" id="urgencyDeadline"></div>
+      </div>
+
       <p id="pageGreeting" style="font-size:15px;color:var(--muted);margin-bottom:1.1rem;line-height:1.7"></p>
       <div class="lag-grid" id="lagGrid"></div>
     </div>
@@ -495,6 +522,36 @@ function init(){
     'Varje familj väljer ett pass per barn. Välj ditt lags namn för att se ditt barn och lediga pass.';
 
   if(isClosed) document.getElementById('closedBanner').style.display='block';
+
+  // ── URGENCY BANNER ──
+  const totalSlots = DEMO.shifts.reduce((s,sh)=>s+sh.total,0);
+  const totalTaken = DEMO.shifts.reduce((s,sh)=>s+sh.taken,0);
+  const totalFree  = totalSlots - totalTaken;
+  const pct        = Math.round(totalTaken/totalSlots*100);
+  const daysLeft   = Math.ceil((dl-today)/(1000*60*60*24));
+
+  document.getElementById('urgencyPct').textContent  = pct+'%';
+  document.getElementById('urgencyFill').style.width = pct+'%';
+  document.getElementById('urgencyTaken').textContent= totalTaken+' av '+totalSlots+' pass bokade';
+  document.getElementById('urgencyRemain').textContent = totalFree+' platser kvar totalt';
+
+  document.getElementById('urgencyHeadline').textContent =
+    pct>=80 ? '⚠️ Nästan fullt – välj ditt pass nu!'
+    : pct>=60 ? '🔥 Mer än hälften av passen är redan bokade'
+    : pct>=40 ? 'Passen fylls på – välj innan det är för sent'
+    : 'Välj ditt pass och hjälp laget!';
+
+  const dlEl = document.getElementById('urgencyDeadline');
+  if(isClosed){
+    dlEl.textContent='⛔ Anmälningstiden har passerat';
+    dlEl.className='urgency-deadline soon';
+  } else if(daysLeft<=3){
+    dlEl.textContent='⏰ Bara '+daysLeft+' dag'+(daysLeft===1?'':'ar')+' kvar att välja!';
+    dlEl.className='urgency-deadline soon';
+  } else {
+    dlEl.textContent='⏱ Sista dag att välja: '+dlStr;
+    dlEl.className='urgency-deadline';
+  }
 
   renderLagGrid();
   document.getElementById('loadingState').style.display='none';
