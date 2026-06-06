@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bli kund – Lagpasset</title>
+<meta name="description" content="Kom igång med Lagpasset – fyll i uppgifterna så är ni igång inom ett dygn.">
+<meta property="og:title" content="Bli kund hos Lagpasset">
+<meta property="og:description" content="Fyll i era uppgifter så sätter vi upp er förening. Ni är igång inom ett dygn.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf8f4;--surface:#fff;--surface2:#f2f9f3;--border:#e0ece0;--green:#1a8c3a;--green-light:#e8f7ec;--dark:#111c13;--text:#1e2e20;--muted:#6a8a6e;--red:#c0392b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-weight:400;min-height:100vh;font-size:16px;line-height:1.65}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(250,248,244,.96);position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}
+.nav-logo{font-family:"Playfair Display",serif;font-size:1.2rem;color:var(--dark);text-decoration:none;font-weight:700}
+.nav-logo span{color:var(--green)}
+.nav-right{font-size:14px;color:var(--muted);font-weight:500}
+.page{max-width:600px;margin:0 auto;padding:2.25rem 1.25rem 5rem}
+h1{font-family:"Playfair Display",serif;font-size:2rem;font-weight:700;color:var(--dark);margin-bottom:.2rem}
+.green-line{width:28px;height:3px;background:var(--green);margin:.45rem 0 1rem;border-radius:2px}
+.intro{font-size:15px;color:var(--muted);line-height:1.75;margin-bottom:1.75rem}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.3rem 1.4rem;margin-bottom:1rem}
+.card-label{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:1.1rem}
+.ff{margin-bottom:.85rem}
+.ff:last-child{margin-bottom:0}
+.ff label{display:block;font-size:14px;font-weight:500;color:var(--text);margin-bottom:5px}
+.ff .opt{color:var(--muted);font-size:12px;font-weight:400}
+.hint{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.55}
+input,select,textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:12px 14px;font-family:"Outfit",sans-serif;font-size:15px;color:var(--text);outline:none;transition:border-color .2s;font-weight:400}
+input:focus,select:focus,textarea:focus{border-color:var(--green);background:var(--surface)}
+input.bad,select.bad{border-color:var(--red);background:#fdf5f4}
+input::placeholder,textarea::placeholder{color:#b8c8b8}
+.row{display:flex;gap:10px}
+.row .ff{flex:1}
+/* PLAN SELECT */
+.plan-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.5rem}
+.plan-opt{padding:1rem 1.1rem;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s;position:relative}
+.plan-opt:hover{border-color:var(--green)}
+.plan-opt.selected{border-color:var(--green);background:var(--green-light)}
+.plan-opt-name{font-size:15px;font-weight:700;color:var(--dark)}
+.plan-opt-price{font-size:13px;color:var(--muted);margin-top:3px}
+.plan-opt-badge{position:absolute;top:-9px;right:12px;font-size:10.5px;font-weight:700;background:var(--green);color:#fff;border-radius:100px;padding:2px 9px;letter-spacing:.03em}
+.plan-opt.selected .plan-opt-name{color:var(--green)}
+/* TERMS */
+.terms{background:var(--green-light);border:1.5px solid rgba(26,140,58,.22);border-radius:12px;padding:1.1rem 1.25rem;font-size:14px;line-height:1.85;color:var(--text);margin-bottom:.75rem}
+.terms strong{font-weight:700;color:var(--dark)}
+.terms ul{list-style:none;margin:.5rem 0 0;display:flex;flex-direction:column;gap:.35rem}
+.terms li{padding-left:1.1rem;position:relative;font-size:13.5px;color:var(--muted)}
+.terms li::before{content:"·";position:absolute;left:.3rem;color:var(--green);font-weight:700}
+.check{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14.5px;line-height:1.55}
+.check input{width:18px;height:18px;flex-shrink:0;accent-color:var(--green);margin-top:2px;cursor:pointer}
+.msg{padding:12px 15px;border-radius:10px;font-size:14.5px;margin:1rem 0 0;border:1.5px solid;line-height:1.6;display:none}
+.msg.ok{background:var(--green-light);color:#1a5024;border-color:rgba(26,140,58,.25);display:block}
+.msg.err{background:#fdf2f2;color:#8a2020;border-color:rgba(192,57,43,.2);display:block}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 24px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;border:none;width:100%;letter-spacing:.01em;margin-top:1.25rem;min-height:50px;background:var(--green);color:#fff;gap:8px}
+.btn:hover{background:#15752e;transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.done-wrap{text-align:center;padding:3rem 1rem}
+.done-icon{width:72px;height:72px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:1.8rem;color:#fff}
+.done-wrap h1{margin-bottom:.3rem}
+.done-wrap p{font-size:16px;color:var(--muted);line-height:1.75;max-width:420px;margin:.5rem auto 0}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gdpr-note{font-size:12px;color:var(--muted);text-align:center;margin-top:.75rem;line-height:1.6}
+.gdpr-note a{color:var(--green);text-decoration:none}
+@media(max-width:600px){body{font-size:17px}.page{padding:1.5rem 1rem 4rem}h1{font-size:1.75rem}.plan-options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-logo">Lag<span>passet</span></a>
+  <div class="nav-right">Bli kund</div>
+</nav>
+
+<div class="page">
+  <div id="formState">
+    <h1>Kom igång med Lagpasset</h1>
+    <div class="green-line"></div>
+    <p class="intro">Fyll i uppgifterna nedan så sätter vi upp er förening inom ett dygn. Fält märkta <strong style="color:var(--dark)">*</strong> är obligatoriska.</p>
+
+    <!-- PLAN -->
+    <div class="card">
+      <div class="card-label">Välj plan *</div>
+      <div class="plan-options" id="planOptions">
+        <div class="plan-opt" onclick="selectPlan('event',this)">
+          <div class="plan-opt-name">Per event</div>
+          <div class="plan-opt-price">3 995 kr / event</div>
+        </div>
+        <div class="plan-opt selected" onclick="selectPlan('year',this)">
+          <div class="plan-opt-badge">Populärast</div>
+          <div class="plan-opt-name">Årsabonnemang</div>
+          <div class="plan-opt-price">5 995 kr / år</div>
+        </div>
+      </div>
+      <div class="hint">Årsabonnenter kan skapa obegränsat antal event – cup, städdag, föräldramöten. Per event passar om ni har ett stort event per år.</div>
+    </div>
+
+    <!-- FÖRENING -->
+    <div class="card">
+      <div class="card-label">Om föreningen</div>
+      <div class="ff"><label>Föreningens namn *</label><input type="text" id="club_name" autocomplete="organization" placeholder="Ex. Åsa IF"></div>
+      <div class="row">
+        <div class="ff"><label>Ort *</label><input type="text" id="city" placeholder="Ex. Åsa"></div>
+        <div class="ff"><label>Distrikt / Förbund <span class="opt">(valfritt)</span></label><input type="text" id="district" placeholder="Ex. Hallands FF"></div>
+      </div>
+      <div class="ff"><label>Föreningens webbplats <span class="opt">(valfritt)</span></label><input type="text" id="website" placeholder="www.asaif.se"></div>
+      <div class="ff" style="margin-bottom:0"><label>Logotyp <span class="opt">(valfritt)</span></label><input type="text" id="logo_url" placeholder="URL till er logotyp (PNG/SVG)"><div class="hint">Visas i föräldravyn och på utskrifter. Kan också mejlas till oss efter registrering.</div></div>
+    </div>
+
+    <!-- FAKTURA -->
+    <div class="card">
+      <div class="card-label">Faktura &amp; organisation</div>
+      <div class="ff"><label>Organisationsnummer *</label><input type="text" id="orgnr" inputmode="numeric" placeholder="556xxx-xxxx eller 8xxxxxx-xxxx"></div>
+      <div class="ff"><label>Fakturaadress *</label><input type="text" id="address" autocomplete="street-address" placeholder="Gata och nummer"></div>
+      <div class="row">
+        <div class="ff" style="max-width:140px"><label>Postnummer *</label><input type="text" id="zip" inputmode="numeric" placeholder="43xxx"></div>
+        <div class="ff"><label>Ort *</label><input type="text" id="invoice_city" placeholder="Stad"></div>
+      </div>
+      <div class="ff" style="margin-bottom:0"><label>Faktura-e-post *</label><input type="email" id="invoice_email" placeholder="ekonomi@foreningen.se"><div class="hint">Hit mejlas fakturan. Gärna en ekonomi-/kassörsepost om ni har det.</div></div>
+    </div>
+
+    <!-- KONTAKTPERSON -->
+    <div class="card">
+      <div class="card-label">Kontaktperson (admin-inloggning)</div>
+      <div class="ff"><label>Namn *</label><input type="text" id="contact_name" autocomplete="name" placeholder="Förnamn Efternamn"></div>
+      <div class="ff"><label>E-post *</label><input type="email" id="contact_email" placeholder="namn@foreningen.se"><div class="hint">Används som inloggning till föreningens admin. Kan ändras senare.</div></div>
+      <div class="ff" style="margin-bottom:0"><label>Mobilnummer *</label><input type="tel" id="contact_mobile" autocomplete="tel" placeholder="+46 70 ..."><div class="hint">Vi ringer om vi behöver hjälpa er med uppstarten.</div></div>
+    </div>
+
+    <!-- FÖRSTA EVENT -->
+    <div class="card">
+      <div class="card-label">Ert första event <span style="font-size:11px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(valfritt – hjälper oss förbereda)</span></div>
+      <div class="ff"><label>Eventnamn</label><input type="text" id="event_name" placeholder="Ex. Åsacupen 2026"></div>
+      <div class="row">
+        <div class="ff"><label>Ungefärligt datum</label><input type="text" id="event_date" placeholder="Ex. 26–28 juni 2026"></div>
+        <div class="ff"><label>Ungefärligt antal barn</label><input type="text" id="event_size" placeholder="Ex. 200"></div>
+      </div>
+      <div class="ff" style="margin-bottom:0">
+        <label>Har ni ett gammalt passschema? <span class="opt">(valfritt)</span></label>
+        <textarea id="event_notes" rows="3" placeholder="Klistra in text från förra årets Word-dokument, beskriv hur det ser ut, eller mejla det till oss efter registrering. Vi hjälper er läsa in det med AI."></textarea>
+      </div>
+    </div>
+
+    <!-- VILLKOR -->
+    <div class="card">
+      <div class="card-label">Villkor</div>
+      <div class="terms">
+        <strong>Genom att skicka in registreras ni som kund hos Lagpasset.</strong>
+        <ul>
+          <li id="termPlanText">Årsabonnemang: <strong>5 995 kr ex. moms / år</strong> – faktureras årsvis i förskott</li>
+          <li>Ingen bindningstid – säg upp med en månads varsel till info@lagpasset.se</li>
+          <li>Per event: <strong>3 995 kr ex. moms</strong> – faktureras inför eventet</li>
+          <li>Betaltid 20 dagar</li>
+          <li>Ni är personuppgiftsansvariga för den data ni lägger in. Lagpasset (Head of Happiness AB) är personuppgiftsbiträde. Data lagras i EU.</li>
+        </ul>
+      </div>
+      <label class="check"><input type="checkbox" id="terms"><span>Vi har läst och godkänner villkoren ovan.</span></label>
+    </div>
+
+    <div id="msg" class="msg"></div>
+    <button class="btn" id="submitBtn" onclick="submitSignup()">Skicka in och kom igång →</button>
+    <p class="gdpr-note">Inga dolda avgifter. Vi hör av oss inom ett dygn med er inloggning och nästa steg.<br>Frågor? <a href="mailto:info@lagpasset.se">info@lagpasset.se</a></p>
+  </div>
+
+  <div id="doneState" style="display:none">
+    <div class="done-wrap">
+      <div class="done-icon">✓</div>
+      <h1>Tack!</h1>
+      <div style="width:28px;height:3px;background:var(--green);margin:.4rem auto .9rem;border-radius:2px"></div>
+      <p>Vi har tagit emot er anmälan och skickat en kopia till er e-post. Vi hör av oss inom ett dygn med er inloggning och nästa steg. Välkomna till Lagpasset!</p>
+      <div style="margin-top:2rem;display:flex;flex-direction:column;gap:.75rem;align-items:center">
+        <a href="admin_demo.html" style="font-size:15px;color:var(--green);font-weight:600;text-decoration:none">🏟️ Utforska admindemon medan ni väntar →</a>
+        <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-premeny" target="_blank" style="font-size:14px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en genomgång direkt i kalendern</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var selectedPlan = 'year';
+
+function selectPlan(plan, el) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-opt').forEach(function(o){ o.classList.remove('selected'); });
+  el.classList.add('selected');
+  document.getElementById('termPlanText').innerHTML = plan === 'year'
+    ? 'Årsabonnemang: <strong>5 995 kr ex. moms / år</strong> – faktureras årsvis i förskott'
+    : 'Per event: <strong>3 995 kr ex. moms</strong> – faktureras inför eventet';
+}
+
+var REQUIRED = ['club_name','city','orgnr','address','zip','invoice_city','invoice_email','contact_name','contact_email','contact_mobile'];
+
+function val(id){ return (document.getElementById(id).value||'').trim(); }
+function validEmail(e){ return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e); }
+function showMsg(t, cls){
+  var m = document.getElementById('msg');
+  m.textContent = t; m.className = 'msg ' + cls;
+  m.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+async function submitSignup(){
+  document.querySelectorAll('input,select').forEach(function(i){ i.classList.remove('bad'); });
+  var missing = [];
+  REQUIRED.forEach(function(id){ if(!val(id)){ missing.push(id); document.getElementById(id).classList.add('bad'); }});
+  if(missing.length){ showMsg('Fyll i alla obligatoriska fält (*).','err'); return; }
+  if(!validEmail(val('invoice_email'))){ document.getElementById('invoice_email').classList.add('bad'); showMsg('Kontrollera faktura-e-postadressen.','err'); return; }
+  if(!validEmail(val('contact_email'))){ document.getElementById('contact_email').classList.add('bad'); showMsg('Kontrollera kontaktpersonens e-postadress.','err'); return; }
+  if(!document.getElementById('terms').checked){ showMsg('Ni behöver godkänna villkoren för att skicka in.','err'); return; }
+
+  var payload = {
+    plan: selectedPlan,
+    club_name: val('club_name'), city: val('city'), district: val('district'),
+    website: val('website'), logo_url: val('logo_url'),
+    orgnr: val('orgnr'), address: val('address'), zip: val('zip'), invoice_city: val('invoice_city'),
+    invoice_email: val('invoice_email'),
+    contact_name: val('contact_name'), contact_email: val('contact_email'), contact_mobile: val('contact_mobile'),
+    event_name: val('event_name'), event_date: val('event_date'), event_size: val('event_size'),
+    event_notes: val('event_notes')
+  };
+
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Skickar...';
+  document.getElementById('msg').className = 'msg';
+
+  try{
+    // I produktion: Supabase edge function + Resend
+    await new Promise(function(r){ setTimeout(r, 1200); }); // simulera nätverksanrop
+    document.getElementById('formState').style.display = 'none';
+    document.getElementById('doneState').style.display = 'block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  } catch(err){
+    btn.disabled = false;
+    btn.textContent = 'Skicka in och kom igång →';
+    showMsg('Något gick fel. Försök igen eller mejla info@lagpasset.se','err');
+  }
+}
+</script>
+</body>
+</html>
