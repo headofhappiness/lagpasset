@@ -27,11 +27,11 @@ body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font
 
 .club-name{font-size:12px;color:rgba(200,240,200,.65);margin-top:4px;font-weight:500}
 .nav-items{padding:.75rem 0;flex:1}
-.nav-item{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.25rem;font-size:14px;font-weight:500;color:rgba(210,240,210,.85);cursor:pointer;transition:all .15s;border-left:3px solid transparent;text-decoration:none}
+.nav-item{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.25rem;font-size:14px;font-weight:500;color:rgba(230,255,230,.95);cursor:pointer;transition:all .15s;border-left:3px solid transparent;text-decoration:none}
 .nav-item:hover{color:#fff;background:rgba(255,255,255,.09)}
 .nav-item.active{color:#fff;background:rgba(34,197,94,.28);border-left-color:#22c55e}
 .nav-icon{font-size:1rem;width:20px;text-align:center}
-.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(200,240,200,.55);padding:.8rem 1.25rem .3rem}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(180,230,180,.7);padding:.8rem 1.25rem .3rem}
 .sidebar-footer{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.15);font-size:12px;color:rgba(200,230,200,.45)}
 
 /* MAIN */
@@ -200,14 +200,14 @@ textarea{resize:vertical;min-height:70px}
     <div class="demo-welcome-sub">Det här är föreningens adminvy. Klicka runt fritt – inget du gör här sparas.</div>
     <div class="demo-step-list">
       <div class="demo-step"><div class="demo-step-num">1</div><span>Se <strong>Dashboard</strong> – live-status per lag och pass</span></div>
-      <div class="demo-step"><div class="demo-step-num">2</div><span>Gå till <strong>Barn &amp; föräldrar</strong> – se alla lag och föräldrar</span></div>
+      <div class="demo-step"><div class="demo-step-num">2</div><span>Gå till <strong>Deltagare</strong> – se alla lag och kontaktuppgifter</span></div>
       <div class="demo-step"><div class="demo-step-num">3</div><span>Öppna <strong>Passschema</strong> – skapa pass med kvoter per lag</span></div>
-      <div class="demo-step"><div class="demo-step-num">4</div><span>Prova <strong>Mejla föräldrar</strong> – välj mottagare och skriv meddelande</span></div>
+      <div class="demo-step"><div class="demo-step-num">4</div><span>Prova <strong>Mejla medlemmar</strong> – filtrera på passtyp och skicka riktat</span></div>
       <div class="demo-step"><div class="demo-step-num">5</div><span>Klicka <strong>Skriv ut lista</strong> under Bokningar – se utskriftsvyn</span></div>
     </div>
     <div class="demo-cta-row">
       <button class="btn btn-primary" style="width:100%;font-size:15px;min-height:44px" onclick="closeDemoWelcome()">Utforska demon →</button>
-      <a href="guest.html" target="_blank" style="font-size:13.5px;color:var(--green);text-decoration:none;font-weight:600">👤 Se hur det ser ut för föräldrar →</a>
+      <a href="guest.html" target="_blank" style="font-size:13.5px;color:var(--green);text-decoration:none;font-weight:600">👤 Se hur det ser ut för medlemmar →</a>
       <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en personlig genomgång</a>
     </div>
   </div>
@@ -231,9 +231,6 @@ textarea{resize:vertical;min-height:70px}
       <span class="nav-icon">📊</span> Dashboard
     </a>
     <div class="nav-section">Hantera</div>
-    <a class="nav-item" onclick="showSection('children')" href="#">
-      <span class="nav-icon">👧</span> Barn &amp; föräldrar
-    </a>
     <a class="nav-item" onclick="showSection('shifts')" href="#">
       <span class="nav-icon">📋</span> Passschema
     </a>
@@ -242,12 +239,15 @@ textarea{resize:vertical;min-height:70px}
     </a>
     <div class="nav-section">Kommunikation</div>
     <a class="nav-item" onclick="showSection('email')" href="#">
-      <span class="nav-icon">📧</span> Mejla föräldrar
+      <span class="nav-icon">📧</span> Mejla medlemmar
     </a>
     <a class="nav-item" onclick="showSection('feedback')" href="#">
       <span class="nav-icon">⭐</span> Feedback
     </a>
-    <div class="nav-section">Inställningar</div>
+    <div class="nav-section">Administration</div>
+    <a class="nav-item" onclick="showSection('children')" href="#">
+      <span class="nav-icon">👤</span> Deltagare
+    </a>
     <a class="nav-item" onclick="showSection('settings')" href="#">
       <span class="nav-icon">⚙️</span> Inställningar
     </a>
@@ -344,14 +344,14 @@ textarea{resize:vertical;min-height:70px}
     <div class="section" id="sec-children">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
         <div>
-          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Barn &amp; föräldrar</h2>
-          <p style="font-size:13px;color:var(--muted);margin-top:2px">Barnets namn visas i föräldravyn. Förälderns e-post används för länkutskick — visas aldrig för andra.</p>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Deltagare</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Importerade deltagare. Varje rad får en personlig länk för passval.</p>
         </div>
-        <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till barn</button>
+        <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till deltagare</button>
       </div>
 
       <div class="msg info">
-        <strong>Integritet:</strong> Lägg in ett <em>påhittat visningsnamn</em> för barn med skyddad identitet (t.ex. "Robin Grön"). Bocka i "Skyddad identitet" — namnet anonymiseras för övriga föräldrar i laglistan.
+        <strong>Integritet:</strong> Lägg in ett <em>påhittat visningsnamn</em> för deltagare med skyddad identitet. Bocka i "Skyddad identitet" — namnet anonymiseras för övriga i listan.
       </div>
 
       <!-- Filter/sök -->
@@ -374,7 +374,7 @@ textarea{resize:vertical;min-height:70px}
 
       <div class="card" style="padding:0;overflow:hidden">
         <table>
-          <thead><tr><th>Barn</th><th>Lag</th><th>Förälderns e-post</th><th>Status</th><th>Länk skickad</th><th></th></tr></thead>
+          <thead><tr><th>Deltagare</th><th>Lag</th><th>Förälderns e-post</th><th>Status</th><th>Länk skickad</th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
       </div>
@@ -462,19 +462,58 @@ textarea{resize:vertical;min-height:70px}
 
       <!-- DRILL-DOWN VY (dold initialt) -->
       <div id="shiftDetailView" style="display:none">
-        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
-          <button class="btn btn-ghost btn-sm" onclick="closeCategory()">← Tillbaka</button>
-          <h3 style="font-size:16px;font-weight:700;color:var(--dark)" id="categoryTitle"></h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <button class="btn btn-ghost btn-sm" onclick="closeCategory()">← Tillbaka</button>
+            <h3 style="font-size:16px;font-weight:700;color:var(--dark)" id="categoryTitle"></h3>
+          </div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-ghost btn-sm" id="btnShowPasses" onclick="switchShiftTab('passes',this)" style="border-color:var(--green);color:var(--green)">📋 Pass &amp; beläggning</button>
+            <button class="btn btn-ghost btn-sm" id="btnShowInstructions" onclick="switchShiftTab('instructions',this)">📌 Instruktioner</button>
+          </div>
         </div>
 
-        <!-- Dag-filter tabs -->
-        <div class="tabs" id="dayTabs" style="margin-bottom:1rem"></div>
+        <!-- Pass-vy -->
+        <div id="shiftPassView">
+          <div class="tabs" id="dayTabs" style="margin-bottom:1rem"></div>
+          <div class="card" style="padding:0;overflow:hidden">
+            <table>
+              <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag &amp; kvoter</th><th></th></tr></thead>
+              <tbody id="shiftDetailTable"></tbody>
+            </table>
+          </div>
+        </div>
 
-        <div class="card" style="padding:0;overflow:hidden">
-          <table>
-            <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag &amp; kvoter</th><th></th></tr></thead>
-            <tbody id="shiftDetailTable"></tbody>
-          </table>
+        <!-- Instruktions-vy -->
+        <div id="shiftInstructionView" style="display:none">
+          <div class="card" style="margin-bottom:1rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+              <div>
+                <div style="font-size:14px;font-weight:700;color:var(--dark)" id="instructionTitle">Instruktioner – Servering</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">Sparas automatiskt · återanvänds nästa år</div>
+              </div>
+              <div style="display:flex;gap:.5rem">
+                <button class="btn btn-ghost btn-sm" onclick="toggleEditInstructions()">✏️ Redigera</button>
+                <button class="btn btn-ghost btn-sm" onclick="mailInstructions()" style="color:var(--green);border-color:rgba(26,140,58,.3)">📧 Mejla till volontärerna</button>
+              </div>
+            </div>
+
+            <!-- Visningsläge -->
+            <div id="instructionViewMode">
+              <div id="instructionChecklistView" style="display:flex;flex-direction:column;gap:.5rem"></div>
+            </div>
+
+            <!-- Redigeringsläge -->
+            <div id="instructionEditMode" style="display:none">
+              <textarea id="instructionEditor" rows="10" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:.75rem;font-size:13.5px;font-family:'Outfit',sans-serif;resize:vertical;color:var(--dark)"></textarea>
+              <div style="display:flex;gap:.5rem;margin-top:.65rem">
+                <button class="btn btn-primary btn-sm" onclick="saveInstructions()">Spara</button>
+                <button class="btn btn-ghost btn-sm" onclick="toggleEditInstructions()">Avbryt</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="msg info" id="instructionMailSent" style="display:none">📧 Instruktioner skickade till alla Servering-volontärer!</div>
         </div>
       </div>
     </div>
@@ -497,7 +536,7 @@ textarea{resize:vertical;min-height:70px}
       </div>
       <div class="card" style="padding:0;overflow:hidden">
         <table>
-          <thead><tr><th>Pass</th><th>Dag · Tid</th><th>Barn</th><th>Lag</th><th>Förälder</th><th>Telefon</th></tr></thead>
+          <thead><tr><th>Pass</th><th>Dag · Tid</th><th>Deltagare</th><th>Lag</th><th>Förälder</th><th>Telefon</th></tr></thead>
           <tbody id="bookingsTable"></tbody>
         </table>
       </div>
@@ -505,7 +544,7 @@ textarea{resize:vertical;min-height:70px}
 
     <!-- ═══ MEJLA FÖRÄLDRAR ═══ -->
     <div class="section" id="sec-email">
-      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Mejla föräldrar</h2>
+      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Mejla medlemmar</h2>
       <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Skicka info, tack eller påminnelser. Välj mottagare och skriv ditt meddelande.</p>
 
       <div class="card">
@@ -513,7 +552,7 @@ textarea{resize:vertical;min-height:70px}
         <div style="margin-bottom:.65rem">
           <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ PASS-TYP</div>
           <div class="recipient-chips" id="typeChips">
-            <div class="chip chip-on" onclick="toggleChip(this,'all')">Alla föräldrar</div>
+            <div class="chip chip-on" onclick="toggleChip(this,'all')">Alla medlemmar</div>
             <div class="chip chip-off" onclick="toggleChip(this,'not_booked')">Ej valt pass</div>
             <div class="chip chip-off" onclick="toggleChip(this,'servering')">Servering</div>
             <div class="chip chip-off" onclick="toggleChip(this,'infotalt')">Infotält</div>
@@ -533,31 +572,43 @@ textarea{resize:vertical;min-height:70px}
             <div class="chip chip-off" onclick="toggleLagChip(this,'F16')">F16</div>
           </div>
         </div>
-        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Mottagare: 124 föräldrar</div>
+        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Mottagare: 124 medlemmar</div>
       </div>
 
-      <div class="card">
-        <div class="card-title" style="margin-bottom:.9rem">Meddelande</div>
+            <div class="card">
+        <div class="card-title" style="margin-bottom:.75rem">Meddelande</div>
+
+        <div style="margin-bottom:1rem">
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">ANVÄND MALL</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="useTemplate('reminder')">⏰ Påminnelse</button>
+            <button class="btn btn-ghost btn-sm" onclick="useTemplate('info')">📋 Passinformation</button>
+            <button class="btn btn-ghost btn-sm" onclick="useTemplate('thanks')" style="border-color:var(--green);color:var(--green)">🙏 Tackmejl efter event</button>
+          </div>
+        </div>
+
         <div class="form-group">
           <label class="form-label">Ämnesrad</label>
           <input type="text" id="emailSubject" value="Åsacupen 2026 – ditt pass">
         </div>
         <div class="form-group" style="margin-bottom:1rem">
           <label class="form-label">Meddelande</label>
-          <textarea id="emailBody" rows="6" placeholder="Skriv ditt meddelande här...">Hej!
+          <textarea id="emailBody" rows="7" placeholder="Skriv ditt meddelande här...">Hej!
 
 Tack för att ni hjälper till under Åsacupen 2026. Vi ser fram emot ett fantastiskt event tillsammans!
 
 Har du frågor, kontakta oss på kansli@asaif.com.
 
-H�lsningar,
+Hälsningar,
 Åsa IF</textarea>
         </div>
-        <div style="display:flex;gap:.6rem">
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
           <button class="btn btn-ghost" onclick="previewEmail()">👁 Förhandsgranska</button>
           <button class="btn btn-primary" onclick="sendEmail()">📧 Skicka mejl</button>
         </div>
-        <p style="font-size:12px;color:var(--muted);margin-top:.65rem">Mejl skickas via Resend. Varje förälder ser bara sitt eget namn i utskicket.</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:.65rem">Mejl skickas via Resend. Varje mottagare ser bara sitt eget namn i utskicket.</p>
+      </div>
+
       </div>
 
       <div id="emailSentMsg" style="display:none" class="msg ok">Mejl skickat till 124 mottagare!</div>
@@ -567,7 +618,7 @@ H�lsningar,
     <div class="section" id="sec-feedback">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem">
         <div>
-          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Feedback från föräldrar</h2>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Feedback från medlemmar</h2>
           <p style="font-size:13px;color:var(--muted);margin-top:2px">Föräldrar lämnar feedback via sin bokningslänk efter sitt pass.</p>
         </div>
         <div style="display:flex;gap:.6rem">
@@ -655,14 +706,14 @@ H�lsningar,
           <label class="form-label">Automatisk påminnelse</label>
           <div class="deadline-row">
             <input type="number" value="5" min="1" max="30" style="width:70px">
-            <span>dagar före sista anmälningsdag till föräldrar som inte valt pass</span>
+            <span>dagar före sista anmälningsdag till medlemmar som inte valt pass</span>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Typ av deltagande</label>
           <select>
             <option>Obligatoriskt – alla måste välja ett pass</option>
-            <option>Frivilligt – föräldrar uppmanas men måste inte</option>
+            <option>Frivilligt – medlemmar uppmanas men måste inte</option>
           </select>
         </div>
         <button class="btn btn-primary" style="margin-top:.5rem">Spara inställningar</button>
@@ -718,7 +769,7 @@ H�lsningar,
     <div class="form-group">
       <label class="form-label">Barnets visningsnamn</label>
       <input type="text" id="newChildName" placeholder="Förnamn Efternamn">
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i laglistan för föräldrar. Kan vara påhittat om barnet har skyddad identitet.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i laglistan. Kan vara påhittat om deltagaren har skyddad identitet.</div>
     </div>
     <div class="form-group">
       <label class="form-label">Lag</label>
@@ -730,14 +781,14 @@ H�lsningar,
     <div class="form-group">
       <label class="form-label">Förälderns e-postadress</label>
       <input type="email" id="newChildEmail" placeholder="foralderns@email.se">
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Används för att skicka personlig länk. Visas aldrig för andra föräldrar.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Används för att skicka personlig länk. Visas aldrig för andra.</div>
     </div>
     <div class="form-group" style="margin-bottom:.5rem">
       <div class="checkbox-row">
         <input type="checkbox" id="newChildProtected">
         <label for="newChildProtected">Skyddad identitet</label>
       </div>
-      <div class="protected-note" id="protectedNote" style="display:none">Barnets namn visas som "Barn [nummer]" för övriga föräldrar i laglistan. Föräldern hittar sitt barn via sin personliga länk.</div>
+      <div class="protected-note" id="protectedNote" style="display:none">Deltagarens namn anonymiseras för övriga i laglistan. Kontaktpersonen hittar sin länk via sin personliga e-post.</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
@@ -777,7 +828,7 @@ H�lsningar,
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Notering (visas för föräldrar)</label>
+      <label class="form-label">Notering (visas för deltagare)</label>
       <input type="text" placeholder="Ex. Tag med arbetshandskar, Matsalen…">
     </div>
     <div class="form-group">
@@ -851,11 +902,11 @@ H�lsningar,
       <button class="modal-close" onclick="closeModal('modalSendLinks')">✕</button>
     </div>
     <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1rem">Varje förälder får en unik länk via e-post. Länken är kopplad till deras barn och visar bara deras lags pass.</p>
-    <div class="msg info">124 föräldrar i systemet · 67 har valt pass · <strong>57 har inte valt pass ännu</strong></div>
+    <div class="msg info">124 medlemmar i systemet · 67 har valt pass · <strong>57 har inte valt pass ännu</strong></div>
     <div class="form-group">
       <label class="form-label">Skicka till</label>
       <select>
-        <option>Alla föräldrar (124 st)</option>
+        <option>Alla medlemmar (124 st)</option>
         <option>Bara de som inte valt pass ännu (57 st)</option>
       </select>
     </div>
@@ -935,7 +986,7 @@ function showSection(id){
   document.getElementById('sec-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   event.currentTarget.classList.add('active');
-  const titles={dashboard:'Dashboard',children:'Barn & föräldrar',shifts:'Passschema',bookings:'Bokade pass',email:'Mejla föräldrar',feedback:'Feedback',settings:'Inställningar'};
+  const titles={dashboard:'Dashboard',children:'Deltagare',shifts:'Passschema',bookings:'Bokade pass',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='shifts'){ renderShiftTable(); setTimeout(()=>openCategory('servering'),50); }
@@ -1014,7 +1065,6 @@ function renderChildTable(){
     <td style="font-size:13px">${c.protected?'<em style="color:var(--muted)">Dold av integritetsskäl</em>':c.email}</td>
     <td>${c.booked?'<span class="badge badge-green">Pass valt ✓</span>':'<span class="badge badge-amber">Inget pass</span>'}</td>
     <td>${c.linkSent?'<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>':'<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>'}</td>
-    <td><button class="btn btn-ghost btn-sm btn-icon" title="Skicka länk">📧</button></td>
   </tr>`).join('');
 }
 
@@ -1110,7 +1160,7 @@ function toggleLagChip(el,val){
   updateRecipientCount();
 }
 function updateRecipientCount(){
-  document.getElementById('recipientCount').textContent='Mottagare: 124 föräldrar (demo)';
+  document.getElementById('recipientCount').textContent='Mottagare: 124 medlemmar (demo)';
 }
 function sendEmail(){
   document.getElementById('emailSentMsg').style.display='block';
@@ -1151,7 +1201,152 @@ function previewEmail(){ demoBlock(); }
 // Sidebar club label
 document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
 
-// ── Passschema kategori drill-down ──
+// ── Instruktioner per passtyp ──
+const defaultInstructions = {
+  servering: `Checklista – Servering
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FÖRE PASSET
+☐ Hämta nycklar till serveringsvagnen hos cupadmin
+☐ Kontrollera att tillräckligt med muggar, tallrikar och bestick finns
+☐ Fyll på vatten och dryck i kylen (minst 20 min före start)
+☐ Ta emot leverans från catering och kvittera
+
+UNDER PASSET
+☐ En person ansvarar för kassan – byt av varandra
+☐ Håll rent och städa löpande
+☐ Ring cupadmin (070-XXX XX XX) om något tar slut
+
+EFTER PASSET
+☐ Städa serveringsytan och disk
+☐ Lämna tillbaka nycklar och kassalåda till cupadmin
+☐ Rapportera eventuella problem i anteckningsboken`,
+
+  infotalt: `Checklista – Infotält
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FÖRE PASSET
+☐ Hämta tältnycklar och startpaket från cupadmin
+☐ Kontrollera att infopärmen är komplett och uppdaterad
+☐ Sätt upp välkomstskylt och hänvisningsskyltar
+☐ Testa högtalaranläggningen
+
+UNDER PASSET
+☐ Ta emot deltagare och besökare vänligt
+☐ Dela ut program och svara på frågor
+☐ Meddela cupadmin omedelbart om incidenter
+☐ Uppdatera tavlan med aktuella matchresultat
+
+EFTER PASSET
+☐ Plocka ner skyltar och samla in material
+☐ Lämna tillbaka startpaketet till cupadmin`,
+
+  bygg: `Checklista – Bygg & Riv
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BYGG (torsdag kväll)
+☐ Hämta verktyg och material från förrådet (karta delas av cupadmin)
+☐ Sätt upp tält, staket och markeringar enligt ritning
+☐ Kontrollera att elektriska anslutningar är säkra
+☐ Rapportera till cupadmin när klart för slutkontroll
+
+RIV (söndag eftermiddag)
+☐ Vänta på signal från cupadmin innan rivning påbörjas
+☐ Sortera material: föreningen vs hyrt material
+☐ Lämna tillbaka hyrt material rent och räknat
+☐ Städa planen – lämna den som ni hittade den
+☐ Lämna nyckel till förrådet hos cupadmin`,
+
+  nattvakt: `Checklista – Nattvakt
+━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VID PASSET START (21:00)
+☐ Ta emot överlämning från dagspasset
+☐ Kontrollera att alla tält/lokaler är låsta
+☐ Notera kontaktnummer till jourhavande cupadmin
+
+UNDER NATTEN
+☐ Gör runda var 45:e minut – kryssa av i loggen
+☐ Kontakta cupadmin eller SOS vid allvarliga incidenter
+☐ Inga obehöriga på anläggningen
+
+VID PASSETS SLUT (02:00)
+☐ Överlämning till morgonpasset
+☐ Fyll i nattloggen och lämna till cupadmin`,
+};
+
+const savedInstructions = {...defaultInstructions};
+let currentInstructionCat = null;
+
+function switchShiftTab(tab, el) {
+  document.querySelectorAll('#shiftDetailView .btn-ghost').forEach(b => {
+    b.style.borderColor = ''; b.style.color = '';
+  });
+  el.style.borderColor = 'var(--green)'; el.style.color = 'var(--green)';
+  document.getElementById('shiftPassView').style.display = tab==='passes' ? 'block' : 'none';
+  document.getElementById('shiftInstructionView').style.display = tab==='instructions' ? 'block' : 'none';
+  if(tab === 'instructions') renderInstructions();
+}
+
+function renderInstructions() {
+  const cat = currentInstructionCat;
+  if(!cat) return;
+  const data = categoryData[cat];
+  document.getElementById('instructionTitle').textContent = 'Instruktioner – ' + data.title;
+  const text = savedInstructions[cat] || '';
+  const lines = text.split('\n');
+  document.getElementById('instructionChecklistView').innerHTML = lines.map(line => {
+    if(line.startsWith('☐') || line.startsWith('☑')) {
+      const done = line.startsWith('☑');
+      const txt = line.replace(/^[☐☑]\s*/, '');
+      return `<div onclick="toggleCheck(this)" style="display:flex;align-items:flex-start;gap:.6rem;padding:.4rem .5rem;border-radius:6px;cursor:pointer;transition:background .1s" onmouseover="this.style.background='#f0f7f0'" onmouseout="this.style.background=''">
+        <span style="font-size:16px;flex-shrink:0;margin-top:1px">${done?'✅':'☐'}</span>
+        <span style="font-size:13.5px;color:var(--text);line-height:1.5;${done?'text-decoration:line-through;color:var(--muted)':''}">${txt}</span>
+      </div>`;
+    } else if(line.startsWith('━')) {
+      return '<hr style="border:none;border-top:1px solid var(--border);margin:.5rem 0">';
+    } else if(line === '') {
+      return '<div style="height:.4rem"></div>';
+    } else {
+      return `<div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:.6rem 0 .2rem">${line}</div>`;
+    }
+  }).join('');
+  document.getElementById('instructionEditor').value = text;
+  document.getElementById('instructionMailSent').style.display = 'none';
+}
+
+function toggleCheck(el) {
+  const icon = el.querySelector('span:first-child');
+  const txt = el.querySelector('span:last-child');
+  const isDone = icon.textContent === '✅';
+  icon.textContent = isDone ? '☐' : '✅';
+  txt.style.textDecoration = isDone ? '' : 'line-through';
+  txt.style.color = isDone ? 'var(--text)' : 'var(--muted)';
+}
+
+function toggleEditInstructions() {
+  const view = document.getElementById('instructionViewMode');
+  const edit = document.getElementById('instructionEditMode');
+  const isEdit = edit.style.display !== 'none';
+  view.style.display = isEdit ? 'block' : 'none';
+  edit.style.display = isEdit ? 'none' : 'block';
+  if(!isEdit) document.getElementById('instructionEditor').value = savedInstructions[currentInstructionCat] || '';
+}
+
+function saveInstructions() {
+  savedInstructions[currentInstructionCat] = document.getElementById('instructionEditor').value;
+  toggleEditInstructions();
+  renderInstructions();
+}
+
+function mailInstructions() {
+  const data = categoryData[currentInstructionCat];
+  document.getElementById('instructionMailSent').style.display = 'block';
+  document.getElementById('instructionMailSent').textContent = '📧 Instruktioner skickade till alla ' + data.title + '-volontärer!';
+  setTimeout(() => { document.getElementById('instructionMailSent').style.display = 'none'; }, 3000);
+}
+
+
 const categoryData = {
   servering: {
     title: 'Servering',
@@ -1191,10 +1386,18 @@ const categoryData = {
 
 function openCategory(cat) {
   const data = categoryData[cat];
+  currentInstructionCat = cat;
   document.getElementById('shiftCategoryView').style.display = 'none';
   document.getElementById('shiftDetailView').style.display = 'block';
   document.getElementById('categoryTitle').textContent = data.title;
   document.getElementById('shiftsSubtitle').textContent = data.title + ' – enskilda pass';
+  // Återställ till pass-vy
+  document.getElementById('shiftPassView').style.display = 'block';
+  document.getElementById('shiftInstructionView').style.display = 'none';
+  document.getElementById('btnShowPasses').style.borderColor = 'var(--green)';
+  document.getElementById('btnShowPasses').style.color = 'var(--green)';
+  document.getElementById('btnShowInstructions').style.borderColor = '';
+  document.getElementById('btnShowInstructions').style.color = '';
   const tabs = document.getElementById('dayTabs');
   tabs.innerHTML = data.days.map((d,i) =>
     `<div class="tab ${i===0?'active':''}" onclick="filterShiftDay('${d}',this,'${cat}')">${d}</div>`
@@ -1256,13 +1459,78 @@ function aiSummarizeFeedback() {
   txt.innerHTML = '<em style="color:#999">Sammanställer feedback...</em>';
   setTimeout(() => {
     txt.innerHTML = `
-      <strong>Övergripande:</strong> Snittbetyg 4.2/5. Stämningen och organisationen får genomgående beröm.<br><br>
+      <strong>Övergripande · Åsacupen 2026:</strong> Snittbetyg 4.2/5 från 18 svar. Stämningen och organisationen får genomgående beröm.<br><br>
       <strong>Servering</strong> — Bra: tydlig info, god stämning. Förbättring: vatten/dryck till volontärer saknas, ett pass var överbemannt.<br><br>
       <strong>Infotält</strong> — Bra: bra bemanning. Förbättring: önskan om kort briefing vid passstart.<br><br>
       <strong>Bygg &amp; Riv</strong> — Bra: engagerande uppgift. Förbättring: brist på verktyg orsakade onödig väntetid.<br><br>
-      <strong>Nattvakt</strong> — Mycket nöjda. Inga förbättringsförslag.
+      <strong>Nattvakt</strong> — Mycket nöjda. Inga förbättringsförslag.<br><br>
+      <div style="margin-top:.75rem;padding:.75rem 1rem;background:#f0f7ff;border-radius:8px;border-left:3px solid #2563eb">
+        <strong style="color:#1d4ed8">💡 Förslag inför nästa år</strong><br>
+        <span style="font-size:13px;color:#1e3a5f;line-height:1.7">
+          1. Ha vatten tillgängligt vid alla serveringspass — nämns av 3 av 18 respondenter.<br>
+          2. Skicka ett kort instruktionsblad till Bygg &amp; Riv-passet om vilka verktyg som behövs.<br>
+          3. Lägg en 5-minuters briefing i schemat vid passstart för Infotält.<br>
+          4. Kontrollera bemanningsnivån på Servering fredag — ett pass hade för många.
+        </span>
+      </div>
+      <div style="margin-top:.75rem;display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="useTemplate('thanks');document.querySelector('[onclick=\'showSection(\'email\')\'  ]').click()">🙏 Skapa tackmejl baserat på detta</button>
+        <button class="btn btn-ghost btn-sm">📥 Exportera rapport</button>
+      </div>
     `;
   }, 1200);
+}
+
+function useTemplate(type) {
+  const subj = document.getElementById('emailSubject');
+  const body = document.getElementById('emailBody');
+  if(type === 'reminder') {
+    subj.value = 'Påminnelse: välj ditt pass – Åsacupen 2026';
+    body.value = 'Hej!
+
+Vi påminner om att du ännu inte valt ett pass inför Åsacupen 2026. Sista dag är 18 juni.
+
+Öppna din personliga länk för att välja:
+[PERSONLIG LÄNK]
+
+Har du frågor, hör av dig till kansli@asaif.com.
+
+Hälsningar,
+Åsa IF';
+  } else if(type === 'info') {
+    subj.value = 'Ditt pass – Åsacupen 2026';
+    body.value = 'Hej!
+
+Tack för att du hjälper till under Åsacupen 2026. Här är information om ditt pass:
+
+Pass: [PASSTYP]
+Dag: [DAG]
+Tid: [TID]
+Plats: [PLATS]
+
+Vi ses på cupen!
+
+Hälsningar,
+Åsa IF';
+  } else if(type === 'thanks') {
+    subj.value = 'Tack för din insats – Åsacupen 2026! 🙏';
+    body.value = 'Hej!
+
+Åsacupen 2026 är avslutad och vi vill ta tillfället att säga ett stort TACK!
+
+Tack vare er hjälp kunde vi genomföra ett fantastiskt event. 124 volontärer lade ner sin tid – utan er hade det inte blivit möjligt.
+
+Hur gick det?
+• 18 av er lämnade feedback – snittbetyg 4,2 av 5
+• Stämningen och organisationen fick extra beröm
+• Vi har noterat era förbättringsförslag till nästa år
+
+Vi ses på Åsacupen 2027! ⚽
+
+Hälsningar,
+Åsa IF & cupkommittén';
+    document.getElementById('emailSubject').value = 'Tack för din insats – Åsacupen 2026! 🙏';
+  }
 }
 
 // INIT
