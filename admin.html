@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Lagpasset</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f7f4;--surface:#fff;--border:#dde8dd;
+  --green:#1a8c3a;--green-light:#e8f7ec;--green-pale:rgba(26,140,58,.06);
+  --dark:#111c13;--text:#1e2e20;--muted:#6a8a6e;
+  --red:#c0392b;--red-light:#fdf2f2;--amber:#e8a020;--amber-light:#fff8e8;
+  --sidebar:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:15px;font-weight:400;min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--dark);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:20;transition:transform .25s}
+.sidebar-logo{padding:1.4rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.07)}
+.sidebar-logo a{font-family:"Playfair Display",serif;font-size:1.15rem;color:#e0f0e0;text-decoration:none;font-weight:700}
+.sidebar-logo span{color:rgba(100,210,130,.85)}
+.club-name{font-size:12px;color:rgba(224,240,224,.4);margin-top:4px;font-weight:500}
+.nav-items{padding:.75rem 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:.7rem;padding:.65rem 1.25rem;font-size:14px;font-weight:500;color:rgba(224,240,224,.6);cursor:pointer;transition:all .15s;border-left:3px solid transparent;text-decoration:none}
+.nav-item:hover{color:#e0f0e0;background:rgba(255,255,255,.04)}
+.nav-item.active{color:#e0f0e0;background:rgba(26,140,58,.15);border-left-color:rgba(100,210,130,.7)}
+.nav-icon{font-size:1rem;width:20px;text-align:center}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(224,240,224,.25);padding:.8rem 1.25rem .3rem}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.07);font-size:12px;color:rgba(224,240,224,.3)}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:.9rem 1.75rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:16px;font-weight:700;color:var(--dark)}
+.topbar-actions{display:flex;gap:.6rem;align-items:center}
+.content{padding:1.75rem;flex:1}
+
+/* CARDS */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;margin-bottom:1.25rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
+.card-title{font-size:15px;font-weight:700;color:var(--dark)}
+.card-sub{font-size:13px;color:var(--muted);margin-top:2px;font-weight:400}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem}
+
+/* STAT CARDS */
+.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.1rem 1.3rem}
+.stat-num{font-family:"Playfair Display",serif;font-size:2rem;font-weight:700;color:var(--dark);line-height:1}
+.stat-label{font-size:12.5px;color:var(--muted);margin-top:5px;font-weight:500}
+.stat-card.green{background:var(--green-light);border-color:rgba(26,140,58,.25)}
+.stat-card.green .stat-num{color:var(--green)}
+.stat-card.amber{background:var(--amber-light);border-color:rgba(232,160,32,.3)}
+.stat-card.amber .stat-num{color:var(--amber)}
+.stat-card.red{background:var(--red-light);border-color:rgba(192,57,43,.2)}
+.stat-card.red .stat-num{color:var(--red)}
+
+/* PROGRESS BAR */
+.progress-wrap{margin-top:.6rem}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:6px;border-radius:3px;background:var(--green);transition:width .4s ease}
+.progress-fill.warn{background:var(--amber)}
+.progress-fill.danger{background:var(--red)}
+.progress-label{font-size:12px;color:var(--muted);margin-top:4px;display:flex;justify-content:space-between;font-weight:500}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse}
+th{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:.6rem .9rem;text-align:left;border-bottom:1.5px solid var(--border)}
+td{padding:.75rem .9rem;font-size:14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--green-pale)}
+.td-name{font-weight:600;color:var(--dark)}
+.td-muted{color:var(--muted)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:100px}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-gray{background:#f0f0ee;color:#6a7a6a}
+.badge-protected{background:#fff0e8;color:#c05000;border:1px solid #f0c880}
+
+/* BTNS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .18s;border:none;letter-spacing:.01em;min-height:36px;white-space:nowrap}
+.btn-primary{background:var(--green);color:#fff}.btn-primary:hover{background:#15752e}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--muted)}.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-danger{background:var(--red-light);color:var(--red);border:1.5px solid rgba(192,57,43,.2)}.btn-danger:hover{background:#fde8e8}
+.btn-sm{padding:5px 12px;font-size:12.5px;min-height:30px}
+.btn-icon{width:30px;height:30px;padding:0;border-radius:8px;font-size:14px}
+
+/* FORM ELEMENTS */
+.form-group{margin-bottom:.9rem}
+.form-label{font-size:12.5px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px;letter-spacing:.02em}
+input[type=text],input[type=email],input[type=number],select,textarea{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:"Outfit",sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;font-weight:400}
+input:focus,select:focus,textarea:focus{border-color:var(--green);background:var(--surface)}
+input::placeholder,textarea::placeholder{color:#b0bab0}
+textarea{resize:vertical;min-height:70px}
+.inline-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.inline-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.checkbox-row{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;padding:.4rem 0}
+.checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--green);cursor:pointer}
+.checkbox-row label{font-size:13.5px;color:var(--text);cursor:pointer}
+.protected-note{font-size:12px;color:#c05000;background:#fff0e8;border:1px solid #f0c880;border-radius:8px;padding:.5rem .75rem;margin-top:.4rem;line-height:1.5}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1.5px solid var(--border);margin-bottom:1.5rem}
+.tab{padding:.6rem 1.1rem;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;margin-bottom:-1.5px;white-space:nowrap}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover:not(.active){color:var(--dark)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:16px;padding:1.75rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem}
+.modal-title{font-size:17px;font-weight:700;color:var(--dark)}
+.modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);padding:0;line-height:1}
+.modal-close:hover{color:var(--dark)}
+.modal-footer{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.4rem;padding-top:1.1rem;border-top:1px solid var(--border)}
+
+/* MSG */
+.msg{padding:10px 14px;border-radius:9px;font-size:13.5px;margin-bottom:.9rem;border:1.5px solid;line-height:1.6}
+.msg.ok{background:var(--green-light);color:#1a5024;border-color:rgba(26,140,58,.25)}
+.msg.err{background:var(--red-light);color:#8a2020;border-color:rgba(192,57,43,.2)}
+.msg.info{background:var(--amber-light);color:#7a4a00;border-color:rgba(232,160,32,.3)}
+
+/* DEADLINE SETTINGS */
+.deadline-row{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.deadline-row input[type=number]{width:70px}
+.deadline-row span{font-size:14px;color:var(--muted)}
+
+/* PASS-QUOTA */
+.pass-quota-row{display:flex;align-items:center;gap:.6rem;padding:.65rem 0;border-bottom:1px solid var(--border)}
+.pass-quota-row:last-child{border-bottom:none}
+.pqr-name{flex:1;font-size:14px;font-weight:600;color:var(--dark)}
+.pqr-auto{font-size:12px;color:var(--muted)}
+.pqr-input{width:60px;text-align:center;padding:6px 8px}
+
+/* EMAIL COMPOSER */
+.recipient-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
+.chip{padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid}
+.chip-off{background:var(--bg);border-color:var(--border);color:var(--muted)}
+.chip-on{background:var(--green-light);border-color:rgba(26,140,58,.3);color:var(--green)}
+
+/* FEEDBACK LIST */
+.feedback-row{padding:.85rem 0;border-bottom:1px solid var(--border)}
+.feedback-row:last-child{border-bottom:none}
+.feedback-stars{color:var(--amber);font-size:14px;margin-bottom:4px}
+.feedback-text{font-size:13.5px;color:var(--text);line-height:1.6;margin-bottom:4px}
+.feedback-meta{font-size:12px;color:var(--muted)}
+
+/* SECTION VISIBILITY */
+.section{display:none}
+.section.active{display:block}
+
+/* TOPBAR HAMBURGER (mobile) */
+.hamburger-btn{display:none;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--dark)}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .hamburger-btn{display:block}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .inline-2,.inline-3{grid-template-columns:1fr}
+  .content{padding:1rem}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a href="https://lagpasset.se">Lag<span>passet</span></a>
+    <div class="club-name" id="sidebarClubName">Åsa IF</div>
+  </div>
+  <nav class="nav-items">
+    <div class="nav-section">Översikt</div>
+    <a class="nav-item active" onclick="showSection('dashboard')" href="#">
+      <span class="nav-icon">📊</span> Dashboard
+    </a>
+    <div class="nav-section">Hantera</div>
+    <a class="nav-item" onclick="showSection('children')" href="#">
+      <span class="nav-icon">👧</span> Barn & föräldrar
+    </a>
+    <a class="nav-item" onclick="showSection('shifts')" href="#">
+      <span class="nav-icon">📋</span> Passschema
+    </a>
+    <a class="nav-item" onclick="showSection('bookings')" href="#">
+      <span class="nav-icon">✅</span> Bokningar
+    </a>
+    <div class="nav-section">Kommunikation</div>
+    <a class="nav-item" onclick="showSection('email')" href="#">
+      <span class="nav-icon">📧</span> Mejla föräldrar
+    </a>
+    <a class="nav-item" onclick="showSection('feedback')" href="#">
+      <span class="nav-icon">⭐</span> Feedback
+    </a>
+    <div class="nav-section">Inställningar</div>
+    <a class="nav-item" onclick="showSection('settings')" href="#">
+      <span class="nav-icon">⚙️</span> Inställningar
+    </a>
+  </nav>
+  <div class="sidebar-footer">Lagpasset.se · v1.0</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    </div>
+    <div class="topbar-actions">
+      <span style="font-size:13px;color:var(--muted);font-weight:500" id="topbarEvent">Åsacupen 2026</span>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modalSendLinks')">📧 Skicka länkarna</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="section active" id="sec-dashboard">
+      <div class="msg info" style="margin-bottom:1.25rem">
+        <strong>Sista anmälningsdag: 18 juni 2026</strong> · Automatisk påminnelse skickas 5 dagar innan till föräldrar som inte valt pass.
+      </div>
+      <div class="grid-3" style="margin-bottom:1.25rem">
+        <div class="stat-card green">
+          <div class="stat-num">67</div>
+          <div class="stat-label">Pass valda</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:54%"></div></div>
+            <div class="progress-label"><span>54% klart</span><span>124 totalt</span></div>
+          </div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-num">57</div>
+          <div class="stat-label">Återstår att välja</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">8</div>
+          <div class="stat-label">Dagar till sista dag</div>
+        </div>
+      </div>
+
+      <!-- Status per lag -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Status per lag</div>
+            <div class="card-sub">Antal valda pass av lagets kvot</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="showSection('children')">Hantera barn →</button>
+        </div>
+        <table>
+          <thead><tr><th>Lag</th><th>Kvot</th><th>Valda</th><th>Återstår</th><th>Status</th></tr></thead>
+          <tbody id="lagStatusTable"></tbody>
+        </table>
+      </div>
+
+      <!-- Pass-status -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Pass med låg beläggning</div>
+        </div>
+        <table>
+          <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Valda / Totalt</th><th>Kvar</th></tr></thead>
+          <tbody id="passStatusTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ BARN & FÖRÄLDRAR ═══ -->
+    <div class="section" id="sec-children">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+        <div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Barn &amp; föräldrar</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Barnets namn visas i föräldravyn. Förälderns e-post används för länkutskick — visas aldrig för andra.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till barn</button>
+      </div>
+
+      <div class="msg info">
+        <strong>Integritet:</strong> Lägg in ett <em>påhittat visningsnamn</em> för barn med skyddad identitet (t.ex. "Robin Grön"). Bocka i "Skyddad identitet" — namnet anonymiseras för övriga föräldrar i laglistan.
+      </div>
+
+      <!-- Filter/sök -->
+      <div class="card" style="padding:.9rem 1.1rem;margin-bottom:.75rem">
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+          <input type="text" id="childSearch" placeholder="Sök på namn…" style="max-width:220px;margin-bottom:0" oninput="renderChildTable()">
+          <select id="childTeamFilter" style="max-width:160px;margin-bottom:0" onchange="renderChildTable()">
+            <option value="">Alla lag</option>
+            <option>FJ – Flickjuniorer</option><option>P13</option><option>P15</option>
+            <option>P18</option><option>F15</option><option>F16</option>
+          </select>
+          <select id="childStatusFilter" style="max-width:180px;margin-bottom:0" onchange="renderChildTable()">
+            <option value="">Alla statusar</option>
+            <option value="booked">Pass valt</option>
+            <option value="pending">Inget pass valt</option>
+            <option value="protected">Skyddad identitet</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr><th>Barn</th><th>Lag</th><th>Förälderns e-post</th><th>Status</th><th>Länk skickad</th><th></th></tr></thead>
+          <tbody id="childTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ PASSSCHEMA ═══ -->
+    <div class="section" id="sec-shifts">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+        <div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Passschema</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Skapa och hantera pass. Kvoter per lag räknas automatiskt från antal barn, men kan justeras manuellt.</p>
+        </div>
+        <div style="display:flex;gap:.6rem">
+          <button class="btn btn-ghost" onclick="openModal('modalImportAI')">🤖 AI-import</button>
+          <button class="btn btn-primary" onclick="openModal('modalAddShift')">+ Nytt pass</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Typ</th><th>Platser</th><th>Lag &amp; kvoter</th><th></th></tr></thead>
+          <tbody id="shiftTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ BOKNINGAR ═══ -->
+    <div class="section" id="sec-bookings">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+        <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bokningar</h2>
+        <div style="display:flex;gap:.6rem">
+          <button class="btn btn-ghost" onclick="openModal('modalPrint')">🖨️ Skriv ut lista</button>
+          <button class="btn btn-ghost">📥 Exportera</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchBookingTab('all',this)">Alla</div>
+        <div class="tab" onclick="switchBookingTab('servering',this)">Servering</div>
+        <div class="tab" onclick="switchBookingTab('infotalt',this)">Infotält</div>
+        <div class="tab" onclick="switchBookingTab('bygg',this)">Bygg & Riv</div>
+        <div class="tab" onclick="switchBookingTab('nattvakt',this)">Nattvakt</div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr><th>Pass</th><th>Dag · Tid</th><th>Barn</th><th>Lag</th><th>Förälder</th><th>Telefon</th></tr></thead>
+          <tbody id="bookingsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ MEJLA FÖRÄLDRAR ═══ -->
+    <div class="section" id="sec-email">
+      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Mejla föräldrar</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Skicka info, tack eller påminnelser. Välj mottagare och skriv ditt meddelande.</p>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:.9rem">Mottagare</div>
+        <div style="margin-bottom:.65rem">
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ PASS-TYP</div>
+          <div class="recipient-chips" id="typeChips">
+            <div class="chip chip-on" onclick="toggleChip(this,'all')">Alla föräldrar</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'not_booked')">Ej valt pass</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'servering')">Servering</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'infotalt')">Infotält</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'bygg')">Bygg & Riv</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'nattvakt')">Nattvakt</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ LAG</div>
+          <div class="recipient-chips" id="lagChips">
+            <div class="chip chip-on" onclick="toggleLagChip(this,'all')">Alla lag</div>
+            <div class="chip chip-off" onclick="toggleLagChip(this,'FJ')">FJ</div>
+            <div class="chip chip-off" onclick="toggleLagChip(this,'P13')">P13</div>
+            <div class="chip chip-off" onclick="toggleLagChip(this,'P15')">P15</div>
+            <div class="chip chip-off" onclick="toggleLagChip(this,'P18')">P18</div>
+            <div class="chip chip-off" onclick="toggleLagChip(this,'F15')">F15</div>
+            <div class="chip chip-off" onclick="toggleLagChip(this,'F16')">F16</div>
+          </div>
+        </div>
+        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Mottagare: 124 föräldrar</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:.9rem">Meddelande</div>
+        <div class="form-group">
+          <label class="form-label">Ämnesrad</label>
+          <input type="text" id="emailSubject" value="Åsacupen 2026 – ditt pass">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label class="form-label">Meddelande</label>
+          <textarea id="emailBody" rows="6" placeholder="Skriv ditt meddelande här...">Hej!
+
+Tack för att ni hjälper till under Åsacupen 2026. Vi ser fram emot ett fantastiskt event tillsammans!
+
+Har du frågor, kontakta oss på kansli@asaif.com.
+
+H�lsningar,
+Åsa IF</textarea>
+        </div>
+        <div style="display:flex;gap:.6rem">
+          <button class="btn btn-ghost" onclick="previewEmail()">👁 Förhandsgranska</button>
+          <button class="btn btn-primary" onclick="sendEmail()">📧 Skicka mejl</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:.65rem">Mejl skickas via Resend. Varje förälder ser bara sitt eget namn i utskicket.</p>
+      </div>
+
+      <div id="emailSentMsg" style="display:none" class="msg ok">Mejl skickat till 124 mottagare!</div>
+    </div>
+
+    <!-- ═══ FEEDBACK ═══ -->
+    <div class="section" id="sec-feedback">
+      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Feedback från föräldrar</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Föräldrar kan lämna feedback via sin bokningslänk när som helst efter sitt pass.</p>
+      <div class="grid-3" style="margin-bottom:1.25rem">
+        <div class="stat-card green"><div class="stat-num">4.2</div><div class="stat-label">Snittbetyg (av 5)</div></div>
+        <div class="stat-card"><div class="stat-num">18</div><div class="stat-label">Svar inkomna</div></div>
+        <div class="stat-card amber"><div class="stat-num">3</div><div class="stat-label">Med förbättringsförslag</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Senaste feedback</div>
+          <button class="btn btn-ghost btn-sm">📥 Exportera alla</button>
+        </div>
+        <div id="feedbackList">
+          <div class="feedback-row">
+            <div class="feedback-stars">⭐⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Bra upplägg, tydlig information vid passet. Kände att vi var välbehövda.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Vatten till de som jobbade på grillpasset hade varit bra!</div>
+            <div class="feedback-meta">Servering · Lördag 09:00–13:00 · FJ</div>
+          </div>
+          <div class="feedback-row">
+            <div class="feedback-stars">⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Lagom bemanning, ingen stress. Bra att det var tydligt vem som var ansvarig.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Lite oklart vad vi skulle göra i början – en kort briefing hade hjälpt.</div>
+            <div class="feedback-meta">Infotält · Fredag 09:00–13:00 · P15</div>
+          </div>
+          <div class="feedback-row">
+            <div class="feedback-stars">⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Härlig stämning.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Vi var för många på det passet – 3 hade räckt, vi var 7.</div>
+            <div class="feedback-meta">Servering · Fredag 12:30–17:00 · P18</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INSTÄLLNINGAR ═══ -->
+    <div class="section" id="sec-settings">
+      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:1.25rem">Inställningar</h2>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:1rem">Event-inställningar</div>
+        <div class="inline-2">
+          <div class="form-group">
+            <label class="form-label">Eventnamn</label>
+            <input type="text" value="Åsacupen 2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sista anmälningsdag</label>
+            <input type="text" value="2026-06-18">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Automatisk påminnelse</label>
+          <div class="deadline-row">
+            <input type="number" value="5" min="1" max="30" style="width:70px">
+            <span>dagar före sista anmälningsdag till föräldrar som inte valt pass</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Typ av deltagande</label>
+          <select>
+            <option>Obligatoriskt – alla måste välja ett pass</option>
+            <option>Frivilligt – föräldrar uppmanas men måste inte</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="margin-top:.5rem">Spara inställningar</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:.5rem">Föreningsprofil</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Visas i föräldravyn och på utskrifter.</p>
+        <div class="inline-2">
+          <div class="form-group">
+            <label class="form-label">Föreningsnamn</label>
+            <input type="text" value="Åsa IF">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kontakt-e-post</label>
+            <input type="email" value="kansli@asaif.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Logotyp (URL)</label>
+          <input type="text" placeholder="https://asaif.se/logo.png">
+        </div>
+        <div class="form-group" style="margin-bottom:.5rem">
+          <label class="form-label">Accentfärg</label>
+          <div style="display:flex;gap:.6rem;align-items:center">
+            <input type="color" value="#1a8c3a" style="width:44px;height:36px;padding:2px;border-radius:6px;cursor:pointer;border:1.5px solid var(--border)">
+            <input type="text" value="#1a8c3a" style="max-width:110px">
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:.5rem">Spara profil</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:.5rem">Integritet &amp; GDPR</div>
+        <div class="msg info">Ni är personuppgiftsansvariga för den data ni lägger in. Lagpasset är personuppgiftsbiträde och lagrar data i EU (Frankfurt). Barnens förnamn, lag och förälderns e-post är det enda som lagras. Inga efternamn, personnummer eller adresser krävs.</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:.5rem">Barn med skyddad identitet: använd ett påhittat visningsnamn och bocka i "Skyddad identitet" på barnkortet. Barnet anonymiseras i den gemensamma laglistan.</p>
+        <a href="#" style="font-size:13px;color:var(--green);text-decoration:underline;text-underline-offset:3px;display:inline-block;margin-top:.5rem">Läs biträdesavtalet →</a>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ═══ MODALER ═══ -->
+
+<!-- Lägg till barn -->
+<div class="modal-overlay" id="modalAddChild">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Lägg till barn</div>
+      <button class="modal-close" onclick="closeModal('modalAddChild')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Barnets visningsnamn</label>
+      <input type="text" id="newChildName" placeholder="Förnamn Efternamn">
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i laglistan för föräldrar. Kan vara påhittat om barnet har skyddad identitet.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Lag</label>
+      <select id="newChildTeam">
+        <option>FJ – Flickjuniorer</option><option>P13</option><option>P15</option>
+        <option>P18</option><option>F15</option><option>F16</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Förälderns e-postadress</label>
+      <input type="email" id="newChildEmail" placeholder="foralderns@email.se">
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Används för att skicka personlig länk. Visas aldrig för andra föräldrar.</div>
+    </div>
+    <div class="form-group" style="margin-bottom:.5rem">
+      <div class="checkbox-row">
+        <input type="checkbox" id="newChildProtected">
+        <label for="newChildProtected">Skyddad identitet</label>
+      </div>
+      <div class="protected-note" id="protectedNote" style="display:none">Barnets namn visas som "Barn [nummer]" för övriga föräldrar i laglistan. Föräldern hittar sitt barn via sin personliga länk.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
+      <button class="btn btn-primary" onclick="addChild()">Spara barn</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nytt pass -->
+<div class="modal-overlay" id="modalAddShift">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Skapa nytt pass</div>
+      <button class="modal-close" onclick="closeModal('modalAddShift')">✕</button>
+    </div>
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Passnamn</label>
+        <input type="text" placeholder="Ex. Servering, Infotält…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Typ</label>
+        <select>
+          <option>Servering</option><option>Infotält</option>
+          <option>Bygg</option><option>Riv</option><option>Nattvakt</option><option>Annat</option>
+        </select>
+      </div>
+    </div>
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Dag</label>
+        <select><option>Torsdag</option><option>Fredag</option><option>Lördag</option><option>Lördag natt</option><option>Söndag tidigt</option><option>Söndag</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tid</label>
+        <input type="text" placeholder="09:00–13:00">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notering (visas för föräldrar)</label>
+      <input type="text" placeholder="Ex. Tag med arbetshandskar, Matsalen…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Lag &amp; kvoter</label>
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:.6rem">Auto = 1 plats per barn i laget. Justera manuellt om ni vill ha fler eller färre.</div>
+      <div id="shiftQuotaRows">
+        <div class="pass-quota-row">
+          <span class="pqr-name">FJ – Flickjuniorer</span>
+          <span class="pqr-auto">Auto: 23</span>
+          <input type="number" class="pqr-input" value="2" min="0" placeholder="0">
+          <span style="font-size:13px;color:var(--muted)">platser</span>
+        </div>
+        <div class="pass-quota-row">
+          <span class="pqr-name">P13</span>
+          <span class="pqr-auto">Auto: 8</span>
+          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
+          <span style="font-size:13px;color:var(--muted)">platser</span>
+        </div>
+        <div class="pass-quota-row">
+          <span class="pqr-name">P15</span>
+          <span class="pqr-auto">Auto: 6</span>
+          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
+          <span style="font-size:13px;color:var(--muted)">platser</span>
+        </div>
+        <div class="pass-quota-row">
+          <span class="pqr-name">F15</span>
+          <span class="pqr-auto">Auto: 9</span>
+          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
+          <span style="font-size:13px;color:var(--muted)">platser</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddShift')">Avbryt</button>
+      <button class="btn btn-primary">Skapa pass</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI-import -->
+<div class="modal-overlay" id="modalImportAI">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🤖 AI-import av gammalt schema</div>
+      <button class="modal-close" onclick="closeModal('modalImportAI')">✕</button>
+    </div>
+    <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1.1rem">Ladda upp förra årets Word-dokument eller klistra in texten. AI:n läser av pass, tider, lag och platser och föreslår ett schema – ni granskar och godkänner.</p>
+    <div class="form-group">
+      <label class="form-label">Ladda upp dokument (Word / PDF)</label>
+      <div style="border:2px dashed var(--border);border-radius:10px;padding:1.5rem;text-align:center;color:var(--muted);font-size:14px;cursor:pointer">
+        Dra och släpp filen här, eller <span style="color:var(--green);text-decoration:underline;cursor:pointer">klicka för att välja</span>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--muted);font-size:13px;margin:.5rem 0">— eller —</div>
+    <div class="form-group" style="margin-bottom:.5rem">
+      <label class="form-label">Klistra in text direkt</label>
+      <textarea rows="5" placeholder="Klistra in innehållet från Word-dokumentet här..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalImportAI')">Avbryt</button>
+      <button class="btn btn-primary">Analysera med AI →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Skicka länkar -->
+<div class="modal-overlay" id="modalSendLinks">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📧 Skicka personliga länkar</div>
+      <button class="modal-close" onclick="closeModal('modalSendLinks')">✕</button>
+    </div>
+    <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1rem">Varje förälder får en unik länk via e-post. Länken är kopplad till deras barn och visar bara deras lags pass.</p>
+    <div class="msg info">124 föräldrar i systemet · 67 har valt pass · <strong>57 har inte valt pass ännu</strong></div>
+    <div class="form-group">
+      <label class="form-label">Skicka till</label>
+      <select>
+        <option>Alla föräldrar (124 st)</option>
+        <option>Bara de som inte valt pass ännu (57 st)</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:.5rem">
+      <label class="form-label">Meddelande i mejlet (valfritt)</label>
+      <textarea rows="3" placeholder="Hej! Glöm inte att välja ett pass inför Åsacupen…">Hej! Välj ditt volontärpass för Åsacupen 2026 via länken nedan. Det tar bara en minut!</textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalSendLinks')">Avbryt</button>
+      <button class="btn btn-primary" onclick="sendLinks()">Skicka länkarna 📧</button>
+    </div>
+  </div>
+</div>
+
+<!-- Skriv ut -->
+<div class="modal-overlay" id="modalPrint">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🖨️ Skriv ut lista</div>
+      <button class="modal-close" onclick="closeModal('modalPrint')">✕</button>
+    </div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:1rem">Välj vad du vill skriva ut. Varje arbetsställe får en egen sida med namn och telefon.</p>
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.1rem">
+      <label class="checkbox-row"><input type="checkbox" checked><label>Servering – alla pass</label></label>
+      <label class="checkbox-row"><input type="checkbox" checked><label>Infotält – alla pass</label></label>
+      <label class="checkbox-row"><input type="checkbox" checked><label>Bygg & Riv</label></label>
+      <label class="checkbox-row"><input type="checkbox" checked><label>Nattvakt</label></label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalPrint')">Avbryt</button>
+      <button class="btn btn-primary" onclick="window.print()">Skriv ut →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DEMO DATA
+// ═══════════════════════════════════════
+const TEAMS = [
+  {id:"FJ",  name:"FJ – Flickjuniorer", children:23, quota:23, booked:6},
+  {id:"P13", name:"P13",                children:8,  quota:8,  booked:4},
+  {id:"P15", name:"P15",                children:6,  quota:6,  booked:2},
+  {id:"P18", name:"P18",                children:10, quota:10, booked:8},
+  {id:"F15", name:"F15",                children:9,  quota:9,  booked:5},
+  {id:"F16", name:"F16",                children:10, quota:10, booked:7},
+];
+
+const CHILDREN = [
+  {id:"c01",name:"Adelia Mellbin",    team:"FJ",  email:"a.mellbin@gmail.com",   protected:false, booked:true,  linkSent:true},
+  {id:"c02",name:"Agnes Marklinder",  team:"FJ",  email:"agnes.m@hotmail.com",   protected:false, booked:false, linkSent:true},
+  {id:"c03",name:"Alba Franzén",      team:"FJ",  email:"franzenfam@gmail.com",  protected:false, booked:false, linkSent:true},
+  {id:"c04",name:"Alice Todelius",    team:"FJ",  email:"k.todelius@gmail.com",  protected:false, booked:true,  linkSent:true},
+  {id:"c05",name:"Robin Grön",        team:"FJ",  email:"**skyddad**",           protected:true,  booked:true,  linkSent:true},
+  {id:"c06",name:"Alva Svarén",       team:"FJ",  email:"henrik.svaren@gmail.com",protected:false,booked:false, linkSent:false},
+  {id:"p01",name:"P13 barn 1",        team:"P13", email:"parent.p13.1@gmail.com",protected:false, booked:true,  linkSent:true},
+  {id:"p02",name:"P13 barn 2",        team:"P13", email:"parent.p13.2@gmail.com",protected:false, booked:false, linkSent:true},
+];
+
+const SHIFTS_DATA = [
+  {id:"s01",title:"Servering",       day:"Fredag",  time:"08:30–12:45", type:"servering", total:7,  taken:2, teams:["F15","F16","P18"]},
+  {id:"s06",title:"Servering",       day:"Lördag",  time:"09:00–13:00", type:"servering", total:17, taken:5, teams:["FJ","F15","F16","P18","P13"]},
+  {id:"i01",title:"Infotält",        day:"Fredag",  time:"09:00–13:00", type:"infotalt",  total:2,  taken:0, teams:["FJ","P15"]},
+  {id:"b01",title:"Bygg – tält",     day:"Torsdag", time:"18:00–klart", type:"bygg",      total:28, taken:3, teams:["FJ","F15","F16","P13","P15","P18"]},
+  {id:"n01",title:"Nattvakt",        day:"Lör natt",time:"21:00–02:00", type:"nattvakt",  total:4,  taken:1, teams:["FJ"]},
+];
+
+const TYPE_COLORS={servering:"badge-green",infotalt:"badge-gray",bygg:"badge-amber",riv:"badge-gray",nattvakt:"badge-red",annat:"badge-gray"};
+
+let currentBookingTab = 'all';
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const titles={dashboard:'Dashboard',children:'Barn & föräldrar',shifts:'Passschema',bookings:'Bokningar',email:'Mejla föräldrar',feedback:'Feedback',settings:'Inställningar'};
+  document.getElementById('topbarTitle').textContent=titles[id]||id;
+  if(id==='children') renderChildTable();
+  if(id==='shifts') renderShiftTable();
+  if(id==='bookings') renderBookingsTable();
+  if(id==='dashboard') renderDashboard();
+  if(window.innerWidth<900) closeSidebar();
+}
+
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); }
+
+// ═══════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════
+function renderDashboard(){
+  // Lag-status tabell
+  const tbody = document.getElementById('lagStatusTable');
+  tbody.innerHTML = TEAMS.map(t=>{
+    const rem = t.quota - t.booked;
+    const pct = Math.round(t.booked/t.quota*100);
+    const badgeCls = rem===0?'badge-green':rem<=3?'badge-amber':'badge-red';
+    return `<tr>
+      <td class="td-name">${t.name}</td>
+      <td>${t.quota}</td>
+      <td><strong style="color:var(--green)">${t.booked}</strong></td>
+      <td>${rem}</td>
+      <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Pass med låg beläggning
+  const ptbody = document.getElementById('passStatusTable');
+  const low = SHIFTS_DATA.filter(s=>s.taken<s.total*0.5);
+  ptbody.innerHTML = low.map(s=>{
+    const free=s.total-s.taken, pct=Math.round(s.taken/s.total*100);
+    return `<tr>
+      <td class="td-name">${s.title}</td>
+      <td class="td-muted">${s.day}</td>
+      <td class="td-muted">${s.time}</td>
+      <td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress-bar" style="width:80px"><div class="progress-fill${pct<30?' danger':pct<60?' warn':''}" style="width:${pct}%"></div></div><span style="font-size:12.5px;color:var(--muted)">${s.taken}/${s.total}</span></div></td>
+      <td><span class="badge badge-amber">${free} platser kvar</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// BARN-TABELL
+// ═══════════════════════════════════════
+function renderChildTable(){
+  const search = document.getElementById('childSearch').value.toLowerCase();
+  const teamFilter = document.getElementById('childTeamFilter').value;
+  const statusFilter = document.getElementById('childStatusFilter').value;
+
+  const filtered = CHILDREN.filter(c=>{
+    if(search && !c.name.toLowerCase().includes(search)) return false;
+    if(teamFilter && !c.team.includes(teamFilter.split(' ')[0])) return false;
+    if(statusFilter==='booked' && !c.booked) return false;
+    if(statusFilter==='pending' && c.booked) return false;
+    if(statusFilter==='protected' && !c.protected) return false;
+    return true;
+  });
+
+  document.getElementById('childTable').innerHTML = filtered.map(c=>`<tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div style="width:30px;height:30px;border-radius:50%;background:${c.protected?'#fff0e8':'var(--green-light)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${c.protected?'#c05000':'var(--green)'}">
+          ${c.protected?'🔒':c.name.split(' ').map(w=>w[0]).slice(0,2).join('')}
+        </div>
+        <div>
+          <div style="font-weight:600;color:var(--dark)">${c.name}</div>
+          ${c.protected?'<div class="badge badge-protected" style="margin-top:2px">🔒 Skyddad</div>':''}
+        </div>
+      </div>
+    </td>
+    <td class="td-muted">${c.team}</td>
+    <td style="font-size:13px">${c.protected?'<em style="color:var(--muted)">Dold av integritetsskäl</em>':c.email}</td>
+    <td>${c.booked?'<span class="badge badge-green">Pass valt ✓</span>':'<span class="badge badge-amber">Inget pass</span>'}</td>
+    <td>${c.linkSent?'<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>':'<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>'}</td>
+    <td><button class="btn btn-ghost btn-sm btn-icon" title="Skicka länk">📧</button></td>
+  </tr>`).join('');
+}
+
+// ═══════════════════════════════════════
+// PASS-TABELL
+// ═══════════════════════════════════════
+function renderShiftTable(){
+  document.getElementById('shiftTable').innerHTML = SHIFTS_DATA.map(s=>{
+    const free=s.total-s.taken, pct=Math.round(s.taken/s.total*100);
+    const tc=TYPE_COLORS[s.type]||'badge-gray';
+    return `<tr>
+      <td class="td-name">${s.title}</td>
+      <td class="td-muted">${s.day}</td>
+      <td class="td-muted">${s.time}</td>
+      <td><span class="badge ${tc}">${s.type}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:.4rem">
+          <div class="progress-bar" style="width:70px"><div class="progress-fill${pct<30?' danger':pct<60?' warn':''}" style="width:${pct}%"></div></div>
+          <span style="font-size:12.5px;color:var(--muted)">${s.taken}/${s.total}</span>
+        </div>
+      </td>
+      <td style="font-size:12.5px;color:var(--muted)">${s.teams.join(', ')}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm btn-icon" title="Redigera">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" title="Ta bort">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// BOKNINGAR
+// ═══════════════════════════════════════
+function renderBookingsTable(){
+  const rows = [
+    {shift:"Servering", day:"Fredag 08:30–12:45", child:"Adelia Mellbin", team:"FJ", parent:"Anna Mellbin", phone:"070-111 22 33", type:"servering"},
+    {shift:"Infotält",  day:"Fredag 09:00–13:00", child:"Alice Todelius",  team:"FJ", parent:"Karin Todelius",phone:"070-444 55 66", type:"infotalt"},
+    {shift:"Bygg",      day:"Torsdag 18:00",       child:"Bonnie Amnäs",   team:"FJ", parent:"Emil Amnäs",   phone:"070-777 88 99", type:"bygg"},
+    {shift:"Servering", day:"Lördag 09:00–13:00",  child:"P13 barn 1",    team:"P13",parent:"Förälder P13-1",phone:"070-100 20 30", type:"servering"},
+    {shift:"Nattvakt",  day:"Lördag 21:00–02:00",  child:"Robin Grön",    team:"FJ", parent:"(skyddad)",    phone:"(skyddad)",     type:"nattvakt", protected:true},
+  ];
+  const filtered = currentBookingTab==='all' ? rows : rows.filter(r=>r.type===currentBookingTab);
+  document.getElementById('bookingsTable').innerHTML = filtered.map(r=>`<tr>
+    <td class="td-name">${r.shift}</td>
+    <td class="td-muted" style="font-size:13px">${r.day}</td>
+    <td>${r.protected?'<span class="badge badge-protected">🔒 Skyddad</span>':r.child}</td>
+    <td class="td-muted">${r.team}</td>
+    <td style="font-weight:500">${r.parent}</td>
+    <td class="td-muted">${r.phone}</td>
+  </tr>`).join('');
+}
+
+function switchBookingTab(tab, el){
+  currentBookingTab=tab;
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderBookingsTable();
+}
+
+// ═══════════════════════════════════════
+// MODALER
+// ═══════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+document.getElementById('newChildProtected').addEventListener('change',function(){
+  document.getElementById('protectedNote').style.display=this.checked?'block':'none';
+});
+
+function addChild(){
+  const name=document.getElementById('newChildName').value.trim();
+  if(!name){alert('Ange barnets namn.');return;}
+  closeModal('modalAddChild');
+  // I produktion: supabase insert
+}
+
+// ═══════════════════════════════════════
+// EMAIL
+// ═══════════════════════════════════════
+function toggleChip(el,val){
+  document.querySelectorAll('#typeChips .chip').forEach(c=>{c.className='chip chip-off';});
+  el.className='chip chip-on';
+  updateRecipientCount();
+}
+function toggleLagChip(el,val){
+  document.querySelectorAll('#lagChips .chip').forEach(c=>{c.className='chip chip-off';});
+  el.className='chip chip-on';
+  updateRecipientCount();
+}
+function updateRecipientCount(){
+  document.getElementById('recipientCount').textContent='Mottagare: 124 föräldrar (demo)';
+}
+function sendEmail(){
+  document.getElementById('emailSentMsg').style.display='block';
+  setTimeout(()=>document.getElementById('emailSentMsg').style.display='none',4000);
+}
+function previewEmail(){ alert('Förhandsgranskning: mejlet öppnas i ett nytt fönster (i produktion).'); }
+
+// ═══════════════════════════════════════
+// LINKS
+// ═══════════════════════════════════════
+function sendLinks(){
+  closeModal('modalSendLinks');
+  setTimeout(()=>alert('Länkarna är skickade! 57 föräldrar fick sitt personliga mejl.'),300);
+}
+
+// INIT
+renderDashboard();
+</script>
+</body>
+</html>

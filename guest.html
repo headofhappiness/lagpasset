@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Välj ditt pass – Åsacupen 2026</title>
+<meta name="description" content="Välj ditt pass. Hjälp laget.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;
+  --surface:#fff;
+  --surface2:#f2f9f3;
+  --border:#e0ece0;
+  --green:#1a8c3a;
+  --green-mid:#22a847;
+  --green-light:#e8f7ec;
+  --green-pale:rgba(26,140,58,.07);
+  --dark:#111c13;
+  --text:#1e2e20;
+  --muted:#6a8a6e;
+  --amber:#e8a020;
+  --amber-light:#fff8e8;
+  --red:#c0392b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-weight:400;min-height:100vh;font-size:17px;line-height:1.65}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.4rem;border-bottom:1px solid var(--border);background:rgba(250,248,244,.97);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+.nav-logo{font-family:"Playfair Display",serif;font-size:1.15rem;color:var(--dark);text-decoration:none;font-weight:700}
+.nav-logo span{color:var(--green)}
+.nav-right{display:flex;align-items:center;gap:.7rem}
+.nav-club{font-size:13px;color:var(--muted);font-weight:500}
+.deadline-pill{font-size:12px;background:var(--green-light);color:var(--green);border:1px solid rgba(26,140,58,.22);border-radius:100px;padding:3px 10px;font-weight:700}
+.deadline-pill.urgent{background:#fff3e0;color:#b85c00;border-color:#f0c070}
+
+/* PAGE */
+.page{max-width:560px;margin:0 auto;padding:1.75rem 1.25rem 5rem}
+
+/* STEG-HEADER */
+.step-header{margin-bottom:1.5rem}
+h1{font-family:"Playfair Display",serif;font-size:1.85rem;font-weight:700;color:var(--dark);margin-bottom:.2rem}
+.green-line{width:28px;height:3px;background:var(--green);margin:.4rem 0 .9rem;border-radius:2px}
+.step-sub{font-size:15px;color:var(--muted);font-weight:400;line-height:1.6}
+
+/* STEP INDICATOR */
+.step-indicator{display:flex;align-items:center;margin-bottom:1.6rem}
+.si-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;transition:all .2s;border:2px solid var(--border);background:var(--surface);color:var(--muted)}
+.si-dot.active{border-color:var(--green);background:var(--green);color:#fff}
+.si-dot.done{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.si-line{flex:1;height:2px;background:var(--border);transition:background .2s}
+.si-line.done{background:var(--green)}
+.si-labels{display:flex;justify-content:space-between;margin-top:5px;margin-bottom:1.4rem}
+.si-label{font-size:11px;color:var(--muted);text-align:center;flex:1;font-weight:500;line-height:1.3}
+.si-label.active{color:var(--green);font-weight:700}
+
+/* EVENT INFO */
+.event-box{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;margin-bottom:1.4rem;font-size:14.5px;line-height:1.75;display:flex;gap:.75rem;align-items:flex-start}
+.event-icon{font-size:1.2rem;flex-shrink:0}
+
+/* CLOSED */
+.closed-banner{background:#fdf2f2;border:2px solid #e8c0c0;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.4rem;text-align:center}
+.closed-banner h2{font-family:"Playfair Display",serif;font-size:1.25rem;color:#8a2020;font-weight:700;margin-bottom:.4rem}
+.closed-banner p{font-size:15px;color:#8a2020;line-height:1.65}
+
+/* LAG-KORT */
+.lag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:.5rem}
+.lag-card{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:1.1rem 1rem;cursor:pointer;transition:all .18s;text-align:center;user-select:none}
+.lag-card:hover{border-color:var(--green);background:var(--green-pale);transform:translateY(-2px)}
+.lag-card.selected{border-color:var(--green);background:var(--green-pale)}
+.lag-card-name{font-size:16px;font-weight:700;color:var(--dark)}
+.lag-card-count{font-size:13px;color:var(--muted);margin-top:3px;font-weight:400}
+.lag-card-progress{height:4px;background:var(--border);border-radius:2px;margin-top:.7rem;overflow:hidden}
+.lag-card-bar{height:4px;background:var(--green);border-radius:2px;transition:width .4s ease}
+
+/* LAGLISTAN – URGENCY */
+.lag-list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.lag-back-btn{font-size:13px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:"Outfit",sans-serif;font-weight:500;display:flex;align-items:center;gap:5px;padding:0}
+.lag-back-btn:hover{color:var(--green)}
+.lag-stats-pill{font-size:12px;font-weight:700;padding:3px 11px;border-radius:100px}
+.lag-stats-ok{background:var(--green-light);color:var(--green)}
+.lag-stats-warn{background:var(--amber-light);color:var(--amber)}
+
+.child-list{display:flex;flex-direction:column;gap:7px}
+.child-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border:2px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer;transition:all .15s;user-select:none;position:relative}
+.child-row:hover:not(.booked){border-color:var(--green);background:var(--green-pale)}
+.child-row.selected{border-color:var(--green);background:var(--green-pale)}
+.child-row.booked{border-color:rgba(26,140,58,.4);background:rgba(26,140,58,.04);cursor:default}
+.child-row.booked:hover{transform:none}
+/* avatar */
+.child-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;font-family:"Playfair Display",serif;transition:all .2s}
+.child-av-neutral{background:#eef3ee;color:var(--muted)}
+.child-av-selected{background:var(--green);color:#fff}
+.child-av-done{background:var(--green);color:#fff}
+.child-info{flex:1;min-width:0}
+.child-name{font-size:15px;font-weight:600;color:var(--dark)}
+.child-status-row{display:flex;align-items:center;gap:6px;margin-top:2px}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.status-dot-green{background:var(--green)}
+.status-dot-gray{background:#c8d4c8}
+.child-status-text{font-size:12.5px;font-weight:500}
+.child-status-text.done{color:var(--green)}
+.child-status-text.pending{color:var(--muted)}
+/* urgency badge */
+.urgency-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;flex-shrink:0}
+.badge-done{background:var(--green-light);color:var(--green)}
+.badge-last{background:#fff0e0;color:#c05000;border:1px solid #f0c080}
+
+/* PASS-LISTA */
+.day-header{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:.65rem 0 .4rem;border-bottom:1.5px solid var(--border);margin-bottom:.65rem;display:flex;align-items:center;justify-content:space-between}
+.pass-item{border:2px solid var(--border);border-radius:12px;margin-bottom:8px;background:var(--surface);transition:all .18s;overflow:hidden}
+.pass-item:hover:not(.full) .pass-top{background:var(--surface2)}
+.pass-item.selected{border-color:var(--green)}
+.pass-item.selected .pass-top{background:rgba(26,140,58,.05)}
+.pass-item.full{opacity:.45;pointer-events:none}
+.pass-top{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;cursor:pointer;user-select:none;transition:background .15s}
+.pass-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);margin-top:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:border-color .15s}
+.pass-item.selected .pass-radio{border-color:var(--green)}
+.pass-dot{width:10px;height:10px;border-radius:50%;background:var(--green);display:none}
+.pass-item.selected .pass-dot{display:block}
+.pass-body{flex:1;min-width:0}
+.pass-title{font-size:15.5px;color:var(--dark);font-weight:700;line-height:1.3}
+.pass-time{font-size:13.5px;color:var(--muted);margin-top:2px;font-weight:400}
+.pass-note{font-size:13px;color:var(--muted);margin-top:3px;font-style:italic}
+.pass-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.tag{font-size:11.5px;padding:2px 9px;border-radius:100px;font-weight:600}
+.tag-servering{background:#e8f4e8;color:#1a5c24}
+.tag-infotalt{background:#e8eef8;color:#1a2e6a}
+.tag-bygg{background:#f4ede8;color:#6a3010}
+.tag-riv{background:#f0e8f4;color:#4a1060}
+.tag-nattvakt{background:#1a2e1d;color:#9fe0a5}
+/* spots badge */
+.spots{font-size:12px;font-weight:700;border-radius:100px;padding:3px 9px;flex-shrink:0;white-space:nowrap}
+.spots-ok{background:var(--green-light);color:var(--green)}
+.spots-low{background:#fff3e0;color:#b85c00}
+.spots-full{background:#fdf2f2;color:var(--red)}
+
+/* FORM */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.2rem 1.3rem;margin-bottom:.85rem}
+.card-label{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem}
+.form-group{margin-bottom:.8rem}
+.form-label{font-size:13px;color:var(--muted);display:block;margin-bottom:5px;font-weight:500}
+input[type=text],input[type=tel]{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:13px 15px;font-family:"Outfit",sans-serif;font-size:16px;color:var(--text);outline:none;transition:border-color .2s;font-weight:400}
+input:focus{border-color:var(--green);background:var(--surface)}
+input::placeholder{color:#b8c8b8}
+
+/* SELECTED SUMMARY */
+.sel-summary{background:var(--green-pale);border:1.5px solid rgba(26,140,58,.18);border-radius:10px;padding:.9rem 1rem;margin-bottom:.85rem;font-size:14.5px;line-height:1.75}
+.sel-summary strong{color:var(--green)}
+
+/* MSG */
+.msg{padding:12px 15px;border-radius:10px;font-size:15px;margin-bottom:.85rem;border:1.5px solid;line-height:1.6;font-weight:400}
+.msg.ok{background:#f0f8ec;color:#1a5024;border-color:#b0d890}
+.msg.err{background:#fdf2f2;color:#8a2020;border-color:#e8c0c0}
+.msg.info{background:var(--green-light);color:var(--green);border-color:rgba(26,140,58,.22)}
+
+/* BTN */
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 24px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;border:none;width:100%;letter-spacing:.01em;margin-top:.25rem;min-height:50px;gap:8px}
+.btn-primary{background:var(--green);color:#fff}.btn-primary:hover{background:#15752e;transform:translateY(-1px)}.btn-primary:disabled{opacity:.4;cursor:default;transform:none}
+.btn-outline{background:transparent;border:2px solid var(--border);color:var(--muted);margin-top:.5rem}.btn-outline:hover{border-color:var(--green);color:var(--green)}
+.btn-sm{font-size:14px;padding:10px 20px;min-height:40px}
+
+/* ADD ANOTHER */
+.add-another{display:flex;align-items:center;gap:.65rem;padding:.85rem 1.1rem;border:2px dashed rgba(26,140,58,.3);border-radius:12px;color:var(--green);font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;background:transparent;width:100%;font-family:"Outfit",sans-serif;margin-top:.75rem}
+.add-another:hover{background:var(--green-pale);border-color:var(--green)}
+.add-plus{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+
+/* DONE */
+.done-icon{width:68px;height:68px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.8rem;color:#fff}
+.conf-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:14.5px;gap:12px}
+.conf-row:last-child{border-bottom:none}
+.conf-label{color:var(--muted);font-size:13px;min-width:80px;font-weight:500}
+
+/* FEEDBACK */
+.feedback-wrap{margin-top:1.25rem}
+.feedback-title{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:.6rem}
+.stars{display:flex;gap:6px;margin-bottom:.75rem}
+.star{font-size:1.8rem;cursor:pointer;transition:transform .1s;filter:grayscale(1);opacity:.4;user-select:none}
+.star.active{filter:none;opacity:1}
+.star:hover{transform:scale(1.15)}
+textarea.feedback-text{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:12px 14px;font-family:"Outfit",sans-serif;font-size:15px;color:var(--text);outline:none;resize:none;min-height:80px;transition:border-color .2s;font-weight:400}
+textarea.feedback-text:focus{border-color:var(--green);background:var(--surface)}
+
+/* LOADING */
+.loading{text-align:center;padding:3.5rem;color:var(--muted);font-size:15px}
+.spinner{width:20px;height:20px;border:2.5px solid rgba(26,140,58,.15);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.slide-down{animation:slideDown .22s ease}
+.pop-in{animation:popIn .2s ease}
+
+@media(max-width:600px){
+  body{font-size:17px}
+  .page{padding:1.4rem 1rem 4rem}
+  h1{font-size:1.65rem}
+  .lag-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+  .btn{font-size:16.5px;min-height:52px}
+  input{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div id="club-logo-wrap" style="display:none"><img id="club-logo-img" style="height:36px;width:auto;object-fit:contain"></div>
+  <a id="club-name-fallback" href="https://lagpasset.se" class="nav-logo">Lag<span>passet</span></a>
+  <div class="nav-right">
+    <div class="nav-club" id="navClub"></div>
+    <div id="deadlinePill" style="display:none" class="deadline-pill"></div>
+  </div>
+</nav>
+
+<div class="page">
+  <div id="loadingState" class="loading"><span class="spinner"></span> Laddar...</div>
+  <div id="errorState" style="display:none" class="msg err"></div>
+
+  <div id="mainContent" style="display:none">
+    <div id="closedBanner" style="display:none" class="closed-banner">
+      <h2>Anmälningstiden har passerat</h2>
+      <p id="closedMsg"></p>
+    </div>
+
+    <!-- STEG-INDIKATOR -->
+    <div class="step-indicator" id="stepIndicator">
+      <div class="si-dot active" id="sd1">1</div>
+      <div class="si-line" id="sl1"></div>
+      <div class="si-dot" id="sd2">2</div>
+      <div class="si-line" id="sl2"></div>
+      <div class="si-dot" id="sd3">3</div>
+      <div class="si-line" id="sl3"></div>
+      <div class="si-dot" id="sd4">4</div>
+    </div>
+    <div class="si-labels" id="siLabels">
+      <span class="si-label active" id="sl-1">Välj lag</span>
+      <span class="si-label" id="sl-2">Välj barn</span>
+      <span class="si-label" id="sl-3">Välj pass</span>
+      <span class="si-label" id="sl-4">Dina uppgifter</span>
+    </div>
+
+    <div id="guestMsg" style="display:none" class="msg"></div>
+
+    <!-- STEG 1: VÄLJ LAG -->
+    <div id="step1">
+      <div class="step-header">
+        <h1>Välj ditt lags namn</h1>
+        <div class="green-line"></div>
+      </div>
+      <div class="event-box" id="eventBox"><span class="event-icon">🏆</span><span id="eventInfo"></span></div>
+      <p id="pageGreeting" style="font-size:15px;color:var(--muted);margin-bottom:1.1rem;line-height:1.7"></p>
+      <div class="lag-grid" id="lagGrid"></div>
+    </div>
+
+    <!-- STEG 2: VÄLJ BARN I LAGET -->
+    <div id="step2" style="display:none" class="slide-down">
+      <div class="step-header">
+        <div class="lag-list-header">
+          <button class="lag-back-btn" onclick="goToStep1()">← Byt lag</button>
+          <div id="lagStatsPill" class="lag-stats-pill lag-stats-ok"></div>
+        </div>
+        <h1 id="step2Title">Välj ditt barn</h1>
+        <div class="green-line"></div>
+        <p class="step-sub">Gröna bockar = pass redan valt. Välj ditt barns namn för att se tillgängliga pass.</p>
+      </div>
+      <div class="child-list" id="childList"></div>
+    </div>
+
+    <!-- STEG 3: VÄLJ PASS -->
+    <div id="step3" style="display:none" class="slide-down">
+      <div class="step-header">
+        <div class="lag-list-header">
+          <button class="lag-back-btn" onclick="goToStep2()">← Byt barn</button>
+          <span id="step3ChildBadge" style="font-size:13px;font-weight:600;color:var(--green)"></span>
+        </div>
+        <h1>Välj ett pass</h1>
+        <div class="green-line"></div>
+        <p class="step-sub" id="step3Sub"></p>
+      </div>
+      <div id="alreadyBooked" style="display:none" class="msg info"></div>
+      <div id="passListWrap"></div>
+      <div id="noPassMsg" style="display:none" class="msg err">Inga pass hittades för det här laget. Kontakta föreningen.</div>
+    </div>
+
+    <!-- STEG 4: UPPGIFTER -->
+    <div id="step4" style="display:none" class="slide-down">
+      <div class="step-header">
+        <div class="lag-list-header">
+          <button class="lag-back-btn" onclick="goToStep3()">← Byt pass</button>
+        </div>
+        <h1>Dina uppgifter</h1>
+        <div class="green-line"></div>
+      </div>
+      <div class="sel-summary" id="selSummary"></div>
+      <div class="card">
+        <div class="card-label">Kontaktuppgifter – förälder/ledare</div>
+        <div class="form-group">
+          <label class="form-label">Ditt namn</label>
+          <input type="text" id="parentName" placeholder="Förnamn och efternamn" autocomplete="name">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Ditt telefonnummer</label>
+          <input type="tel" id="parentPhone" placeholder="07X XXX XX XX" autocomplete="tel">
+        </div>
+      </div>
+      <div id="msgBottom" style="display:none" class="msg err"></div>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitBooking()">Välj det här passet ✓</button>
+      <button class="btn btn-outline" onclick="goToStep3()">← Ändra pass</button>
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-top:.8rem;line-height:1.6">Öppna länken igen och välj barnets namn om du vill ändra.</p>
+    </div>
+  </div>
+
+  <!-- BEKRÄFTELSE -->
+  <div id="doneWrap" style="display:none" class="slide-down">
+    <div style="text-align:center;padding:1.75rem 0 1.5rem">
+      <div class="done-icon">✓</div>
+      <h1>Tack!</h1>
+      <div class="green-line" style="margin:.4rem auto .9rem"></div>
+      <p style="color:var(--muted);font-size:15px;margin-bottom:.3rem">Ditt pass är valt.</p>
+      <div id="doneTimestamp" style="font-size:13px;color:var(--muted);margin-bottom:1.4rem;font-weight:500"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:.75rem">
+      <div class="card-label">Din bokning</div>
+      <div id="confirmSummary"></div>
+    </div>
+
+    <!-- FEEDBACK-SEKTION -->
+    <div class="card">
+      <div class="card-label">Lämna feedback efter ditt pass</div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:.9rem;line-height:1.65">Hur gick det? Din feedback hjälper föreningen att göra nästa event bättre. Du kan fylla i direkt eller komma tillbaka till den här länken när passet är avslutat.</p>
+      <div id="feedbackForm">
+        <div class="feedback-title">Hur fungerade passet?</div>
+        <div class="stars" id="stars">
+          <span class="star" onclick="setStar(1)">⭐</span>
+          <span class="star" onclick="setStar(2)">⭐</span>
+          <span class="star" onclick="setStar(3)">⭐</span>
+          <span class="star" onclick="setStar(4)">⭐</span>
+          <span class="star" onclick="setStar(5)">⭐</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vad fungerade bra?</label>
+          <textarea class="feedback-text" id="feedbackGood" placeholder="Ex. bra upplägg, lagom bemanning..."></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:.9rem">
+          <label class="form-label">Vad kan förbättras till nästa gång?</label>
+          <textarea class="feedback-text" id="feedbackImprove" placeholder="Ex. behövdes fler händer, varor tog slut, oklara instruktioner..."></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm" style="width:auto;padding:10px 24px" onclick="submitFeedback()">Skicka feedback</button>
+        <p style="font-size:12.5px;color:var(--muted);margin-top:.6rem;line-height:1.5">Feedback kan lämnas när som helst – öppna länken igen och scrolla ner.</p>
+      </div>
+      <div id="feedbackDone" style="display:none" class="msg ok" style="margin-bottom:0">Tack för din feedback! Föreningen får en sammanställning efter eventet.</div>
+    </div>
+
+    <!-- FLER BARN -->
+    <div id="moreChildrenWrap" style="display:none">
+      <button class="add-another" onclick="bookAnotherChild()">
+        <div class="add-plus">+</div>
+        Välj pass för nästa barn
+      </button>
+    </div>
+
+    <div style="background:var(--green-pale);border:1.5px solid rgba(26,140,58,.16);border-radius:12px;padding:.9rem 1.1rem;margin-top:.75rem;font-size:14px;line-height:1.7">
+      <strong style="color:var(--dark)">Vill du ändra ditt pass?</strong><br>
+      <span style="color:var(--muted)">Öppna samma länk igen, välj ditt barns namn och byt pass. Fungerar fram till sista anmälningsdag.</span>
+    </div>
+    <button class="btn btn-outline" style="margin-top:.75rem" onclick="editBooking()">← Ändra min bokning</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// DEMO DATA  (ersätts med Supabase i produktion)
+// ════════════════════════════════════════════════
+const DEMO = {
+  club:{ name:"Åsa IF", logo_url:null, accent:"#1a8c3a" },
+  event:{ name:"Åsacupen 2026", deadline:"2026-06-18", reminder_days:5, contact_email:"kansli@asaif.com" },
+
+  // Lag med barn — quota = antal pass laget ska ta (auto: 1/barn, kan justeras manuellt)
+  teams:[
+    { id:"FJ",  name:"FJ – Flickjuniorer", quota:23,
+      children:[
+        {id:"c01",name:"Adelia Mellbin"},{id:"c02",name:"Agnes Marklinder"},
+        {id:"c03",name:"Alba Franzén"},{id:"c04",name:"Alice Todelius"},
+        {id:"c05",name:"Alicia Rastborg"},{id:"c06",name:"Alva Svarén"},
+        {id:"c07",name:"Bonnie Amnäs"},{id:"c08",name:"Elin Andersson"},
+        {id:"c09",name:"Fanny Lundqvist"},{id:"c10",name:"Hanalei Gagner"},
+        {id:"c11",name:"Ines Stengren"},{id:"c12",name:"Ingrid Johanson"},
+        {id:"c13",name:"Jenna Kullberg"},{id:"c14",name:"Jolien Marie Wiese"},
+        {id:"c15",name:"Linnea Tingstrand"},{id:"c16",name:"Linnéa Nothzén"},
+        {id:"c17",name:"Lovis Dahl"},{id:"c18",name:"Narges Sarwari"},
+        {id:"c19",name:"Nickolina Zackrisson Forsander"},{id:"c20",name:"Selma Jonsson Racic"},
+        {id:"c21",name:"Sofia Ekelund"},{id:"c22",name:"Stella Ullemark"},
+        {id:"c23",name:"Vilda Wallroth"},
+      ]
+    },
+    { id:"P13", name:"P13", quota:8,
+      children:[{id:"p01",name:"P13 barn 1"},{id:"p02",name:"P13 barn 2"},{id:"p03",name:"P13 barn 3"},{id:"p04",name:"P13 barn 4"},{id:"p05",name:"P13 barn 5"},{id:"p06",name:"P13 barn 6"},{id:"p07",name:"P13 barn 7"},{id:"p08",name:"P13 barn 8"}]
+    },
+    { id:"P15", name:"P15", quota:6,
+      children:[{id:"q01",name:"P15 barn 1"},{id:"q02",name:"P15 barn 2"},{id:"q03",name:"P15 barn 3"},{id:"q04",name:"P15 barn 4"},{id:"q05",name:"P15 barn 5"},{id:"q06",name:"P15 barn 6"}]
+    },
+    { id:"P18", name:"P18", quota:10,
+      children:[{id:"r01",name:"P18 barn 1"},{id:"r02",name:"P18 barn 2"},{id:"r03",name:"P18 barn 3"},{id:"r04",name:"P18 barn 4"},{id:"r05",name:"P18 barn 5"},{id:"r06",name:"P18 barn 6"},{id:"r07",name:"P18 barn 7"},{id:"r08",name:"P18 barn 8"},{id:"r09",name:"P18 barn 9"},{id:"r10",name:"P18 barn 10"}]
+    },
+    { id:"F15", name:"F15", quota:9,
+      children:[{id:"f01",name:"F15 barn 1"},{id:"f02",name:"F15 barn 2"},{id:"f03",name:"F15 barn 3"},{id:"f04",name:"F15 barn 4"},{id:"f05",name:"F15 barn 5"},{id:"f06",name:"F15 barn 6"},{id:"f07",name:"F15 barn 7"},{id:"f08",name:"F15 barn 8"},{id:"f09",name:"F15 barn 9"}]
+    },
+    { id:"F16", name:"F16", quota:10,
+      children:[{id:"g01",name:"F16 barn 1"},{id:"g02",name:"F16 barn 2"},{id:"g03",name:"F16 barn 3"},{id:"g04",name:"F16 barn 4"},{id:"g05",name:"F16 barn 5"},{id:"g06",name:"F16 barn 6"},{id:"g07",name:"F16 barn 7"},{id:"g08",name:"F16 barn 8"},{id:"g09",name:"F16 barn 9"},{id:"g10",name:"F16 barn 10"}]
+    },
+  ],
+
+  shifts:[
+    {id:"s01",title:"Servering",            day:"Fredag",       time:"08:30–12:45",   type:"servering",teams:["F15","F16","P18"],             total:7,  taken:2},
+    {id:"s02",title:"Servering – grill",    day:"Fredag",       time:"09:00–13:00",   type:"servering",teams:["F15"],                         total:4,  taken:1, note:"Grillpass"},
+    {id:"s03",title:"Servering",            day:"Fredag",       time:"12:30–17:00",   type:"servering",teams:["F15","P18","F16","P13"],        total:15, taken:8},
+    {id:"s04",title:"Servering – matsal",   day:"Fredag",       time:"16:30–20:30",   type:"servering",teams:["F15"],                         total:4,  taken:3, note:"Matsalen"},
+    {id:"s05",title:"Servering",            day:"Lördag",       time:"06:45–11:00",   type:"servering",teams:["P18","F16","F15"],              total:10, taken:9, note:""},
+    {id:"s06",title:"Servering",            day:"Lördag",       time:"09:00–13:00",   type:"servering",teams:["F15","F16","FJ","P18","P13"],   total:17, taken:5},
+    {id:"s07",title:"Servering",            day:"Lördag",       time:"12:45–17:00",   type:"servering",teams:["F16","P13","P18"],              total:15, taken:0},
+    {id:"s08",title:"Servering – matsal",   day:"Lördag",       time:"16:30–20:30",   type:"servering",teams:["P18","FJ"],                    total:4,  taken:1, note:"Matsalen"},
+    {id:"s09",title:"Servering",            day:"Lördag",       time:"17:00–21:30",   type:"servering",teams:["P18","F16"],                   total:10, taken:0},
+    {id:"s10",title:"Servering",            day:"Söndag",       time:"06:45–11:00",   type:"servering",teams:["P13","P18"],                   total:8,  taken:2},
+    {id:"s11",title:"Servering",            day:"Söndag",       time:"09:30–13:30",   type:"servering",teams:["P13","F16","F15","P18"],        total:16, taken:4},
+    {id:"s12",title:"Servering + avveckling",day:"Söndag",      time:"13:15–17:30",   type:"servering",teams:["P18","F15"],                   total:12, taken:0, note:"Sista passet"},
+    {id:"i01",title:"Infotält",             day:"Fredag",       time:"09:00–13:00",   type:"infotalt", teams:["P15","FJ"],                    total:2,  taken:0, note:"Tag gärna cykel"},
+    {id:"i02",title:"Infotält",             day:"Fredag",       time:"13:00–17:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:1},
+    {id:"i03",title:"Infotält",             day:"Fredag",       time:"17:00–21:00",   type:"infotalt", teams:["P15","FJ"],                    total:2,  taken:2, note:"Fullt"},
+    {id:"i04",title:"Infotält",             day:"Lördag",       time:"07:00–11:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:0},
+    {id:"i05",title:"Infotält",             day:"Lördag",       time:"10:30–14:30",   type:"infotalt", teams:["P15","FJ"],                    total:2,  taken:0},
+    {id:"i06",title:"Infotält",             day:"Lördag",       time:"14:00–18:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:1},
+    {id:"i07",title:"Infotält",             day:"Lördag",       time:"17:30–21:30",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:2},
+    {id:"i08",title:"Infotält",             day:"Söndag",       time:"07:00–11:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:0},
+    {id:"i09",title:"Infotält",             day:"Söndag",       time:"11:00–15:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:0},
+    {id:"i10",title:"Infotält",             day:"Söndag",       time:"13:00–17:00",   type:"infotalt", teams:["P15","FJ"],                    total:2,  taken:0},
+    {id:"b01",title:"Bygg – tält & bord",  day:"Torsdag",      time:"18:00 – klart", type:"bygg",     teams:["FJ","F15","F16","P13","P15","P18"],total:28,taken:3, note:"Ta med arbetshandskar"},
+    {id:"b02",title:"Riv – tält & bord",   day:"Söndag",       time:"17:00 – klart", type:"riv",      teams:["FJ","F15","F16","P13","P15","P18"],total:28,taken:0, note:"Kan du ta med släp? Skriv i kommentar."},
+    {id:"n01",title:"Nattvakt Frillesås",  day:"Lördag natt",  time:"21:00 – 02:00", type:"nattvakt", teams:["FJ"],                          total:4,  taken:1, note:"Kaffe & mackor finns"},
+    {id:"n02",title:"Nattvakt Frillesås",  day:"Söndag tidigt",time:"02:00 – 07:00", type:"nattvakt", teams:["FJ"],                          total:4,  taken:0, note:"Kaffe & mackor finns"},
+  ]
+};
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let currentTeam = null;
+let currentChild = null;
+let currentShift = null;
+let isClosed = false;
+let starRating = 0;
+const bookedMap = {}; // childId → {shift, parentName, parentPhone}
+
+// Simulera lite förbokade barn för urgency-känsla
+bookedMap["c01"] = {shift:DEMO.shifts[5], parentName:"Anna Mellbin",   parentPhone:"070-111 22 33"};
+bookedMap["c04"] = {shift:DEMO.shifts[12],parentName:"Karin Todelius",  parentPhone:"070-444 55 66"};
+bookedMap["c07"] = {shift:DEMO.shifts[22],parentName:"Emil Amnäs",      parentPhone:"070-777 88 99"};
+bookedMap["c10"] = {shift:DEMO.shifts[16],parentName:"Sara Gagner",     parentPhone:"070-100 20 30"};
+bookedMap["c15"] = {shift:DEMO.shifts[1], parentName:"Peter Tingstrand",parentPhone:"070-200 30 40"};
+bookedMap["c20"] = {shift:DEMO.shifts[8], parentName:"Maja Jonsson",    parentPhone:"070-300 40 50"};
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+function init(){
+  const d = DEMO;
+  document.documentElement.style.setProperty('--green', d.club.accent||'#1a8c3a');
+  document.getElementById('navClub').textContent = d.club.name;
+  document.title = d.club.name + ' – ' + d.event.name;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dl = new Date(d.event.deadline + 'T23:59:59');
+  isClosed = today > dl;
+
+  const mo=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  const dlStr = dl.getDate()+' '+mo[dl.getMonth()];
+  const daysLeft = Math.ceil((dl-today)/(1000*60*60*24));
+
+  const pill = document.getElementById('deadlinePill');
+  pill.style.display = 'block';
+  if(isClosed){ pill.textContent='Stängd '+dlStr; pill.className='deadline-pill'; pill.style.background='#fdf2f2'; pill.style.color='var(--red)'; }
+  else if(daysLeft<=5){ pill.textContent=daysLeft+' dagar kvar'; pill.className='deadline-pill urgent'; }
+  else{ pill.textContent='Sista dag: '+dlStr; }
+
+  const fullMo=['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+  document.getElementById('eventInfo').innerHTML =
+    '<strong>'+d.event.name+'</strong> · ' +
+    (isClosed ? '<span style="color:var(--red)">Anmälan stängd</span>' : '<span style="color:var(--green);font-weight:600">Sista anmälningsdag '+dl.getDate()+' '+fullMo[dl.getMonth()]+'</span>');
+
+  document.getElementById('pageGreeting').textContent =
+    'Varje familj väljer ett pass per barn. Välj ditt lags namn för att se ditt barn och lediga pass.';
+
+  if(isClosed) document.getElementById('closedBanner').style.display='block';
+
+  renderLagGrid();
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+}
+
+// ════════════════════════════════════════════════
+// STEG 1 — LAGVAL
+// ════════════════════════════════════════════════
+function renderLagGrid(){
+  const grid = document.getElementById('lagGrid');
+  grid.innerHTML = DEMO.teams.map(t=>{
+    const booked = t.children.filter(c=>bookedMap[c.id]).length;
+    const pct = Math.round(booked/t.quota*100);
+    return `<div class="lag-card${currentTeam?.id===t.id?' selected':''}" onclick="selectTeam('${t.id}')">
+      <div class="lag-card-name">${t.name}</div>
+      <div class="lag-card-count">${booked} / ${t.quota} pass valda</div>
+      <div class="lag-card-progress"><div class="lag-card-bar" style="width:${Math.min(pct,100)}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function selectTeam(teamId){
+  currentTeam = DEMO.teams.find(t=>t.id===teamId);
+  currentChild = null; currentShift = null;
+  renderLagGrid();
+  setStep(2);
+  renderChildList();
+  document.getElementById('step2Title').textContent = currentTeam.name;
+  updateLagStats();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateLagStats(){
+  if(!currentTeam) return;
+  const booked = currentTeam.children.filter(c=>bookedMap[c.id]).length;
+  const remaining = currentTeam.quota - booked;
+  const pill = document.getElementById('lagStatsPill');
+  pill.textContent = remaining>0 ? remaining+' pass kvar att välja' : 'Alla pass valda ✓';
+  pill.className = 'lag-stats-pill '+(remaining>0?'lag-stats-warn':'lag-stats-ok');
+}
+
+// ════════════════════════════════════════════════
+// STEG 2 — BARNLISTA MED URGENCY
+// ════════════════════════════════════════════════
+function renderChildList(){
+  if(!currentTeam) return;
+  const list = document.getElementById('childList');
+  const children = currentTeam.children;
+  const totalBooked = children.filter(c=>bookedMap[c.id]).length;
+
+  list.innerHTML = children.map((c,i)=>{
+    const b = bookedMap[c.id];
+    const isSel = currentChild?.id===c.id;
+    const initials = c.name.split(' ').map(w=>w[0]).slice(0,2).join('');
+    // Urgency: sista X barn utan pass
+    return `<div class="child-row${isSel?' selected':''}${b?' booked':''}" onclick="${b?'':("pickChild('"+c.id+"')")}">
+      <div class="child-av ${b?'child-av-done':(isSel?'child-av-selected':'child-av-neutral')}">${b?'✓':initials}</div>
+      <div class="child-info">
+        <div class="child-name">${c.name}</div>
+        <div class="child-status-row">
+          <div class="status-dot ${b?'status-dot-green':'status-dot-gray'}"></div>
+          <span class="child-status-text ${b?'done':'pending'}">${b ? b.shift.title+' · '+b.shift.day : 'Inget pass valt ännu'}</span>
+        </div>
+      </div>
+      ${b ? '<span class="urgency-badge badge-done">Klart ✓</span>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function pickChild(childId){
+  currentChild = null;
+  DEMO.teams.forEach(t=>{ const c=t.children.find(ch=>ch.id===childId); if(c){ currentChild=c; currentTeam=t; }});
+  currentShift = null;
+  renderChildList();
+  setStep(3);
+  renderPassList();
+  document.getElementById('step3ChildBadge').textContent = currentChild.name + ' · ' + currentTeam.name;
+  document.getElementById('step3Sub').textContent = 'Visar pass tillgängliga för '+currentTeam.name+'. Klicka för att välja.';
+  const b = bookedMap[currentChild.id];
+  const notice = document.getElementById('alreadyBooked');
+  if(b){ notice.style.display='block'; notice.textContent='Du har redan valt: '+b.shift.title+' '+b.shift.day+' '+b.shift.time+'. Du kan byta pass nedan.'; currentShift=b.shift; }
+  else notice.style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ════════════════════════════════════════════════
+// STEG 3 — PASSLISTA
+// ════════════════════════════════════════════════
+const TAG_CFG={servering:{l:'Servering',c:'tag-servering'},infotalt:{l:'Infotält',c:'tag-infotalt'},bygg:{l:'Bygg',c:'tag-bygg'},riv:{l:'Riv',c:'tag-riv'},nattvakt:{l:'Nattvakt',c:'tag-nattvakt'}};
+const DAY_ORDER=['Torsdag','Fredag','Lördag','Lördag natt','Söndag tidigt','Söndag'];
+
+function renderPassList(){
+  if(!currentTeam) return;
+  const applicable = DEMO.shifts.filter(s=>s.teams.includes(currentTeam.id));
+  if(!applicable.length){ document.getElementById('noPassMsg').style.display='block'; document.getElementById('passListWrap').innerHTML=''; return; }
+  document.getElementById('noPassMsg').style.display='none';
+
+  const byDay={};
+  applicable.forEach(s=>{if(!byDay[s.day])byDay[s.day]=[];byDay[s.day].push(s);});
+
+  let html='';
+  DAY_ORDER.forEach(day=>{
+    if(!byDay[day]) return;
+    html+='<div class="day-header">'+day+'</div>';
+    byDay[day].forEach(s=>{
+      const free=s.total-s.taken, full=free<=0, low=!full&&free<=3;
+      const tc=TAG_CFG[s.type]||{l:s.type,c:'tag-servering'};
+      const sel=currentShift?.id===s.id;
+      html+=`<div class="pass-item${sel?' selected':''}${full?' full':''}" id="pi_${s.id}">
+        <div class="pass-top" onclick="${full?'':'pickShift(\''+s.id+'\')'}">
+          <div class="pass-radio"><div class="pass-dot"></div></div>
+          <div class="pass-body">
+            <div class="pass-title">${s.title}</div>
+            <div class="pass-time">${s.time}</div>
+            ${s.note?'<div class="pass-note">'+s.note+'</div>':''}
+            <div class="pass-tags"><span class="tag ${tc.c}">${tc.l}</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+            <span class="spots ${full?'spots-full':low?'spots-low':'spots-ok'}">${full?'Fullt':free+(free===1?' plats':' platser')}</span>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('passListWrap').innerHTML=html;
+}
+
+function pickShift(shiftId){
+  currentShift = DEMO.shifts.find(s=>s.id===shiftId);
+  document.querySelectorAll('.pass-item').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('pi_'+shiftId)?.classList.add('selected');
+  // Prefill namn/tel om tidigare bokat
+  const prev = bookedMap[currentChild?.id];
+  if(prev){ document.getElementById('parentName').value=prev.parentName; document.getElementById('parentPhone').value=prev.parentPhone; }
+  // Uppdatera summary
+  const s=currentShift;
+  document.getElementById('selSummary').innerHTML =
+    '<strong>'+s.title+'</strong> · '+s.day+' · '+s.time+
+    (s.note?'<br><span style="font-size:13px;color:var(--muted)">'+s.note+'</span>':'')+
+    '<br><span style="font-size:13px;color:var(--muted)">'+currentChild.name+' · '+currentTeam.name+'</span>';
+  setTimeout(()=>{setStep(4);window.scrollTo({top:0,behavior:'smooth'});},180);
+}
+
+// ════════════════════════════════════════════════
+// STEG 4 — BOKA
+// ════════════════════════════════════════════════
+async function submitBooking(){
+  if(isClosed) return;
+  const name=document.getElementById('parentName').value.trim();
+  const phone=document.getElementById('parentPhone').value.trim();
+  const msgB=document.getElementById('msgBottom');
+  function showErr(t){msgB.style.display='block';msgB.textContent=t;}
+  if(!name){showErr('Ange ditt namn.');document.getElementById('parentName').focus();return;}
+  if(!phone){showErr('Ange ditt telefonnummer.');document.getElementById('parentPhone').focus();return;}
+
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.textContent='Sparar...';
+  await new Promise(r=>setTimeout(r,500));
+
+  // Frigör ev. tidigare pass
+  const prev=bookedMap[currentChild.id];
+  if(prev){prev.shift.taken=Math.max(0,prev.shift.taken-1);}
+  bookedMap[currentChild.id]={shift:currentShift,parentName:name,parentPhone:phone};
+  currentShift.taken++;
+
+  msgB.style.display='none';
+  showConfirmation(name,phone);
+  renderChildList();
+  updateLagStats();
+  btn.disabled=false;btn.textContent='Välj det här passet ✓';
+}
+
+function showConfirmation(name,phone){
+  const s=currentShift, c=currentChild, t=currentTeam;
+  document.getElementById('confirmSummary').innerHTML=`
+    <div class="conf-row"><span class="conf-label">Barn</span><strong>${c.name} (${t.name})</strong></div>
+    <div class="conf-row"><span class="conf-label">Pass</span><strong>${s.title}</strong></div>
+    <div class="conf-row"><span class="conf-label">Dag</span><strong>${s.day}</strong></div>
+    <div class="conf-row"><span class="conf-label">Tid</span><strong>${s.time}</strong></div>
+    <div class="conf-row"><span class="conf-label">Förälder</span><strong>${name}</strong></div>
+    <div class="conf-row"><span class="conf-label">Telefon</span><strong>${phone}</strong></div>
+  `;
+  const now=new Date();
+  document.getElementById('doneTimestamp').textContent='Valt '+now.toLocaleDateString('sv-SE')+' kl '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+  // Kolla fler obokade barn i samma lag
+  const unbooked=currentTeam.children.filter(ch=>!bookedMap[ch.id]);
+  document.getElementById('moreChildrenWrap').style.display=unbooked.length>0?'block':'none';
+
+  document.getElementById('mainContent').style.display='none';
+  document.getElementById('stepIndicator').style.display='none';
+  document.getElementById('siLabels').style.display='none';
+  document.getElementById('doneWrap').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function bookAnotherChild(){
+  const next=currentTeam?.children.find(c=>!bookedMap[c.id]);
+  currentChild=null;currentShift=null;
+  document.getElementById('doneWrap').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+  document.getElementById('stepIndicator').style.display='flex';
+  document.getElementById('siLabels').style.display='flex';
+  renderChildList();updateLagStats();
+  setStep(2);window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function editBooking(){
+  document.getElementById('doneWrap').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+  document.getElementById('stepIndicator').style.display='flex';
+  document.getElementById('siLabels').style.display='flex';
+  document.getElementById('msgBottom').style.display='none';
+  renderChildList();updateLagStats();
+  setStep(2);window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ════════════════════════════════════════════════
+// FEEDBACK
+// ════════════════════════════════════════════════
+function setStar(n){
+  starRating=n;
+  document.querySelectorAll('.star').forEach((s,i)=>{
+    s.classList.toggle('active',i<n);
+  });
+}
+
+async function submitFeedback(){
+  const good=document.getElementById('feedbackGood').value.trim();
+  const improve=document.getElementById('feedbackImprove').value.trim();
+  if(!starRating&&!good&&!improve){ alert('Fyll i minst betyget eller ett textfält.'); return; }
+  // I produktion: supabase insert feedback
+  document.getElementById('feedbackForm').style.display='none';
+  document.getElementById('feedbackDone').style.display='block';
+}
+
+// ════════════════════════════════════════════════
+// STEG-NAVIGERING
+// ════════════════════════════════════════════════
+function goToStep1(){ setStep(1); window.scrollTo({top:0,behavior:'smooth'}); }
+function goToStep2(){ if(!currentTeam)return; setStep(2); renderChildList(); window.scrollTo({top:0,behavior:'smooth'}); }
+function goToStep3(){ if(!currentChild)return; setStep(3); renderPassList(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function setStep(n){
+  ['step1','step2','step3','step4'].forEach((id,i)=>{
+    document.getElementById(id).style.display=(i+1===n)?'block':'none';
+  });
+  [1,2,3,4].forEach(i=>{
+    const d=document.getElementById('sd'+i);
+    const l=document.getElementById('sl-'+i);
+    if(d){ d.className='si-dot'+(i<n?' done':i===n?' active':''); }
+    if(l){ l.className='si-label'+(i===n?' active':''); }
+  });
+  [1,2,3].forEach(i=>{
+    const line=document.getElementById('sl'+i);
+    if(line) line.className='si-line'+(n>i?' done':'');
+  });
+}
+
+window.addEventListener('DOMContentLoaded',init);
+</script>
+
+<footer style="text-align:center;padding:1.75rem 1rem 1.5rem;margin-top:2rem;border-top:1px solid var(--border)">
+  <a href="https://lagpasset.se" target="_blank" style="font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.04em">Powered by <span style="color:var(--green);font-family:'Playfair Display',serif;font-weight:700">Lagpasset</span>.se</a>
+</footer>
+</body>
+</html>
