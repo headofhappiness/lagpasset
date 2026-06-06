@@ -412,32 +412,36 @@ const DEMO = {
   ],
 
   shifts:[
-    {id:"s01",title:"Servering",            day:"Fredag",       time:"08:30–12:45",   type:"servering",teams:["F15","F16","P18"],             total:7,  taken:2},
-    {id:"s02",title:"Servering – grill",    day:"Fredag",       time:"09:00–13:00",   type:"servering",teams:["F15"],                         total:4,  taken:1, note:"Grillpass"},
-    {id:"s03",title:"Servering",            day:"Fredag",       time:"12:30–17:00",   type:"servering",teams:["F15","P18","F16","P13"],        total:15, taken:8},
-    {id:"s04",title:"Servering – matsal",   day:"Fredag",       time:"16:30–20:30",   type:"servering",teams:["F15"],                         total:4,  taken:3, note:"Matsalen"},
-    {id:"s05",title:"Servering",            day:"Lördag",       time:"06:45–11:00",   type:"servering",teams:["P18","F16","F15"],              total:10, taken:9, note:""},
-    {id:"s06",title:"Servering",            day:"Lördag",       time:"09:00–13:00",   type:"servering",teams:["F15","F16","FJ","P18","P13"],   total:17, taken:5},
-    {id:"s07",title:"Servering",            day:"Lördag",       time:"12:45–17:00",   type:"servering",teams:["F16","P13","P18"],              total:15, taken:0},
-    {id:"s08",title:"Servering – matsal",   day:"Lördag",       time:"16:30–20:30",   type:"servering",teams:["P18","FJ"],                    total:4,  taken:1, note:"Matsalen"},
-    {id:"s09",title:"Servering",            day:"Lördag",       time:"17:00–21:30",   type:"servering",teams:["P18","F16"],                   total:10, taken:0},
-    {id:"s10",title:"Servering",            day:"Söndag",       time:"06:45–11:00",   type:"servering",teams:["P13","P18"],                   total:8,  taken:2},
-    {id:"s11",title:"Servering",            day:"Söndag",       time:"09:30–13:30",   type:"servering",teams:["P13","F16","F15","P18"],        total:16, taken:4},
-    {id:"s12",title:"Servering + avveckling",day:"Söndag",      time:"13:15–17:30",   type:"servering",teams:["P18","F15"],                   total:12, taken:0, note:"Sista passet"},
-    {id:"i01",title:"Infotält",             day:"Fredag",       time:"09:00–13:00",   type:"infotalt", teams:["P15","FJ"],                    total:2,  taken:0, note:"Tag gärna cykel"},
-    {id:"i02",title:"Infotält",             day:"Fredag",       time:"13:00–17:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:1},
-    {id:"i03",title:"Infotält",             day:"Fredag",       time:"17:00–21:00",   type:"infotalt", teams:["P15","FJ"],                    total:2,  taken:2, note:"Fullt"},
-    {id:"i04",title:"Infotält",             day:"Lördag",       time:"07:00–11:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:0},
-    {id:"i05",title:"Infotält",             day:"Lördag",       time:"10:30–14:30",   type:"infotalt", teams:["P15","FJ"],                    total:2,  taken:0},
-    {id:"i06",title:"Infotält",             day:"Lördag",       time:"14:00–18:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:1},
-    {id:"i07",title:"Infotält",             day:"Lördag",       time:"17:30–21:30",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:2},
-    {id:"i08",title:"Infotält",             day:"Söndag",       time:"07:00–11:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:0},
-    {id:"i09",title:"Infotält",             day:"Söndag",       time:"11:00–15:00",   type:"infotalt", teams:["P15","FJ"],                    total:3,  taken:0},
-    {id:"i10",title:"Infotält",             day:"Söndag",       time:"13:00–17:00",   type:"infotalt", teams:["P15","FJ"],                    total:2,  taken:0},
-    {id:"b01",title:"Bygg – tält & bord",  day:"Torsdag",      time:"18:00 – klart", type:"bygg",     teams:["FJ","F15","F16","P13","P15","P18"],total:28,taken:3, note:"Ta med arbetshandskar"},
-    {id:"b02",title:"Riv – tält & bord",   day:"Söndag",       time:"17:00 – klart", type:"riv",      teams:["FJ","F15","F16","P13","P15","P18"],total:28,taken:0, note:"Kan du ta med släp? Skriv i kommentar."},
-    {id:"n01",title:"Nattvakt Frillesås",  day:"Lördag natt",  time:"21:00 – 02:00", type:"nattvakt", teams:["FJ"],                          total:4,  taken:1, note:"Kaffe & mackor finns"},
-    {id:"n02",title:"Nattvakt Frillesås",  day:"Söndag tidigt",time:"02:00 – 07:00", type:"nattvakt", teams:["FJ"],                          total:4,  taken:0, note:"Kaffe & mackor finns"},
+    // FJ – 6 pass att välja på
+    {id:"i01",title:"Infotält",            day:"Fredag",       time:"09:00–13:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:2, note:"Tag gärna cykel"},
+    {id:"i04",title:"Infotält",            day:"Lördag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:3},
+    {id:"i08",title:"Infotält",            day:"Söndag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:1},
+    {id:"s06",title:"Servering",           day:"Lördag",       time:"09:00–13:00",  type:"servering",teams:["FJ","P18","P13"],total:5,taken:4},
+    {id:"s08",title:"Servering – matsal", day:"Lördag",       time:"16:30–20:30",  type:"servering",teams:["FJ","P18"],total:4,taken:2,note:"Matsalen"},
+    {id:"b01",title:"Bygg – tält & bord", day:"Torsdag",      time:"18:00 – klart",type:"bygg",     teams:["FJ","F15","F16","P13","P15","P18"],total:6,taken:2,note:"Ta med arbetshandskar"},
+    {id:"b02",title:"Riv – tält & bord",  day:"Söndag",       time:"17:00 – klart",type:"riv",      teams:["FJ","F15","F16","P13","P15","P18"],total:6,taken:0,note:"Kan du ta med släp? Skriv i kommentar."},
+    {id:"n01",title:"Nattvakt Frillesås", day:"Lördag natt",  time:"21:00 – 02:00",type:"nattvakt", teams:["FJ"],      total:4, taken:3,note:"Kaffe & mackor finns"},
+    {id:"n02",title:"Nattvakt Frillesås", day:"Söndag tidigt",time:"02:00 – 07:00",type:"nattvakt", teams:["FJ"],      total:4, taken:1,note:"Kaffe & mackor finns"},
+    // P13
+    {id:"p13s1",title:"Servering",        day:"Fredag",       time:"12:30–17:00",  type:"servering",teams:["P13"],    total:4, taken:3},
+    {id:"p13s2",title:"Servering",        day:"Lördag",       time:"09:00–13:00",  type:"servering",teams:["P13"],    total:4, taken:2},
+    {id:"p13s3",title:"Servering",        day:"Söndag",       time:"06:45–11:00",  type:"servering",teams:["P13"],    total:3, taken:1},
+    // P15
+    {id:"p15i1",title:"Infotält",         day:"Fredag",       time:"13:00–17:00",  type:"infotalt", teams:["P15","FJ"],total:3,taken:2},
+    {id:"p15i2",title:"Infotält",         day:"Lördag",       time:"10:30–14:30",  type:"infotalt", teams:["P15","FJ"],total:2,taken:1},
+    {id:"p15i3",title:"Infotält",         day:"Söndag",       time:"11:00–15:00",  type:"infotalt", teams:["P15","FJ"],total:3,taken:0},
+    // P18
+    {id:"p18s1",title:"Servering",        day:"Fredag",       time:"08:30–12:45",  type:"servering",teams:["P18"],    total:4, taken:3},
+    {id:"p18s2",title:"Servering",        day:"Lördag",       time:"06:45–11:00",  type:"servering",teams:["P18"],    total:4, taken:4},
+    {id:"p18s3",title:"Servering",        day:"Söndag",       time:"09:30–13:30",  type:"servering",teams:["P18"],    total:5, taken:2},
+    // F15
+    {id:"f15s1",title:"Servering",        day:"Fredag",       time:"08:30–12:45",  type:"servering",teams:["F15"],    total:3, taken:2},
+    {id:"f15s2",title:"Servering",        day:"Lördag",       time:"09:00–13:00",  type:"servering",teams:["F15"],    total:3, taken:1},
+    {id:"f15s3",title:"Servering",        day:"Söndag",       time:"13:15–17:30",  type:"servering",teams:["F15"],    total:3, taken:0,note:"Sista passet – hjälp stänga ned"},
+    // F16
+    {id:"f16s1",title:"Servering",        day:"Fredag",       time:"08:30–12:45",  type:"servering",teams:["F16"],    total:3, taken:2},
+    {id:"f16s2",title:"Servering",        day:"Lördag",       time:"12:45–17:00",  type:"servering",teams:["F16"],    total:4, taken:3},
+    {id:"f16s3",title:"Servering",        day:"Söndag",       time:"09:30–13:30",  type:"servering",teams:["F16"],    total:3, taken:1},
   ]
 };
 
@@ -597,9 +601,15 @@ function renderPassList(){
     if(!byDay[day]) return;
     html+='<div class="day-header">'+day+'</div>';
     byDay[day].forEach(s=>{
-      const free=s.total-s.taken, full=free<=0, low=!full&&free<=3;
+      const free=s.total-s.taken, full=free<=0, low=!full&&free<=2;
+      const pct=Math.round(s.taken/s.total*100);
       const tc=TAG_CFG[s.type]||{l:s.type,c:'tag-servering'};
       const sel=currentShift?.id===s.id;
+      // Urgency label
+      const spotsLabel = full ? 'Fullt' : free===1 ? '1 plats kvar!' : free+' platser kvar';
+      const spotsCls   = full ? 'spots-full' : low ? 'spots-low' : 'spots-ok';
+      // Taken bar color
+      const barColor = pct>=100?'#c0392b':pct>=67?'#e8a020':'#1a8c3a';
       html+=`<div class="pass-item${sel?' selected':''}${full?' full':''}" id="pi_${s.id}">
         <div class="pass-top" onclick="${full?'':'pickShift(\''+s.id+'\')'}">
           <div class="pass-radio"><div class="pass-dot"></div></div>
@@ -608,9 +618,15 @@ function renderPassList(){
             <div class="pass-time">${s.time}</div>
             ${s.note?'<div class="pass-note">'+s.note+'</div>':''}
             <div class="pass-tags"><span class="tag ${tc.c}">${tc.l}</span></div>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;max-width:100px">
+                <div style="height:5px;width:${pct}%;background:${barColor};border-radius:3px;transition:width .3s"></div>
+              </div>
+              <span style="font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap">${s.taken} av ${s.total} tagna</span>
+            </div>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
-            <span class="spots ${full?'spots-full':low?'spots-low':'spots-ok'}">${full?'Fullt':free+(free===1?' plats':' platser')}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;padding-left:8px">
+            <span class="spots ${spotsCls}">${spotsLabel}</span>
           </div>
         </div>
       </div>`;
