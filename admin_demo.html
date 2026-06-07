@@ -253,8 +253,9 @@ setVH(); window.addEventListener('resize',setVH);
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <img src="logo.png" style="height:22px;width:auto;flex-shrink:0" alt="LagPasset">
-    <div class="club-name" id="sidebarClubName" style="margin-left:.5rem">Åsa IF</div>
+    <svg width="26" height="26" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><circle cx="50" cy="50" r="46" fill="#22c55e" stroke="#1a8c3a" stroke-width="3"/><circle cx="42" cy="34" r="11" fill="#fff"/><path d="M30 52c0-7 5-12 12-12s12 5 12 12v20a4 4 0 01-4 4H34a4 4 0 01-4-4z" fill="#fff"/><path d="M53 46l16-12a4 4 0 015 6L60 52a4 4 0 01-7-6z" fill="#fff"/></svg>
+    <span style="font-family:'Nunito',sans-serif;font-weight:800;font-size:1.05rem;color:#fff;white-space:nowrap">Lag<span style="color:#4ade80">Passet</span></span>
+    <div class="club-name" id="sidebarClubName" style="margin-left:auto;margin-top:0;text-align:right;line-height:1.2">Åsa IF</div>
   </div>
   <nav class="nav-items">
     <div class="nav-section">Översikt</div>
@@ -723,6 +724,31 @@ Hälsningar,
       </div>
 
       <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
+          <div>
+            <div class="card-title">Kontaktpersoner</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas i medlemsvyn så att medlemmar kan ställa frågor. Under schemaläggningen går frågor i första hand till schemaansvarig – övriga områdesansvariga blir relevanta under själva eventet.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddContact')">+ Lägg till</button>
+        </div>
+        <div class="table-wrap" style="margin-top:.5rem"><table>
+          <thead><tr><th>Ansvarsområde</th><th>Namn</th><th>Kontakt</th><th></th></tr></thead>
+          <tbody id="contactsTable"></tbody>
+        </table></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
+          <div>
+            <div class="card-title">Vanliga frågor (FAQ)</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen tillsammans med passet. Spara svar på återkommande frågor så slipper ni svara på samma sak om och om igen.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddFaq')">+ Lägg till fråga</button>
+        </div>
+        <div id="faqList" style="margin-top:.5rem;display:flex;flex-direction:column;gap:.5rem"></div>
+      </div>
+
+      <div class="card">
         <div class="card-title" style="margin-bottom:.5rem">Integritet &amp; GDPR</div>
         <div class="msg info">Ni är personuppgiftsansvariga för den data ni lägger in. Lagpasset är personuppgiftsbiträde och lagrar data i EU (Frankfurt). Barnens förnamn, lag och förälderns e-post är det enda som lagras. Inga efternamn, personnummer eller adresser krävs.</div>
         <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:.5rem">Barn med skyddad identitet: använd ett påhittat visningsnamn och bocka i "Skyddad identitet" på barnkortet. Barnet anonymiseras i den gemensamma laglistan.</p>
@@ -802,6 +828,61 @@ Hälsningar,
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddPool')">Avbryt</button>
       <button class="btn btn-primary" onclick="demoBlock&&demoBlock();closeModal('modalAddPool')">Spara</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lägg till kontaktperson -->
+<div class="modal-overlay" id="modalAddContact">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Lägg till kontaktperson</div>
+      <button class="modal-close" onclick="closeModal('modalAddContact')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ansvarsområde</label>
+      <input type="text" placeholder="Ex. Servering, Parkering, Allmänt om cupen">
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Detta visas för medlemmen när de väljer vem frågan ska gå till.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Namn</label>
+      <input type="text" placeholder="Förnamn Efternamn">
+    </div>
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">E-post</label>
+        <input type="email" placeholder="namn@forening.se">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefon</label>
+        <input type="tel" placeholder="070-123 45 67">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddContact')">Avbryt</button>
+      <button class="btn btn-primary" onclick="demoBlock&&demoBlock();closeModal('modalAddContact')">Spara</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lägg till FAQ -->
+<div class="modal-overlay" id="modalAddFaq">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Lägg till vanlig fråga</div>
+      <button class="modal-close" onclick="closeModal('modalAddFaq')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fråga</label>
+      <input type="text" placeholder="Ex. Vad ska jag ha på mig?">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Svar</label>
+      <textarea style="width:100%;min-height:90px;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Outfit',sans-serif;font-size:14px;resize:vertical" placeholder="Skriv svaret som medlemmen får se..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddFaq')">Avbryt</button>
+      <button class="btn btn-primary" onclick="demoBlock&&demoBlock();closeModal('modalAddFaq')">Spara</button>
     </div>
   </div>
 </div>
@@ -988,6 +1069,21 @@ const CHILDREN = [
 
 // Åsacupen 2026 – passschema (28–29 juni)
 
+const CONTACTS = [
+  {id:"k00", area:"Schemaansvarig (frågor om pass & schema)", name:"Lena Sandberg", email:"lena.sandberg@asaif.com", phone:"070-123 45 67", isScheduler:true},
+  {id:"k01", area:"Allmänt om cupen", name:"Lena Sandberg",  email:"lena.sandberg@asaif.com", phone:"070-123 45 67"},
+  {id:"k02", area:"Servering",        name:"Maria Lindqvist", email:"maria.l@asaif.com",       phone:"073-234 56 78"},
+  {id:"k03", area:"Parkering",        name:"Johan Berg",      email:"johan.berg@asaif.com",    phone:"076-345 67 89"},
+  {id:"k04", area:"Bygg & Riv",       name:"Anders Holm",     email:"anders.holm@asaif.com",   phone:"070-456 78 90"},
+];
+
+const FAQ = [
+  {id:"f1", q:"Vad ska jag ha på mig?", a:"Klä dig efter väder – du står mestadels utomhus. Föreningen bjuder på väst eller förkläde vid serveringspass."},
+  {id:"f2", q:"Var checkar jag in?", a:"Anmäl dig vid infotältet vid arenans huvudentré minst 10 minuter innan ditt pass börjar."},
+  {id:"f3", q:"Hur länge är ett pass?", a:"De flesta pass är 4 timmar. Exakt tid står på ditt valda pass."},
+  {id:"f4", q:"Vad gör jag om jag blir sjuk?", a:"Använd knappen Anmäl förhinder på din passbokning så larmas ansvarig direkt och passet kan fyllas av någon annan."},
+];
+
 const POOL = [
   {id:"u01", name:"Wilmer Stranne",  team:"P16", can:"Servering, Parkering, Bygg", phone:"070-321 11 22", assigned:"Servering · Sön 12–16"},
   {id:"u02", name:"Nora Hägg",       team:"F16", can:"Servering, Infotält, Parkering", phone:"070-321 33 44", assigned:"–"},
@@ -1044,6 +1140,7 @@ function showSection(id){
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='pool') renderPoolTable();
+  if(id==='settings'){ renderContactsTable(); renderFaqList(); }
   if(id==='shifts'){ renderStationRows(); }
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) setTimeout(closeSidebar, 50);
@@ -1197,6 +1294,19 @@ function sendReminderNow(){
 function renderAttention(){
   const stations = getStationStats();
   const items = [];
+  // Förhinder/sjukanmälan (högst prioritet — akut)
+  const sickReports = [
+    {name:'Petra Nilsson', team:'F11', shift:'Servering · Lör 08–12', reason:'sjuk'},
+  ];
+  sickReports.forEach(r=>{
+    items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(192,57,43,.35);border-radius:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <span style="font-size:1.1rem">🤒</span>
+        <span style="font-size:13.5px;color:var(--dark)"><strong>${r.name}</strong> (${r.team}) har anmält förhinder – <strong>${r.shift}</strong> är nu ledigt</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="showSection('pool')">Fyll från pool →</button>
+    </div>`);
+  });
   // Ej valt-varning
   const remaining = 24;
   if(remaining > 0){
@@ -1281,6 +1391,38 @@ function renderPoolTable(){
     </tr>`;
   }).join('');
 }
+
+function renderContactsTable(){
+  const el = document.getElementById('contactsTable');
+  if(!el) return;
+  el.innerHTML = CONTACTS.map(k=>
+    `<tr>
+      <td style="font-weight:600;color:var(--dark)">${k.area}</td>
+      <td class="td-muted">${k.name}</td>
+      <td style="font-size:12.5px"><a href="mailto:${k.email}" style="color:var(--green);text-decoration:none">${k.email}</a><br><span style="color:var(--muted)">${k.phone}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="demoBlock&&demoBlock()">✏️</button></td>
+    </tr>`
+  ).join('');
+}
+
+function renderFaqList(){
+  const el = document.getElementById('faqList');
+  if(!el) return;
+  if(FAQ.length===0){ el.innerHTML='<div style="font-size:13px;color:var(--muted);font-style:italic">Inga frågor tillagda ännu.</div>'; return; }
+  el.innerHTML = FAQ.map(f=>
+    `<div style="border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+        <div style="flex:1">
+          <div style="font-size:13.5px;font-weight:600;color:var(--dark)">${f.q}</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5">${f.a}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="demoBlock&&demoBlock()" style="flex-shrink:0">✏️</button>
+      </div>
+    </div>`
+  ).join('');
+}
+
+
 
 
 // ═══════════════════════════════════════
@@ -1616,12 +1758,26 @@ const SHIFT_PEOPLE = {
   default: ['Anna Mellbin (FJ)','Karin Todelius (FJ)','Erik Eriksson (P13)','Petra Pettersson (F11)'],
 };
 function peopleForShift(s, taken){
-  // Generera realistiska namn upp till "taken"
-  const pool = ['Anna Mellbin','Johan Björk','Karin Todelius','Maria Lindström','Erik Eriksson','Petra Nilsson','Sara Hägg','Markus Franzén','Lena Svarén','Daniel Karlsson','Emma Gustafsson','Peter Marklinder'];
+  // Generera realistiska kontakter upp till "taken"
+  const pool = [
+    {name:'Anna Mellbin',     phone:'070-111 22 33', email:'a.mellbin@gmail.com'},
+    {name:'Johan Björk',      phone:'073-222 33 44', email:'bjork.familjen@gmail.com'},
+    {name:'Karin Todelius',   phone:'070-444 55 66', email:'k.todelius@gmail.com'},
+    {name:'Maria Lindström',  phone:'076-555 66 77', email:'lindstrom.m@hotmail.com'},
+    {name:'Erik Eriksson',    phone:'070-666 77 88', email:'erik.eriksson@gmail.com'},
+    {name:'Petra Nilsson',    phone:'073-777 88 99', email:'nilsson.vera@gmail.com'},
+    {name:'Sara Hägg',        phone:'070-888 99 00', email:'sara.hagg@gmail.com'},
+    {name:'Markus Franzén',   phone:'076-999 00 11', email:'franzenfam@gmail.com'},
+    {name:'Lena Svarén',      phone:'070-100 20 30', email:'henrik.svaren@gmail.com'},
+    {name:'Daniel Karlsson',  phone:'073-200 30 40', email:'karlsson.k@gmail.com'},
+    {name:'Emma Gustafsson',  phone:'070-300 40 50', email:'emma.g@gmail.com'},
+    {name:'Peter Marklinder', phone:'076-400 50 60', email:'agnes.m@hotmail.com'},
+  ];
   const teams = s.lag.split(',').map(t=>t.trim());
   const arr = [];
   for(let i=0;i<taken;i++){
-    arr.push({name: pool[i % pool.length], team: teams[i % teams.length]});
+    const p = pool[i % pool.length];
+    arr.push({...p, team: teams[i % teams.length]});
   }
   return arr;
 }
@@ -1635,16 +1791,21 @@ function renderShiftDetail(cat, day) {
     const people = peopleForShift(s, taken);
     const rowId = `shift-${cat}-${idx}`;
     const peopleRows = people.map(p=>
-      `<div style="display:flex;align-items:center;gap:.6rem;padding:.4rem .25rem;border-bottom:1px solid var(--border)">
-        <div style="width:26px;height:26px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green)">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
-        <span style="font-size:13px;color:var(--dark);font-weight:500">${p.name}</span>
-        <span style="font-size:12px;color:var(--muted)">${p.team}</span>
+      `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .25rem;border-bottom:1px solid var(--border)">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);flex-shrink:0">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;color:var(--dark);font-weight:600">${p.name} <span style="font-size:11px;color:var(--muted);font-weight:500">${p.team}</span></div>
+          <div style="display:flex;gap:.85rem;margin-top:1px;flex-wrap:wrap">
+            <a href="tel:${p.phone.replace(/\s/g,'')}" onclick="event.stopPropagation()" style="font-size:12px;color:var(--green);text-decoration:none;font-weight:500">📞 ${p.phone}</a>
+            <a href="mailto:${p.email}" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ ${p.email}</a>
+          </div>
+        </div>
       </div>`
     ).join('');
     const emptyRows = Array.from({length:free}).map(()=>
-      `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.4rem .25rem;border-bottom:1px dashed var(--border)">
+      `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
         <div style="display:flex;align-items:center;gap:.6rem">
-          <div style="width:26px;height:26px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
+          <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
           <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSection('pool')" style="font-size:11px">Fyll från pool</button>
