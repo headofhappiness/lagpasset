@@ -350,6 +350,26 @@ setVH(); window.addEventListener('resize',setVH);
       <div style="font-size:15px;font-weight:700;color:var(--dark);margin-bottom:.3rem">Vill du ändra ditt pass?</div>
       <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:.9rem">Du kan byta pass fram till sista anmälningsdag – så ofta du vill.</p>
       <button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="editBooking()">Byt pass</button>
+      <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid rgba(26,140,58,.15)">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.6rem;line-height:1.55">Blivit sjuk eller fått förhinder och kan inte komma?</p>
+        <button class="btn btn-outline btn-sm" style="width:auto;padding:9px 20px;color:#c0392b;border-color:rgba(192,57,43,.3)" onclick="openSickReport()">Anmäl förhinder</button>
+      </div>
+    </div>
+
+    <!-- SJUKANMÄLAN-MODAL (inline) -->
+    <div id="sickModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem">
+      <div style="background:#fff;border-radius:16px;padding:1.5rem;max-width:400px;width:100%">
+        <div style="font-size:17px;font-weight:700;color:var(--dark);margin-bottom:.4rem">Anmäl förhinder</div>
+        <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1rem">Ansvarig meddelas direkt och passet blir ledigt igen så att någon annan kan ta det. Tack för att du säger till i tid!</p>
+        <div class="form-group">
+          <label class="form-label">Anledning (valfritt)</label>
+          <textarea id="sickReason" class="feedback-text" placeholder="Ex. sjuk, jobbet krockar..." style="min-height:60px"></textarea>
+        </div>
+        <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.5rem">
+          <button class="btn btn-ghost btn-sm" onclick="closeSickReport()">Avbryt</button>
+          <button class="btn btn-primary btn-sm" style="background:#c0392b" onclick="submitSickReport()">Anmäl förhinder</button>
+        </div>
+      </div>
     </div>
 
     <!-- INFO OM FEEDBACK EFTER PASS -->
@@ -357,6 +377,23 @@ setVH(); window.addEventListener('resize',setVH);
       <span style="font-size:1.1rem;flex-shrink:0">📩</span>
       <span>När ditt pass är avslutat får du ett mejl där du kan lämna en kort feedback om hur det gick. Det hjälper föreningen att planera ännu bättre nästa gång.
       <a href="#" onclick="showFeedbackPreview();return false;" id="feedbackPreviewLink" style="display:none;color:var(--green);font-weight:600;text-decoration:none;white-space:nowrap"> Se hur feedbacken ser ut →</a></span>
+    </div>
+
+    <!-- VANLIGA FRÅGOR (utfällbar) -->
+    <div class="card" style="margin-top:.75rem">
+      <div class="card-label">Vanliga frågor</div>
+      <div id="faqAccordion" style="margin-top:.4rem;display:flex;flex-direction:column;gap:.4rem"></div>
+    </div>
+
+    <!-- HAR DU EN FRÅGA? -->
+    <div class="card" style="margin-top:.75rem">
+      <div class="card-label">Hittar du inte svaret?</div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:.9rem;line-height:1.6">Frågor om pass och schema går till schemaansvarig. Gäller frågan ett specifikt område kan du välja det i listan.</p>
+      <div class="form-group" style="margin-bottom:.9rem">
+        <label class="form-label">Vad gäller frågan?</label>
+        <select id="questionArea" onchange="updateContactCard()"></select>
+      </div>
+      <div id="contactCard"></div>
     </div>
 
     <!-- FLER BARN -->
@@ -464,6 +501,23 @@ const DEMO = {
   club:{ name:"Åsa IF", logo_url:null, accent:"#1a8c3a" },
   person:{ name:"Anna Mellbin", team:"FJ" }, // sätts via token i personlig länk
   event:{ name:"Åsacupen 2026", deadline:"2026-06-18", reminder_days:5, contact_email:"kansli@asaif.com" },
+
+  // Kontaktpersoner (sätts av admin i Inställningar) — för frågor från medlemmar
+  contacts:[
+    { area:"Schemaansvarig (frågor om pass & schema)", name:"Lena Sandberg", email:"lena.sandberg@asaif.com", phone:"070-123 45 67", isScheduler:true },
+    { area:"Allmänt om cupen", name:"Lena Sandberg",  email:"lena.sandberg@asaif.com", phone:"070-123 45 67" },
+    { area:"Servering",        name:"Maria Lindqvist", email:"maria.l@asaif.com",       phone:"073-234 56 78" },
+    { area:"Parkering",        name:"Johan Berg",      email:"johan.berg@asaif.com",    phone:"076-345 67 89" },
+    { area:"Bygg & Riv",       name:"Anders Holm",     email:"anders.holm@asaif.com",   phone:"070-456 78 90" },
+  ],
+
+  // Vanliga frågor (sätts av admin) — visas utfällbart vid passet
+  faq:[
+    { q:"Vad ska jag ha på mig?", a:"Klä dig efter väder – du står mestadels utomhus. Föreningen bjuder på väst eller förkläde vid serveringspass." },
+    { q:"Var checkar jag in?", a:"Anmäl dig vid infotältet vid arenans huvudentré minst 10 minuter innan ditt pass börjar." },
+    { q:"Hur länge är ett pass?", a:"De flesta pass är 4 timmar. Exakt tid står på ditt valda pass." },
+    { q:"Vad gör jag om jag blir sjuk?", a:"Använd knappen Anmäl förhinder på din bokning så larmas ansvarig direkt och passet kan fyllas av någon annan." },
+  ],
 
   // Lag med barn — quota = antal pass laget ska ta (auto: 1/barn, kan justeras manuellt)
   teams:[
@@ -824,6 +878,8 @@ function showConfirmation(name,phone){
   document.getElementById('stepIndicator').style.display='none';
   document.getElementById('siLabels').style.display='none';
   document.getElementById('doneWrap').style.display='block';
+  fillQuestionAreas();
+  fillFaqAccordion();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -871,6 +927,95 @@ async function submitFeedback(){
   // I produktion: supabase insert feedback
   document.getElementById('feedbackForm').style.display='none';
   document.getElementById('feedbackDone').style.display='block';
+}
+
+// ════════════════════════════════════════════════
+// FRÅGA TILL ANSVARIG
+// ════════════════════════════════════════════════
+function fillQuestionAreas(){
+  const sel = document.getElementById('questionArea');
+  if(!sel || !DEMO.contacts) return;
+  sel.innerHTML = DEMO.contacts.map((k,i)=>`<option value="${i}">${k.area} – ${k.name}</option>`).join('');
+  updateContactCard();
+}
+
+function updateContactCard(){
+  const sel = document.getElementById('questionArea');
+  const card = document.getElementById('contactCard');
+  if(!sel || !card || !DEMO.contacts) return;
+  const k = DEMO.contacts[parseInt(sel.value)||0];
+  const subject = encodeURIComponent(`Fråga om ${DEMO.event.name} – ${k.area}`);
+  const phoneHtml = k.phone
+    ? `<div style="margin-top:.65rem;font-size:13px;color:var(--muted)">Akut? Ring <a href="tel:${k.phone.replace(/\s/g,'')}" style="color:var(--dark);font-weight:600;text-decoration:none">${k.phone}</a></div>`
+    : '';
+  card.innerHTML = `
+    <div style="background:var(--green-pale);border:1.5px solid rgba(26,140,58,.2);border-radius:12px;padding:1.1rem 1.25rem">
+      <div style="font-size:14px;color:var(--dark);font-weight:600;margin-bottom:.15rem">${k.name}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:.85rem">${k.area}</div>
+      <a class="btn btn-primary btn-sm" style="width:auto;padding:10px 24px;text-decoration:none;display:inline-block" href="mailto:${k.email}?subject=${subject}">✉️ Mejla ${k.name.split(' ')[0]}</a>
+      <div style="font-size:12px;color:var(--muted);margin-top:.55rem">Mejl är bästa vägen in – du får svar så snart som möjligt.</div>
+      ${phoneHtml}
+    </div>`;
+}
+
+// ════════════════════════════════════════════════
+// VANLIGA FRÅGOR (FAQ)
+// ════════════════════════════════════════════════
+function fillFaqAccordion(){
+  const el = document.getElementById('faqAccordion');
+  if(!el || !DEMO.faq) return;
+  el.innerHTML = DEMO.faq.map((f,i)=>
+    `<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <button type="button" onclick="toggleFaq(${i})" style="width:100%;text-align:left;background:var(--bg);border:none;padding:.8rem .95rem;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--dark);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+        <span>${f.q}</span>
+        <span id="faq-arrow-${i}" style="color:var(--green);flex-shrink:0;transition:transform .2s">▾</span>
+      </button>
+      <div id="faq-body-${i}" style="display:none;padding:0 .95rem .85rem;font-size:13.5px;color:var(--muted);line-height:1.6">${f.a}</div>
+    </div>`
+  ).join('');
+}
+
+function toggleFaq(i){
+  const body = document.getElementById('faq-body-'+i);
+  const arrow = document.getElementById('faq-arrow-'+i);
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  if(arrow) arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+// ════════════════════════════════════════════════
+// SJUKANMÄLAN / FÖRHINDER
+// ════════════════════════════════════════════════
+function openSickReport(){
+  const m = document.getElementById('sickModal');
+  if(m) m.style.display = 'flex';
+}
+function closeSickReport(){
+  const m = document.getElementById('sickModal');
+  if(m) m.style.display = 'none';
+}
+function submitSickReport(){
+  // I produktion:
+  //  1. Markera bokningen som avanmäld → platsen blir ledig igen i passet
+  //  2. Mejla ansvarig för stationen via Resend (med namn, pass, ev. anledning)
+  //  3. Ev. notifiera bemanningspoolen
+  closeSickReport();
+  const c = currentChild;
+  if(c && bookedMap[c.id]) delete bookedMap[c.id];
+  // Visa bekräftelse i bokningskortet, dölj resten
+  document.getElementById('confirmSummary').innerHTML =
+    `<div style="text-align:center;padding:.5rem 0">
+      <div style="font-size:2rem;margin-bottom:.4rem">✓</div>
+      <div style="font-size:15px;font-weight:600;color:var(--dark);margin-bottom:.3rem">Förhinder anmält</div>
+      <div style="font-size:13.5px;color:var(--muted);line-height:1.6">Ansvarig har meddelats och passet är nu ledigt igen. Tack för att du sa till!</div>
+    </div>`;
+  // Dölj ändra-pass-rutan, FAQ och frågeformuläret
+  const wrap = document.getElementById('doneWrap');
+  wrap.querySelectorAll(':scope > div').forEach(el=>{
+    const keep = el.querySelector('#confirmSummary') || el.id==='moreChildrenWrap';
+    if(!keep) el.style.display='none';
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 // ════════════════════════════════════════════════
