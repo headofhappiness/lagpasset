@@ -233,10 +233,10 @@ setVH(); window.addEventListener('resize',setVH);
     <div class="demo-welcome-title">Välkommen till admindemon!</div>
     <div class="demo-welcome-sub">Klicka runt fritt i demon – inget sparas. Se admindemon för att förstå föreningens vy, eller se medlemsvyn för att uppleva det ur medlemmens perspektiv.</div>
     <div class="demo-step-list">
-      <div class="demo-step"><div class="demo-step-num">1</div><span>Se <strong>Dashboard</strong> – live-status per lag, station och pass</span></div>
+      <div class="demo-step"><div class="demo-step-num">1</div><span>Se <strong>Översikt</strong> – live-status per lag, station och pass</span></div>
       <div class="demo-step"><div class="demo-step-num">2</div><span>Öppna <strong>Passschema</strong> – se pass, beläggning och stationsinstruktioner</span></div>
       <div class="demo-step"><div class="demo-step-num">3</div><span>Prova <strong>Mejla medlemmar</strong> – filtrera på passtyp och skicka riktat</span></div>
-      <div class="demo-step"><div class="demo-step-num">4</div><span>Klicka <strong>Skriv ut lista</strong> under Bokningar – se utskriftsvyn</span></div>
+      <div class="demo-step"><div class="demo-step-num">4</div><span>Klicka <strong>Skriv ut lista</strong> i Pass &amp; beläggning – se utskriftsvyn</span></div>
       <div class="demo-step"><div class="demo-step-num">5</div><span>Gå till <strong>Deltagare</strong> – se hur man importerar lag och kontaktuppgifter</span></div>
     </div>
     <div class="demo-cta-row">
@@ -262,14 +262,11 @@ setVH(); window.addEventListener('resize',setVH);
   <nav class="nav-items">
     <div class="nav-section">Översikt</div>
     <a class="nav-item active" onclick="showSection('dashboard')" href="#">
-      <span class="nav-icon">📊</span> Dashboard
+      <span class="nav-icon">📊</span> Översikt
     </a>
     <div class="nav-section">Hantera</div>
     <a class="nav-item" onclick="showSection('shifts')" href="#">
-      <span class="nav-icon">📋</span> Passschema
-    </a>
-    <a class="nav-item" onclick="showSection('bookings')" href="#">
-      <span class="nav-icon">✅</span> Bokade pass
+      <span class="nav-icon">📋</span> Pass &amp; beläggning
     </a>
     <div class="nav-section">Kommunikation</div>
     <a class="nav-item" onclick="showSection('email')" href="#">
@@ -294,7 +291,7 @@ setVH(); window.addEventListener('resize',setVH);
   <header class="topbar">
     <div style="display:flex;align-items:center;gap:.75rem">
       <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
-      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-title" id="topbarTitle">Översikt</div>
     </div>
     <div class="topbar-actions">
       <span style="font-size:13px;color:var(--muted);font-weight:500;display:none" class="hide-mobile" id="topbarEvent">Åsacupen 2026</span>
@@ -345,6 +342,14 @@ setVH(); window.addEventListener('resize',setVH);
           </div>
         </div>
         <div id="attentionList" style="display:flex;flex-direction:column;gap:.6rem"></div>
+
+        <!-- Påminnelselogg (ihopfällbar) -->
+        <div style="margin-top:.85rem;border-top:1px solid var(--border);padding-top:.6rem">
+          <button onclick="toggleReminderLog()" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--muted);font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:.4rem;padding:0">
+            <span id="reminderLogArrow">▸</span> Skickade påminnelser
+          </button>
+          <div id="reminderLog" style="display:none;margin-top:.6rem;display:none;flex-direction:column;gap:.4rem"></div>
+        </div>
       </div>
 
       <!-- ③ Stationsbeläggning -->
@@ -408,7 +413,7 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
 
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-          <thead><tr><th>Deltagare</th><th>Lag</th><th>Förälderns e-post</th><th>Status</th><th>Länk skickad</th></tr></thead>
+          <thead><tr><th>Deltagare</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Länk skickad</th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
       </div>
@@ -418,10 +423,11 @@ setVH(); window.addEventListener('resize',setVH);
     <div class="section" id="sec-shifts">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
         <div>
-          <h2 style="font-size:18px;font-weight:700;color:var(--dark)" id="shiftsTitle">Passschema</h2>
-          <p style="font-size:13px;color:var(--muted);margin-top:2px" id="shiftsSubtitle">Klicka på en passtyp för att se och hantera enskilda pass.</p>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)" id="shiftsTitle">Pass &amp; beläggning</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px" id="shiftsSubtitle">Klicka på en station för att se och hantera enskilda pass.</p>
         </div>
-        <div style="display:flex;gap:.6rem">
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="openModal('modalPrint')">🖨️ Skriv ut lista</button>
           <button class="btn btn-ghost" id="btnAiImport" onclick="openModal('modalImportAI')">🤖 AI-import</button>
           <button class="btn btn-primary" id="btnNyttPass" onclick="openModal('modalAddShift')">+ Nytt pass</button>
         </div>
@@ -429,83 +435,7 @@ setVH(); window.addEventListener('resize',setVH);
 
       <!-- KATEGORI-VY (default) -->
       <div id="shiftCategoryView">
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem">
-
-          <!-- Servering -->
-          <div class="card" onclick="openCategory('servering')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--dark)">Servering</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">3 tillfällen · Fre–Lör–Sön</div>
-              </div>
-              <span style="font-size:11px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:2px 8px">77%</span>
-            </div>
-            <div style="height:5px;background:#e0ece0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:77%;background:#e8a020;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:var(--muted)">75 av 98 platser bokade</div>
-          </div>
-
-          <!-- Infotält -->
-          <div class="card" onclick="openCategory('infotalt')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--dark)">Infotält</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">4 tillfällen · Lördag–Söndag</div>
-              </div>
-              <span style="font-size:11px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:2px 8px">73%</span>
-            </div>
-            <div style="height:5px;background:#e0ece0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:73%;background:#e8a020;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:var(--muted)">44 av 60 platser bokade</div>
-          </div>
-
-          <!-- Bygg & Riv -->
-          <div class="card" onclick="openCategory('bygg')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#c0392b'" onmouseout="this.style.borderColor=''">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--dark)">Bygg &amp; Riv</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">2 tillfällen · Tor–Sön</div>
-              </div>
-              <span style="font-size:11px;font-weight:700;background:#fdf2f2;color:#c0392b;border-radius:100px;padding:2px 8px">⚠️ 26%</span>
-            </div>
-            <div style="height:5px;background:#f0d0d0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:26%;background:#c0392b;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:#c0392b;font-weight:600">12 av 46 platser bokade</div>
-          </div>
-
-          <!-- Nattvakt -->
-          <div class="card" onclick="openCategory('nattvakt')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--dark)">Nattvakt</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">1 tillfälle · Lör natt</div>
-              </div>
-              <span style="font-size:11px;font-weight:700;background:#e8f7ec;color:#1a8c3a;border-radius:100px;padding:2px 8px">✓ 100%</span>
-            </div>
-            <div style="height:5px;background:#c4dcc4;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:100%;background:#1a8c3a;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:#1a8c3a;font-weight:600">4 av 4 platser bokade ✓</div>
-          </div>
-
-          <div class="card" onclick="openCategory('parkering')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--dark)">Parkering</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">4 tillfällen · Lördag–Söndag</div>
-              </div>
-              <span style="font-size:11px;font-weight:700;background:#fff8e0;color:#b07000;border-radius:100px;padding:2px 8px">81%</span>
-            </div>
-            <div style="height:5px;background:#c4dcc4;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:81%;background:#e8a020;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:var(--muted);font-weight:600">13 av 16 platser bokade</div>
-          </div>
-
-        </div>
+        <div id="stationRows" style="display:flex;flex-direction:column;gap:.6rem"></div>
       </div>
 
       <!-- DRILL-DOWN VY (dold initialt) -->
@@ -566,27 +496,6 @@ setVH(); window.addEventListener('resize',setVH);
     </div>
 
     <!-- ═══ BOKNINGAR ═══ -->
-    <div class="section" id="sec-bookings">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
-        <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bokade pass</h2>
-        <div style="display:flex;gap:.6rem">
-          <button class="btn btn-ghost" onclick="openModal('modalPrint')">🖨️ Skriv ut lista</button>
-          <button class="btn btn-ghost">📥 Exportera</button>
-        </div>
-      </div>
-      <div class="tabs">
-        <div class="tab active" onclick="switchBookingTab('all',this)">Alla</div>
-        <div class="tab" onclick="switchBookingTab('servering',this)">Servering</div>
-        <div class="tab" onclick="switchBookingTab('infotalt',this)">Infotält</div>
-        <div class="tab" onclick="switchBookingTab('bygg',this)">Bygg & Riv</div>
-        <div class="tab" onclick="switchBookingTab('nattvakt',this)">Nattvakt</div>
-      </div>
-      <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-          <thead><tr><th>Pass</th><th>Dag · Tid</th><th>Deltagare</th><th>Lag</th><th>Förälder</th><th>Telefon</th></tr></thead>
-          <tbody id="bookingsTable"></tbody>
-        </table>
-      </div>
-    </div>
 
     <!-- ═══ MEJLA FÖRÄLDRAR ═══ -->
     <div class="section" id="sec-email">
@@ -1005,22 +914,22 @@ const TEAMS = [
 
 const CHILDREN = [
   // FJ – Flickjuniorer (urval)
-  {id:"c01",name:"Adelia Mellbin",     team:"FJ",  email:"a.mellbin@gmail.com",      protected:false, booked:true,  linkSent:true},
-  {id:"c02",name:"Agnes Marklinder",   team:"FJ",  email:"agnes.m@hotmail.com",      protected:false, booked:true,  linkSent:true},
+  {id:"c01",name:"Adelia Mellbin",     team:"FJ",  email:"a.mellbin@gmail.com",      protected:false, booked:true,  linkSent:true, pass:"Servering · Sön 08–12"},
+  {id:"c02",name:"Agnes Marklinder",   team:"FJ",  email:"agnes.m@hotmail.com",      protected:false, booked:true,  linkSent:true, pass:"Bygg · Tor 17–20"},
   {id:"c03",name:"Alba Franzén",       team:"FJ",  email:"franzenfam@gmail.com",     protected:false, booked:false, linkSent:true},
-  {id:"c04",name:"Alice Todelius",     team:"FJ",  email:"k.todelius@gmail.com",     protected:false, booked:true,  linkSent:true},
-  {id:"c05",name:"Robin Grön",         team:"FJ",  email:"🔒 dold",              protected:true,  booked:true,  linkSent:true},
+  {id:"c04",name:"Alice Todelius",     team:"FJ",  email:"k.todelius@gmail.com",     protected:false, booked:true,  linkSent:true, pass:"Nattvakt · Lör 22–06"},
+  {id:"c05",name:"Robin Grön",         team:"FJ",  email:"🔒 dold",              protected:true,  booked:true,  linkSent:true, pass:"Infotält · Lör 08–13"},
   {id:"c06",name:"Alva Svarén",        team:"FJ",  email:"henrik.svaren@gmail.com",  protected:false, booked:false, linkSent:false},
-  {id:"c07",name:"Elin Björk",         team:"FJ",  email:"bjork.familjen@gmail.com", protected:false, booked:true,  linkSent:true},
-  {id:"c08",name:"Maja Lindström",     team:"FJ",  email:"lindstrom.m@hotmail.com",  protected:false, booked:true,  linkSent:true},
+  {id:"c07",name:"Elin Björk",         team:"FJ",  email:"bjork.familjen@gmail.com", protected:false, booked:true,  linkSent:true, pass:"Parkering · Lör 07–12"},
+  {id:"c08",name:"Maja Lindström",     team:"FJ",  email:"lindstrom.m@hotmail.com",  protected:false, booked:true,  linkSent:true, pass:"Servering · Lör 12–16"},
   // P13
-  {id:"p01",name:"Lucas Eriksson",     team:"P13", email:"erik.eriksson@gmail.com",  protected:false, booked:true,  linkSent:true},
+  {id:"p01",name:"Lucas Eriksson",     team:"P13", email:"erik.eriksson@gmail.com",  protected:false, booked:true,  linkSent:true, pass:"Bygg · Tor 17–20"},
   {id:"p02",name:"Anton Johansson",    team:"P13", email:"m.johansson@telia.com",    protected:false, booked:false, linkSent:true},
-  {id:"p03",name:"Emil Karlsson",      team:"P13", email:"karlsson.k@gmail.com",     protected:false, booked:true,  linkSent:true},
+  {id:"p03",name:"Emil Karlsson",      team:"P13", email:"karlsson.k@gmail.com",     protected:false, booked:true,  linkSent:true, pass:"Infotält · Sön 08–13"},
   // F11
-  {id:"f01",name:"Vera Nilsson",       team:"F11", email:"nilsson.vera@gmail.com",   protected:false, booked:true,  linkSent:true},
+  {id:"f01",name:"Vera Nilsson",       team:"F11", email:"nilsson.vera@gmail.com",   protected:false, booked:true,  linkSent:true, pass:"Servering · Lör 08–12"},
   {id:"f02",name:"Tilda Gustafsson",   team:"F11", email:"tgustafsson@hotmail.com",  protected:false, booked:false, linkSent:false},
-  {id:"f03",name:"Saga Pettersson",    team:"F11", email:"petra.p@gmail.com",        protected:false, booked:true,  linkSent:true},
+  {id:"f03",name:"Saga Pettersson",    team:"F11", email:"petra.p@gmail.com",        protected:false, booked:true,  linkSent:true, pass:"Parkering · Sön 07–12"},
 ];
 
 // Åsacupen 2026 – passschema (28–29 juni)
@@ -1068,11 +977,10 @@ function showSection(id){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
-  const titles={dashboard:'Dashboard',children:'Deltagare',shifts:'Passschema',bookings:'Bokade pass',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
+  const titles={dashboard:'Översikt',children:'Deltagare',shifts:'Pass & beläggning',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
-  if(id==='shifts'){ renderShiftTable(); setTimeout(()=>openCategory('servering'),50); }
-  if(id==='bookings') renderBookingsTable();
+  if(id==='shifts'){ renderStationRows(); }
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) setTimeout(closeSidebar, 50);
 }
@@ -1125,9 +1033,10 @@ function getStationStats(){
   const stations = {};
   SHIFTS_DATA.forEach(s=>{
     const key = s.type;
-    if(!stations[key]) stations[key] = {...stationMeta[key], total:0, taken:0, weakest:null};
+    if(!stations[key]) stations[key] = {...stationMeta[key], total:0, taken:0, shifts:0, weakest:null};
     stations[key].total += s.total;
     stations[key].taken += s.taken;
+    stations[key].shifts += 1;
     const pct = s.taken/s.total;
     if(!stations[key].weakest || pct < stations[key].weakest.pct){
       stations[key].weakest = {day:s.day, time:s.time, pct:pct, taken:s.taken, total:s.total};
@@ -1141,22 +1050,36 @@ function getStationStats(){
 }
 
 function renderStationOverview(){
+  renderStationRowsInto('stationOverview', true);
+}
+
+// Stationsrader för Passschema (med antal tillfällen + platser)
+function renderStationRows(){
+  renderStationRowsInto('stationRows', false);
+}
+
+function renderStationRowsInto(targetId, compact){
+  const el = document.getElementById(targetId);
+  if(!el) return;
   const stations = getStationStats();
   const colorMap = {
-    green: {dot:'#1a8c3a', bar:'#1a8c3a', bg:'#e8f7ec', text:'#1a8c3a'},
-    amber: {dot:'#e8a020', bar:'#e8a020', bg:'#fff8e0', text:'#b07000'},
-    red:   {dot:'#c0392b', bar:'#c0392b', bg:'#fdecea', text:'#c0392b'},
+    green: {dot:'#1a8c3a', bar:'#1a8c3a', text:'#1a8c3a'},
+    amber: {dot:'#e8a020', bar:'#e8a020', text:'#b07000'},
+    red:   {dot:'#c0392b', bar:'#c0392b', text:'#c0392b'},
   };
-  document.getElementById('stationOverview').innerHTML = stations.map(st=>{
+  el.innerHTML = stations.map(st=>{
     const col = colorMap[st.color];
-    const weakTxt = st.pct>=90 ? '' :
-      `<span style="font-size:12px;color:var(--muted)"> · svagast ${st.weakest.day} ${st.weakest.time} (${Math.round(st.weakest.pct*100)}%)</span>`;
     const done = st.pct>=90 ? ' ✓' : '';
-    return `<div onclick="openCategory('${st.cat}');showSection('shifts')" style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${col.dot}'" onmouseout="this.style.borderColor='var(--border)'">
+    const weakTxt = (compact && st.pct<90) ?
+      `<span style="font-size:12px;color:var(--muted)"> · svagast ${st.weakest.day} ${st.weakest.time} (${Math.round(st.weakest.pct*100)}%)</span>` : '';
+    const sub = compact ? '' :
+      `<div style="font-size:12px;color:var(--muted);margin-top:1px">${st.shifts} tillfällen · ${st.taken} av ${st.total} platser bokade</div>`;
+    return `<div onclick="${compact?`openCategory('${st.cat}');showSection('shifts')`:`openCategory('${st.cat}')`}" style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${col.dot}'" onmouseout="this.style.borderColor='var(--border)'">
       <span style="width:10px;height:10px;border-radius:50%;background:${col.dot};flex-shrink:0"></span>
       <span style="font-size:1.1rem;flex-shrink:0">${st.icon}</span>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:700;color:var(--dark)">${st.name}${weakTxt}</div>
+        ${sub}
         <div style="height:6px;background:#e8ebe8;border-radius:3px;overflow:hidden;margin-top:.4rem;max-width:340px">
           <div style="height:6px;width:${st.pct}%;background:${col.bar};border-radius:3px"></div>
         </div>
@@ -1165,6 +1088,46 @@ function renderStationOverview(){
       <span style="color:var(--muted);font-size:1.1rem;flex-shrink:0">›</span>
     </div>`;
   }).join('');
+}
+
+// Påminnelselogg
+let reminderHistory = [
+  {date:'18 juni 09:14', count:31, type:'Automatisk'},
+];
+
+function renderReminderLog(){
+  const el = document.getElementById('reminderLog');
+  if(!el) return;
+  if(reminderHistory.length === 0){
+    el.innerHTML = '<div style="font-size:12.5px;color:var(--muted);font-style:italic">Inga påminnelser skickade ännu.</div>';
+    return;
+  }
+  el.innerHTML = reminderHistory.map(r=>
+    `<div style="display:flex;align-items:center;gap:.5rem;font-size:12.5px;color:var(--muted)">
+      <span style="color:var(--green)">📧</span>
+      <span><strong style="color:var(--dark)">${r.date}</strong> – ${r.type} påminnelse till ${r.count} medlemmar</span>
+    </div>`
+  ).join('');
+}
+
+function toggleReminderLog(){
+  const log = document.getElementById('reminderLog');
+  const arrow = document.getElementById('reminderLogArrow');
+  const open = log.style.display === 'flex';
+  log.style.display = open ? 'none' : 'flex';
+  arrow.textContent = open ? '\u25b8' : '\u25be';
+  if(!open) renderReminderLog();
+}
+
+function sendReminderNow(){
+  const now = new Date();
+  const months = ['jan','feb','mars','apr','maj','juni','juli','aug','sep','okt','nov','dec'];
+  const stamp = `${now.getDate()} ${months[now.getMonth()]} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  reminderHistory.unshift({date:stamp, count:24, type:'Manuell'});
+  if(typeof demoBlock === 'function'){ demoBlock(); }
+  const log = document.getElementById('reminderLog');
+  const arrow = document.getElementById('reminderLogArrow');
+  if(log){ log.style.display='flex'; arrow.textContent='\u25be'; renderReminderLog(); }
 }
 
 function renderAttention(){
@@ -1176,9 +1139,9 @@ function renderAttention(){
     items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(232,160,32,.3);border-radius:10px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:.6rem">
         <span style="font-size:1.1rem">📋</span>
-        <span style="font-size:13.5px;color:var(--dark)"><strong>${remaining} platser</strong> är ännu inte fyllda</span>
+        <span style="font-size:13.5px;color:var(--dark)"><strong>24 medlemmar</strong> har inte valt något pass ännu</span>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="showSection('email');setBottomNav&&setBottomNav('email')">📧 Skicka påminnelse nu</button>
+      <button class="btn btn-primary btn-sm" onclick="sendReminderNow()">📧 Påminn de 24 nu</button>
     </div>`);
   }
   // Stationer under 60%
@@ -1227,7 +1190,7 @@ function renderChildTable(){
       </div>
     </td>
     <td class="td-muted">${c.team}</td>
-    <td style="font-size:13px">${c.protected?'<em style="color:var(--muted)">Dold av integritetsskäl</em>':c.email}</td>
+    <td style="font-size:13px;color:var(--text)">${c.pass||'<span style="color:var(--muted)">–</span>'}</td>
     <td>${c.booked?'<span class="badge badge-green">Pass valt ✓</span>':'<span class="badge badge-amber">Inget pass</span>'}</td>
     <td>${c.linkSent?'<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>':'<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>'}</td>
   </tr>`).join('');
@@ -1260,35 +1223,6 @@ function renderShiftTable(){
       </td>
     </tr>`;
   }).join('');
-}
-
-// ═══════════════════════════════════════
-// BOKNINGAR
-// ═══════════════════════════════════════
-function renderBookingsTable(){
-  const rows = [
-    {shift:"Servering", day:"Fredag 08:30–12:45", child:"Adelia Mellbin", team:"FJ", parent:"Anna Mellbin", phone:"070-111 22 33", type:"servering"},
-    {shift:"Infotält",  day:"Fredag 09:00–13:00", child:"Alice Todelius",  team:"FJ", parent:"Karin Todelius",phone:"070-444 55 66", type:"infotalt"},
-    {shift:"Bygg",      day:"Torsdag 18:00",       child:"Bonnie Amnäs",   team:"FJ", parent:"Emil Amnäs",   phone:"070-777 88 99", type:"bygg"},
-    {shift:"Servering", day:"Lördag 09:00–13:00",  child:"P13 barn 1",    team:"P13",parent:"Förälder P13-1",phone:"070-100 20 30", type:"servering"},
-    {shift:"Nattvakt",  day:"Lördag 21:00–02:00",  child:"Robin Grön",    team:"FJ", parent:"Anna S.",      phone:"🔒",     type:"nattvakt", protected:true},
-  ];
-  const filtered = currentBookingTab==='all' ? rows : rows.filter(r=>r.type===currentBookingTab);
-  document.getElementById('bookingsTable').innerHTML = filtered.map(r=>`<tr>
-    <td class="td-name">${r.shift}</td>
-    <td class="td-muted" style="font-size:13px">${r.day}</td>
-    <td>${r.protected?'<span class="badge badge-protected">🔒 Skyddad</span>':r.child}</td>
-    <td class="td-muted">${r.team}</td>
-    <td style="font-weight:500">${r.parent}</td>
-    <td class="td-muted">${r.phone}</td>
-  </tr>`).join('');
-}
-
-function switchBookingTab(tab, el){
-  currentBookingTab=tab;
-  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  renderBookingsTable();
 }
 
 // ═══════════════════════════════════════
@@ -1618,6 +1552,7 @@ function renderShiftDetail(cat, day) {
 function closeCategory() {
   document.getElementById('shiftCategoryView').style.display = 'block';
   document.getElementById('shiftDetailView').style.display = 'none';
+  renderStationRows();
   document.getElementById('shiftsSubtitle').textContent = 'Klicka på en passtyp för att se och hantera enskilda pass.';
 }
 
@@ -1683,13 +1618,13 @@ renderDashboard();
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
     <button class="bn-item active" id="bn-dashboard" onclick="showSection('dashboard');setBottomNav('dashboard')">
-      <span class="bn-icon">📊</span>Dashboard
+      <span class="bn-icon">📊</span>Översikt
     </button>
     <button class="bn-item" id="bn-shifts" onclick="showSection('shifts');setBottomNav('shifts')">
       <span class="bn-icon">📋</span>Schema
     </button>
-    <button class="bn-item" id="bn-bookings" onclick="showSection('bookings');setBottomNav('bookings')">
-      <span class="bn-icon">✅</span>Bokade
+    <button class="bn-item" id="bn-feedback" onclick="showSection('feedback');setBottomNav('feedback')">
+      <span class="bn-icon">⭐</span>Feedback
     </button>
     <button class="bn-item" id="bn-email" onclick="showSection('email');setBottomNav('email')">
       <span class="bn-icon">📧</span>Mejla
