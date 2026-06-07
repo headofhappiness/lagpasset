@@ -345,61 +345,116 @@ setVH(); window.addEventListener('resize',setVH);
       <div id="confirmSummary"></div>
     </div>
 
-    <!-- FEEDBACK-SEKTION -->
-    <div class="card">
-      <div class="card-label">Lämna feedback efter ditt pass</div>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:.9rem;line-height:1.65">Hur gick det? Din feedback hjälper föreningen att göra nästa event bättre. Du kan fylla i direkt eller komma tillbaka till den här länken när passet är avslutat.</p>
-      <div id="feedbackForm">
-        <div class="feedback-title">Hur fungerade passet?</div>
-        <div class="stars" id="stars">
-          <span class="star" onclick="setStar(1)">⭐</span>
-          <span class="star" onclick="setStar(2)">⭐</span>
-          <span class="star" onclick="setStar(3)">⭐</span>
-          <span class="star" onclick="setStar(4)">⭐</span>
-          <span class="star" onclick="setStar(5)">⭐</span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Hur var personalstyrkan på ditt pass?</label>
-          <div class="staffing-scale" id="staffingScale">
-            <span class="scale-end">För få</span>
-            <button type="button" class="scale-dot" data-val="1" onclick="setStaffing(1,this)" title="Klart för få"></button>
-            <button type="button" class="scale-dot" data-val="2" onclick="setStaffing(2,this)" title="Lite för få"></button>
-            <button type="button" class="scale-dot" data-val="3" onclick="setStaffing(3,this)" title="Lagom"></button>
-            <button type="button" class="scale-dot" data-val="4" onclick="setStaffing(4,this)" title="Lite för många"></button>
-            <button type="button" class="scale-dot" data-val="5" onclick="setStaffing(5,this)" title="Klart för många"></button>
-            <span class="scale-end">För många</span>
-          </div>
-          <div style="font-size:12.5px;color:var(--muted);margin-top:.5rem;line-height:1.5">Ingen fara om du är osäker – föreningen ser mönstret när alla svar vägs samman.</div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Vad fungerade bra?</label>
-          <textarea class="feedback-text" id="feedbackGood" placeholder="Ex. bra upplägg, lagom bemanning..."></textarea>
-        </div>
-        <div class="form-group" style="margin-bottom:.9rem">
-          <label class="form-label">Vad kan förbättras till nästa gång?</label>
-          <textarea class="feedback-text" id="feedbackImprove" placeholder="Ex. behövdes fler händer, varor tog slut, oklara instruktioner..."></textarea>
-        </div>
-        <button class="btn btn-primary btn-sm" style="width:auto;padding:10px 24px" onclick="submitFeedback()">Skicka feedback</button>
-        <p style="font-size:12.5px;color:var(--muted);margin-top:.6rem;line-height:1.5">Feedback kan lämnas när som helst – öppna länken igen och scrolla ner.</p>
-      </div>
-      <div id="feedbackDone" style="display:none" class="msg ok" style="margin-bottom:0">Tack för din feedback! Föreningen får en sammanställning efter eventet.</div>
+    <!-- ÄNDRA PASS – tydlig -->
+    <div style="background:var(--green-pale);border:1.5px solid rgba(26,140,58,.2);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:.75rem;text-align:center">
+      <div style="font-size:15px;font-weight:700;color:var(--dark);margin-bottom:.3rem">Vill du ändra ditt pass?</div>
+      <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:.9rem">Du kan byta pass fram till sista anmälningsdag – så ofta du vill.</p>
+      <button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="editBooking()">Byt pass</button>
+    </div>
+
+    <!-- INFO OM FEEDBACK EFTER PASS -->
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;font-size:13.5px;color:var(--muted);line-height:1.65;display:flex;gap:.6rem;align-items:flex-start">
+      <span style="font-size:1.1rem;flex-shrink:0">📩</span>
+      <span>När ditt pass är avslutat får du ett mejl där du kan lämna en kort feedback om hur det gick. Det hjälper föreningen att planera ännu bättre nästa gång.
+      <a href="#" onclick="showFeedbackPreview();return false;" id="feedbackPreviewLink" style="display:none;color:var(--green);font-weight:600;text-decoration:none;white-space:nowrap"> Se hur feedbacken ser ut →</a></span>
     </div>
 
     <!-- FLER BARN -->
-    <div id="moreChildrenWrap" style="display:none">
+    <div id="moreChildrenWrap" style="display:none;margin-top:.75rem">
       <button class="add-another" onclick="bookAnotherChild()">
         <div class="add-plus">+</div>
         Välj pass för nästa barn
       </button>
     </div>
-
-    <div style="background:var(--green-pale);border:1.5px solid rgba(26,140,58,.16);border-radius:12px;padding:.9rem 1.1rem;margin-top:.75rem;font-size:14px;line-height:1.7">
-      <strong style="color:var(--dark)">Vill du ändra ditt pass?</strong><br>
-      <span style="color:var(--muted)">Öppna samma länk igen, välj ditt barns namn och byt pass. Fungerar fram till sista anmälningsdag.</span>
-    </div>
-    <button class="btn btn-outline" style="margin-top:.75rem" onclick="editBooking()">← Ändra min bokning</button>
   </div>
 </div>
+
+<!-- FEEDBACK-VY (nås via mejllänk efter passet: ?feedback=1) -->
+<div id="feedbackWrap" style="display:none" class="slide-down">
+  <div id="feedbackDemoBanner" style="display:none;background:#fff8e0;border:1.5px solid rgba(232,160,32,.35);border-radius:10px;padding:.7rem 1rem;margin-bottom:1rem;font-size:13px;color:#8a6516;line-height:1.5;text-align:center">
+    🔍 <strong>Förhandsvisning</strong> – så här ser feedbacken ut. I verkligheten får medlemmen den via mejl direkt efter att passet avslutats.
+  </div>
+  <div style="text-align:center;padding:1.75rem 0 1rem">
+    <div style="font-size:2.5rem;margin-bottom:.5rem">🙌</div>
+    <h1>Tack för din insats!</h1>
+    <div class="green-line" style="margin:.4rem auto .9rem"></div>
+    <p style="color:var(--muted);font-size:15px;line-height:1.6">Ditt pass är avslutat. Berätta gärna hur det gick – det tar 30 sekunder och hjälper föreningen att planera bättre.</p>
+  </div>
+
+  <div class="card">
+    <div id="feedbackForm">
+      <div class="feedback-title">Hur fungerade passet?</div>
+      <div class="stars" id="stars">
+        <span class="star" onclick="setStar(1)">⭐</span>
+        <span class="star" onclick="setStar(2)">⭐</span>
+        <span class="star" onclick="setStar(3)">⭐</span>
+        <span class="star" onclick="setStar(4)">⭐</span>
+        <span class="star" onclick="setStar(5)">⭐</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hur var personalstyrkan på ditt pass?</label>
+        <div class="staffing-scale" id="staffingScale">
+          <span class="scale-end">För få</span>
+          <button type="button" class="scale-dot" data-val="1" onclick="setStaffing(1,this)" title="Klart för få"></button>
+          <button type="button" class="scale-dot" data-val="2" onclick="setStaffing(2,this)" title="Lite för få"></button>
+          <button type="button" class="scale-dot" data-val="3" onclick="setStaffing(3,this)" title="Lagom"></button>
+          <button type="button" class="scale-dot" data-val="4" onclick="setStaffing(4,this)" title="Lite för många"></button>
+          <button type="button" class="scale-dot" data-val="5" onclick="setStaffing(5,this)" title="Klart för många"></button>
+          <span class="scale-end">För många</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:.5rem;line-height:1.5">Ingen fara om du är osäker – föreningen ser mönstret när alla svar vägs samman.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vad fungerade bra?</label>
+        <textarea class="feedback-text" id="feedbackGood" placeholder="Ex. bra upplägg, lagom bemanning..."></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:.9rem">
+        <label class="form-label">Vad kan förbättras till nästa gång?</label>
+        <textarea class="feedback-text" id="feedbackImprove" placeholder="Ex. behövdes fler händer, varor tog slut, oklara instruktioner..."></textarea>
+      </div>
+      <button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="submitFeedback()">Skicka feedback</button>
+    </div>
+    <div id="feedbackDone" style="display:none" class="msg ok" style="margin-bottom:0">Tack för din feedback! Föreningen får en sammanställning efter eventet.</div>
+  </div>
+</div>
+
+<script>
+// Visa feedback-vyn om man kommer via mejllänk (?feedback=1)
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const isDemo = !params.get('token'); // riktig version har token i URL
+  if(params.get('feedback')==='1'){
+    window.addEventListener('DOMContentLoaded',()=>{
+      const main = document.getElementById('mainContent');
+      const done = document.getElementById('doneWrap');
+      const si = document.getElementById('stepIndicator');
+      const sil = document.getElementById('siLabels');
+      if(main) main.style.display='none';
+      if(done) done.style.display='none';
+      if(si) si.style.display='none';
+      if(sil) sil.style.display='none';
+      const fb = document.getElementById('feedbackWrap');
+      if(fb) fb.style.display='block';
+    });
+  }
+  // I demo: visa länken "Se hur feedbacken ser ut"
+  if(isDemo){
+    window.addEventListener('DOMContentLoaded',()=>{
+      const link = document.getElementById('feedbackPreviewLink');
+      if(link) link.style.display='inline';
+    });
+  }
+})();
+
+// Demo: visa feedback-vyn som förhandsvisning
+function showFeedbackPreview(){
+  document.getElementById('doneWrap').style.display='none';
+  const banner = document.getElementById('feedbackDemoBanner');
+  if(banner) banner.style.display='block';
+  document.getElementById('feedbackWrap').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
 
 <script>
 // ════════════════════════════════════════════════
