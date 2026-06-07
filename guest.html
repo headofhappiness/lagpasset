@@ -192,6 +192,12 @@ input::placeholder{color:#b8c8b8}
 .star{font-size:1.8rem;cursor:pointer;transition:transform .1s;filter:grayscale(1);opacity:.4;user-select:none}
 .star.active{filter:none;opacity:1}
 .star:hover{transform:scale(1.15)}
+
+.staffing-scale{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.scale-end{font-size:13px;color:var(--muted);font-weight:600;white-space:nowrap}
+.scale-dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:var(--bg);cursor:pointer;transition:all .15s;padding:0}
+.scale-dot:hover{border-color:var(--green);transform:scale(1.1)}
+.scale-dot.active{background:var(--green);border-color:var(--green);box-shadow:0 0 0 3px rgba(26,140,58,.15)}
 textarea.feedback-text{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:12px 14px;font-family:"Outfit",sans-serif;font-size:15px;color:var(--text);outline:none;resize:none;min-height:80px;transition:border-color .2s;font-weight:400}
 textarea.feedback-text:focus{border-color:var(--green);background:var(--surface)}
 
@@ -351,6 +357,19 @@ setVH(); window.addEventListener('resize',setVH);
           <span class="star" onclick="setStar(3)">⭐</span>
           <span class="star" onclick="setStar(4)">⭐</span>
           <span class="star" onclick="setStar(5)">⭐</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hur var personalstyrkan på ditt pass?</label>
+          <div class="staffing-scale" id="staffingScale">
+            <span class="scale-end">För få</span>
+            <button type="button" class="scale-dot" data-val="1" onclick="setStaffing(1,this)" title="Klart för få"></button>
+            <button type="button" class="scale-dot" data-val="2" onclick="setStaffing(2,this)" title="Lite för få"></button>
+            <button type="button" class="scale-dot" data-val="3" onclick="setStaffing(3,this)" title="Lagom"></button>
+            <button type="button" class="scale-dot" data-val="4" onclick="setStaffing(4,this)" title="Lite för många"></button>
+            <button type="button" class="scale-dot" data-val="5" onclick="setStaffing(5,this)" title="Klart för många"></button>
+            <span class="scale-end">För många</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:.5rem;line-height:1.5">Ingen fara om du är osäker – föreningen ser mönstret när alla svar vägs samman.</div>
         </div>
         <div class="form-group">
           <label class="form-label">Vad fungerade bra?</label>
@@ -782,6 +801,12 @@ function setStar(n){
   document.querySelectorAll('.star').forEach((s,i)=>{
     s.classList.toggle('active',i<n);
   });
+}
+
+function setStaffing(val, el){
+  document.querySelectorAll('.scale-dot').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  window._staffing = val;
 }
 
 async function submitFeedback(){

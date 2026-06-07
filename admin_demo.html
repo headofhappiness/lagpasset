@@ -279,6 +279,9 @@ setVH(); window.addEventListener('resize',setVH);
     <a class="nav-item" onclick="showSection('children')" href="#">
       <span class="nav-icon">👤</span> Deltagare
     </a>
+    <a class="nav-item" onclick="showSection('pool')" href="#">
+      <span class="nav-icon">🧑‍🤝‍🧑</span> Bemanningspool
+    </a>
     <a class="nav-item" onclick="showSection('settings')" href="#">
       <span class="nav-icon">⚙️</span> Inställningar
     </a>
@@ -415,6 +418,27 @@ setVH(); window.addEventListener('resize',setVH);
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
           <thead><tr><th>Deltagare</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Länk skickad</th></tr></thead>
           <tbody id="childTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ BEMANNINGSPOOL ═══ -->
+    <div class="section" id="sec-pool">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
+        <div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bemanningspool</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Ungdomar och frivilliga som kan ta pass som annars blir tomma.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modalAddPool')">+ Lägg till i poolen</button>
+      </div>
+
+      <div class="msg info">
+        <strong>Så funkar det:</strong> Lägg till ungdomar (t.ex. äldre lag) som kan hoppa in på tomma pass. Vid deadline tilldelar du dem de pass som inte fyllts. Eventuell ersättning hanteras av föreningen utanför systemet – ofta går den tillbaka till ungdomarnas eget lag.
+      </div>
+
+      <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
+          <thead><tr><th>Namn</th><th>Tillhör lag</th><th>Kan ta</th><th>Kontakt</th><th>Tilldelade pass</th></tr></thead>
+          <tbody id="poolTable"></tbody>
         </table>
       </div>
     </div>
@@ -729,8 +753,8 @@ Hälsningar,
     <div class="form-group">
       <label class="form-label">Lag</label>
       <select id="newChildTeam">
-        <option>FJ – Flickjuniorer</option><option>P13</option><option>P15</option>
-        <option>P18</option><option>F15</option><option>F16</option>
+        <option>FJ – Flickjuniorer</option><option>P09</option><option>P10</option>
+        <option>P11</option><option>P12</option><option>P13</option><option>F11</option><option>F13</option>
       </select>
     </div>
     <div class="form-group">
@@ -747,7 +771,40 @@ Hälsningar,
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
-      <button class="btn btn-primary" onclick="addChild()">Spara barn</button>
+      <button class="btn btn-primary" onclick="addChild()">Spara</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lägg till i bemanningspool -->
+<div class="modal-overlay" id="modalAddPool">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Lägg till i bemanningspool</div>
+      <button class="modal-close" onclick="closeModal('modalAddPool')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Namn</label>
+      <input type="text" placeholder="Förnamn Efternamn">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tillhör lag</label>
+      <select>
+        <option>P16</option><option>P18</option><option>F16</option><option>F18</option><option>Annat</option>
+      </select>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Ersättning för tagna pass kan gå tillbaka till detta lag (hanteras av föreningen).</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kan ta vilka pass?</label>
+      <input type="text" placeholder="Ex. Servering, Parkering, Bygg">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kontakt (telefon)</label>
+      <input type="tel" placeholder="070-123 45 67">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAddPool')">Avbryt</button>
+      <button class="btn btn-primary" onclick="demoBlock&&demoBlock();closeModal('modalAddPool')">Spara</button>
     </div>
   </div>
 </div>
@@ -933,6 +990,15 @@ const CHILDREN = [
 ];
 
 // Åsacupen 2026 – passschema (28–29 juni)
+
+const POOL = [
+  {id:"u01", name:"Wilmer Stranne",  team:"P16", can:"Servering, Parkering, Bygg", phone:"070-321 11 22", assigned:"Servering · Sön 12–16"},
+  {id:"u02", name:"Nora Hägg",       team:"F16", can:"Servering, Infotält, Parkering", phone:"070-321 33 44", assigned:"–"},
+  {id:"u03", name:"Theo Bjäder",     team:"P16", can:"Parkering, Bygg", phone:"070-321 55 66", assigned:"Parkering · Sön 12–17"},
+  {id:"u04", name:"Liv Andersson",   team:"F18", can:"Servering, Infotält", phone:"070-321 77 88", assigned:"–"},
+  {id:"u05", name:"Hugo Mellqvist",  team:"P18", can:"Alla pass", phone:"070-321 99 00", assigned:"Bygg · Sön 17–20"},
+];
+
 const SHIFTS_DATA = [
   // BYGG & RIV
   {id:"b01",title:"Bygg – rigga plan",  day:"Torsdag", time:"17:00–20:00", type:"bygg",      total:20, taken:18, teams:["FJ","P11","P12","F13"]},
@@ -977,9 +1043,10 @@ function showSection(id){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
-  const titles={dashboard:'Översikt',children:'Deltagare',shifts:'Pass & beläggning',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
+  const titles={dashboard:'Översikt',children:'Deltagare',pool:'Bemanningspool',shifts:'Pass & beläggning',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
+  if(id==='pool') renderPoolTable();
   if(id==='shifts'){ renderStationRows(); }
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) setTimeout(closeSidebar, 50);
@@ -1195,6 +1262,29 @@ function renderChildTable(){
     <td>${c.linkSent?'<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>':'<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>'}</td>
   </tr>`).join('');
 }
+
+function renderPoolTable(){
+  const el = document.getElementById('poolTable');
+  if(!el) return;
+  el.innerHTML = POOL.map(p=>{
+    const assigned = p.assigned && p.assigned !== '–'
+      ? `<span class="badge badge-green">${p.assigned}</span>`
+      : `<button class="btn btn-ghost btn-sm" onclick="demoBlock&&demoBlock()">Tilldela pass +</button>`;
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div style="width:30px;height:30px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#4055b5">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+          <div style="font-weight:600;color:var(--dark)">${p.name}</div>
+        </div>
+      </td>
+      <td class="td-muted">${p.team}</td>
+      <td style="font-size:12.5px;color:var(--text)">${p.can}</td>
+      <td class="td-muted" style="font-size:13px">${p.phone}</td>
+      <td>${assigned}</td>
+    </tr>`;
+  }).join('');
+}
+
 
 // ═══════════════════════════════════════
 // PASS-TABELL
@@ -1524,12 +1614,48 @@ function filterShiftDay(day, el, cat) {
   renderShiftDetail(cat, day);
 }
 
+// Demo-namn för vilka som valt ett pass
+const SHIFT_PEOPLE = {
+  default: ['Anna Mellbin (FJ)','Karin Todelius (FJ)','Erik Eriksson (P13)','Petra Pettersson (F11)'],
+};
+function peopleForShift(s, taken){
+  // Generera realistiska namn upp till "taken"
+  const pool = ['Anna Mellbin','Johan Björk','Karin Todelius','Maria Lindström','Erik Eriksson','Petra Nilsson','Sara Hägg','Markus Franzén','Lena Svarén','Daniel Karlsson','Emma Gustafsson','Peter Marklinder'];
+  const teams = s.lag.split(',').map(t=>t.trim());
+  const arr = [];
+  for(let i=0;i<taken;i++){
+    arr.push({name: pool[i % pool.length], team: teams[i % teams.length]});
+  }
+  return arr;
+}
+
 function renderShiftDetail(cat, day) {
   const data = categoryData[cat];
   const rows = data.shifts.filter(s => day === 'Alla' || s.dag === day);
-  document.getElementById('shiftDetailTable').innerHTML = rows.map(s => `
-    <tr>
-      <td><strong>${data.title}</strong></td>
+  document.getElementById('shiftDetailTable').innerHTML = rows.map((s, idx) => {
+    const [taken, total] = s.platser.split('/').map(n=>parseInt(n));
+    const free = total - taken;
+    const people = peopleForShift(s, taken);
+    const rowId = `shift-${cat}-${idx}`;
+    const peopleRows = people.map(p=>
+      `<div style="display:flex;align-items:center;gap:.6rem;padding:.4rem .25rem;border-bottom:1px solid var(--border)">
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green)">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+        <span style="font-size:13px;color:var(--dark);font-weight:500">${p.name}</span>
+        <span style="font-size:12px;color:var(--muted)">${p.team}</span>
+      </div>`
+    ).join('');
+    const emptyRows = Array.from({length:free}).map(()=>
+      `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.4rem .25rem;border-bottom:1px dashed var(--border)">
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div style="width:26px;height:26px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
+          <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSection('pool')" style="font-size:11px">Fyll från pool</button>
+      </div>`
+    ).join('');
+    return `
+    <tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer">
+      <td><strong>${data.title}</strong> <span id="${rowId}-arrow" style="color:var(--muted);font-size:11px">▸</span></td>
       <td>${s.dag}</td>
       <td>${s.tid}</td>
       <td>
@@ -1542,11 +1668,26 @@ function renderShiftDetail(cat, day) {
       </td>
       <td style="font-size:12px;color:var(--muted)">${s.lag}</td>
       <td><div style="display:flex;gap:.35rem">
-        <button class="btn btn-ghost btn-sm">✏️</button>
-        <button class="btn btn-ghost btn-sm" style="color:#c0392b">🗑</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">✏️</button>
+        <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation()">🗑</button>
       </div></td>
     </tr>
-  `).join('');
+    <tr id="${rowId}" style="display:none">
+      <td colspan="6" style="background:#fafbfa;padding:1rem 1.25rem">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Valt detta pass (${taken} av ${total})</div>
+        ${peopleRows}
+        ${emptyRows}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleShiftPeople(rowId){
+  const row = document.getElementById(rowId);
+  const arrow = document.getElementById(rowId+'-arrow');
+  const open = row.style.display === 'table-row';
+  row.style.display = open ? 'none' : 'table-row';
+  if(arrow) arrow.textContent = open ? '▸' : '▾';
 }
 
 function closeCategory() {
@@ -1574,21 +1715,33 @@ function aiSummarizeFeedback() {
   setTimeout(() => {
     txt.innerHTML = `
       <strong>Övergripande · Åsacupen 2026:</strong> Snittbetyg 4.2/5 från 18 svar. Stämningen och organisationen får genomgående beröm.<br><br>
-      <strong>Servering</strong> — Bra: tydlig info, god stämning. Förbättring: vatten/dryck till volontärer saknas, ett pass var överbemannt.<br><br>
+
+      <div style="margin:0 0 1rem;padding:.85rem 1rem;background:#fffaf0;border-radius:10px;border:1.5px solid rgba(232,160,32,.3)">
+        <strong style="color:var(--dark)">⚖️ Bemanningsnivå – vad volontärerna upplevde</strong>
+        <div style="font-size:12.5px;color:var(--muted);margin:.2rem 0 .65rem">Baserat på frågan "Hur var bemanningen på ditt pass?" – använd detta för att sätta rätt kvoter nästa år.</div>
+        <div style="display:flex;flex-direction:column;gap:.45rem">
+          <div style="display:flex;align-items:center;gap:.6rem;font-size:13px"><span style="background:#fdecea;color:#c0392b;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;min-width:90px;text-align:center">FÖR LITE</span> <strong>Servering söndag 12–16</strong> – 4 av 5 tyckte det var underbemannat. <span style="color:var(--green)">Höj kvoten nästa år.</span></div>
+          <div style="display:flex;align-items:center;gap:.6rem;font-size:13px"><span style="background:#fff3e0;color:#b07000;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;min-width:90px;text-align:center">FÖR MYCKET</span> <strong>Servering lördag 08–12</strong> – 3 av 6 tyckte det var överbemannat. <span style="color:var(--green)">Sänk kvoten nästa år.</span></div>
+          <div style="display:flex;align-items:center;gap:.6rem;font-size:13px"><span style="background:#fff3e0;color:#b07000;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;min-width:90px;text-align:center">FÖR MYCKET</span> <strong>Bygg torsdag 17–20</strong> – flera nämnde att de stod sysslolösa.</div>
+          <div style="display:flex;align-items:center;gap:.6rem;font-size:13px"><span style="background:#e8f7ec;color:#1a8c3a;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;min-width:90px;text-align:center">LAGOM</span> Övriga pass upplevdes välbemannade.</div>
+        </div>
+      </div>
+
+      <strong>Servering</strong> — Bra: tydlig info, god stämning. Förbättring: vatten/dryck till volontärer saknas.<br><br>
       <strong>Infotält</strong> — Bra: bra bemanning. Förbättring: önskan om kort briefing vid passstart.<br><br>
       <strong>Bygg &amp; Riv</strong> — Bra: engagerande uppgift. Förbättring: brist på verktyg orsakade onödig väntetid.<br><br>
       <strong>Nattvakt</strong> — Mycket nöjda. Inga förbättringsförslag.<br><br>
       <div style="margin-top:.75rem;padding:.75rem 1rem;background:#f0f7ff;border-radius:8px;border-left:3px solid #2563eb">
         <strong style="color:#1d4ed8">💡 Förslag inför nästa år</strong><br>
         <span style="font-size:13px;color:#1e3a5f;line-height:1.7">
-          1. Ha vatten tillgängligt vid alla serveringspass — nämns av 3 av 18 respondenter.<br>
-          2. Skicka ett kort instruktionsblad till Bygg &amp; Riv-passet om vilka verktyg som behövs.<br>
-          3. Lägg en 5-minuters briefing i schemat vid passstart för Infotält.<br>
-          4. Kontrollera bemanningsnivån på Servering fredag — ett pass hade för många.
+          1. <strong>Justera kvoter:</strong> +2 platser på Servering söndag eftermiddag, −2 på Servering lördag morgon.<br>
+          2. Se över Bygg torsdag – färre personer räcker.<br>
+          3. Ha vatten tillgängligt vid alla serveringspass — nämns av 3 av 18.<br>
+          4. Lägg en 5-minuters briefing i schemat vid passstart för Infotält.
         </span>
       </div>
       <div style="margin-top:.75rem;display:flex;gap:.6rem;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" onclick="useTemplate('thanks');document.querySelector('[onclick=\'showSection(\'email\')\'  ]').click()">🙏 Skapa tackmejl baserat på detta</button>
+        <button class="btn btn-ghost btn-sm" onclick="useTemplate('thanks');showSection('email')">🙏 Skapa tackmejl baserat på detta</button>
         <button class="btn btn-ghost btn-sm">📥 Exportera rapport</button>
       </div>
     `;
