@@ -178,7 +178,7 @@ textarea{resize:vertical;min-height:70px}
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
   .main{margin-left:0}
-  .hamburger-btn{display:block}
+  .hamburger-btn{display:none}
   .grid-2,.grid-3{grid-template-columns:1fr}
   .inline-2,.inline-3{grid-template-columns:1fr}
   .content{padding:1rem}
@@ -269,61 +269,62 @@ setVH(); window.addEventListener('resize',setVH);
     <!-- ═══ DASHBOARD ═══ -->
     <div class="section active" id="sec-dashboard">
 
-      <!-- Urgency-rad överst -->
-      <div style="background:#fff;border:1.5px solid rgba(26,140,58,.2);border-radius:12px;padding:.9rem 1.25rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:.35rem">🔥 54% av passen bokade – 57 kvar att fylla</div>
-          <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;max-width:300px">
-            <div style="height:8px;width:54%;background:linear-gradient(90deg,#1a8c3a,#22c55e);border-radius:4px"></div>
-          </div>
-        </div>
-        <div style="font-size:13px;color:var(--muted);font-weight:500">⏱ Sista dag: <strong style="color:#b85c00">18 juni</strong> · 8 dagar kvar</div>
-        <div style="font-size:13px;color:var(--muted)">🔔 Påminnelse skickas <strong style="color:var(--dark)">13 juni</strong> automatiskt</div>
-      </div>
-
+      <!-- ① Tre nyckeltal -->
       <div class="grid-3" style="margin-bottom:1.1rem">
         <div class="stat-card green">
-          <div class="stat-num">67</div>
-          <div class="stat-label">Pass valda</div>
+          <div class="stat-num">81%</div>
+          <div class="stat-label">Total beläggning</div>
           <div class="progress-wrap">
-            <div class="progress-bar"><div class="progress-fill" style="width:54%"></div></div>
-            <div class="progress-label"><span>54% klart</span><span>124 totalt</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:81%"></div></div>
+            <div class="progress-label"><span>105 bokade</span><span>129 totalt</span></div>
           </div>
         </div>
         <div class="stat-card amber">
-          <div class="stat-num">57</div>
-          <div class="stat-label">Återstår att välja</div>
+          <div class="stat-num">24</div>
+          <div class="stat-label">Platser kvar att fylla</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num">8</div>
-          <div class="stat-label">Dagar till sista dag</div>
+          <div class="stat-num">22</div>
+          <div class="stat-label">Dagar till event</div>
         </div>
       </div>
 
-      <!-- Status per lag -->
+      <!-- ② Behöver din uppmärksamhet -->
+      <div class="card" style="border:1.5px solid rgba(232,160,32,.3);background:linear-gradient(180deg,#fffdf5,#fff)">
+        <div class="card-header">
+          <div>
+            <div class="card-title">⚠️ Behöver din uppmärksamhet</div>
+            <div class="card-sub">Sista dag att välja: 25 juni · Påminnelse skickas automatiskt 22 juni</div>
+          </div>
+        </div>
+        <div id="attentionList" style="display:flex;flex-direction:column;gap:.6rem"></div>
+      </div>
+
+      <!-- ③ Stationsbeläggning -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Stationsbeläggning</div>
+            <div class="card-sub">Klicka på en station för att se pass per dag</div>
+          </div>
+        </div>
+        <div id="stationOverview" style="display:flex;flex-direction:column;gap:.6rem"></div>
+      </div>
+
+      <!-- ④ Status per lag -->
       <div class="card">
         <div class="card-header">
           <div>
             <div class="card-title">Status per lag</div>
             <div class="card-sub">Antal valda pass av lagets kvot</div>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="showSection('children')">Hantera barn →</button>
         </div>
-        <table>
-          <thead><tr><th>Lag</th><th>Kvot</th><th>Valda</th><th>Återstår</th><th>Status</th></tr></thead>
-          <tbody id="lagStatusTable"></tbody>
-        </table>
-      </div>
-
-      <!-- Pass-status -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Pass med låg beläggning</div>
+        <div class="table-wrap" style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Lag</th><th>Kvot</th><th>Valda</th><th>Återstår</th><th>Status</th></tr></thead>
+            <tbody id="lagStatusTable"></tbody>
+          </table>
         </div>
-        <table>
-          <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Valda / Totalt</th><th>Kvar</th></tr></thead>
-          <tbody id="passStatusTable"></tbody>
-        </table>
       </div>
     </div>
 
@@ -1002,7 +1003,11 @@ function closeSidebar(){
 // DASHBOARD
 // ═══════════════════════════════════════
 function renderDashboard(){
-  // Lag-status tabell
+  // ② Behöver din uppmärksamhet
+  renderAttention();
+  // ③ Stationsbeläggning
+  renderStationOverview();
+  // ④ Lag-status tabell
   const tbody = document.getElementById('lagStatusTable');
   tbody.innerHTML = TEAMS.map(t=>{
     const rem = t.quota - t.booked;
@@ -1016,20 +1021,90 @@ function renderDashboard(){
       <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
     </tr>`;
   }).join('');
+}
 
-  // Pass med låg beläggning
-  const ptbody = document.getElementById('passStatusTable');
-  const low = SHIFTS_DATA.filter(s=>s.taken<s.total*0.5);
-  ptbody.innerHTML = low.map(s=>{
-    const free=s.total-s.taken, pct=Math.round(s.taken/s.total*100);
-    return `<tr>
-      <td class="td-name">${s.title}</td>
-      <td class="td-muted">${s.day}</td>
-      <td class="td-muted">${s.time}</td>
-      <td><div style="display:flex;align-items:center;gap:.5rem"><div class="progress-bar" style="width:80px"><div class="progress-fill${pct<30?' danger':pct<60?' warn':''}" style="width:${pct}%"></div></div><span style="font-size:12.5px;color:var(--muted)">${s.taken}/${s.total}</span></div></td>
-      <td><span class="badge badge-amber">${free} platser kvar</span></td>
-    </tr>`;
+// Aggregera SHIFTS_DATA per station (type)
+function getStationStats(){
+  const stationMeta = {
+    servering: {name:'Servering', icon:'🍽️', cat:'servering'},
+    infotalt:  {name:'Infotält',  icon:'ℹ️', cat:'infotalt'},
+    bygg:      {name:'Bygg & Riv', icon:'🔨', cat:'bygg'},
+    annat:     {name:'Parkering', icon:'🅿️', cat:'parkering'},
+    nattvakt:  {name:'Nattvakt',  icon:'🌙', cat:'nattvakt'},
+  };
+  const stations = {};
+  SHIFTS_DATA.forEach(s=>{
+    const key = s.type;
+    if(!stations[key]) stations[key] = {...stationMeta[key], total:0, taken:0, weakest:null};
+    stations[key].total += s.total;
+    stations[key].taken += s.taken;
+    const pct = s.taken/s.total;
+    if(!stations[key].weakest || pct < stations[key].weakest.pct){
+      stations[key].weakest = {day:s.day, time:s.time, pct:pct, taken:s.taken, total:s.total};
+    }
+  });
+  return Object.values(stations).map(st=>{
+    st.pct = Math.round(st.taken/st.total*100);
+    st.color = st.pct>=90 ? 'green' : st.pct>=60 ? 'amber' : 'red';
+    return st;
+  }).sort((a,b)=>a.pct-b.pct); // lägst (rött) överst
+}
+
+function renderStationOverview(){
+  const stations = getStationStats();
+  const colorMap = {
+    green: {dot:'#1a8c3a', bar:'#1a8c3a', bg:'#e8f7ec', text:'#1a8c3a'},
+    amber: {dot:'#e8a020', bar:'#e8a020', bg:'#fff8e0', text:'#b07000'},
+    red:   {dot:'#c0392b', bar:'#c0392b', bg:'#fdecea', text:'#c0392b'},
+  };
+  document.getElementById('stationOverview').innerHTML = stations.map(st=>{
+    const col = colorMap[st.color];
+    const weakTxt = st.pct>=90 ? '' :
+      `<span style="font-size:12px;color:var(--muted)"> · svagast ${st.weakest.day} ${st.weakest.time} (${Math.round(st.weakest.pct*100)}%)</span>`;
+    const done = st.pct>=90 ? ' ✓' : '';
+    return `<div onclick="openCategory('${st.cat}');showSection('shifts')" style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${col.dot}'" onmouseout="this.style.borderColor='var(--border)'">
+      <span style="width:10px;height:10px;border-radius:50%;background:${col.dot};flex-shrink:0"></span>
+      <span style="font-size:1.1rem;flex-shrink:0">${st.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;color:var(--dark)">${st.name}${weakTxt}</div>
+        <div style="height:6px;background:#e8ebe8;border-radius:3px;overflow:hidden;margin-top:.4rem;max-width:340px">
+          <div style="height:6px;width:${st.pct}%;background:${col.bar};border-radius:3px"></div>
+        </div>
+      </div>
+      <span style="font-size:14px;font-weight:800;color:${col.text};flex-shrink:0">${st.pct}%${done}</span>
+      <span style="color:var(--muted);font-size:1.1rem;flex-shrink:0">›</span>
+    </div>`;
   }).join('');
+}
+
+function renderAttention(){
+  const stations = getStationStats();
+  const items = [];
+  // Ej valt-varning
+  const remaining = 24;
+  if(remaining > 0){
+    items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(232,160,32,.3);border-radius:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <span style="font-size:1.1rem">📋</span>
+        <span style="font-size:13.5px;color:var(--dark)"><strong>${remaining} platser</strong> är ännu inte fyllda</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showSection('email');setBottomNav&&setBottomNav('email')">📧 Skicka påminnelse nu</button>
+    </div>`);
+  }
+  // Stationer under 60%
+  stations.filter(s=>s.pct<60).forEach(st=>{
+    items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(192,57,43,.25);border-radius:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <span style="font-size:1.1rem">${st.icon}</span>
+        <span style="font-size:13.5px;color:var(--dark)"><strong>${st.name}</strong> har bara ${st.pct}% beläggning</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openCategory('${st.cat}');showSection('shifts')">Visa pass →</button>
+    </div>`);
+  });
+  if(items.length === 0){
+    items.push(`<div style="padding:.75rem 1rem;font-size:13.5px;color:var(--green);font-weight:600">✓ Allt ser bra ut – inga akuta åtgärder behövs.</div>`);
+  }
+  document.getElementById('attentionList').innerHTML = items.join('');
 }
 
 // ═══════════════════════════════════════
