@@ -3334,7 +3334,7 @@ async function init() {
   if(typeof applyClubBranding === 'function') applyClubBranding();
   // Loggan tar tillbaka till arrangemangsväljaren
   const _logo = document.getElementById('logoLink');
-  if(_logo) _logo.href = (typeof IS_DEMO !== 'undefined' && IS_DEMO) ? 'events_demo.html' : 'events.html';
+  if(_logo) _logo.href = (typeof IS_DEMO !== 'undefined' && IS_DEMO) ? 'events_demo.html?valj=1' : 'events.html';
   // Visa aktuellt eventnamn i toppbaren och sidofältet (demo-namn från URL har företräde)
   const _displayName = _demoName || (EVENT && EVENT.name);
   if(_displayName){
