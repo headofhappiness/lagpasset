@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Demo – Välj arrangemang | Lagpasset</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f7f4;--surface:#fff;--border:#dde8dd;
+  --green:#1a8c3a;--green-light:#e8f7ec;
+  --dark:#111c13;--text:#1e2e20;--muted:#6a8a6e;
+  --amber:#e8a020;--amber-light:#fff8e8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:15px;min-height:100vh}
+.topbar{background:#060e07;padding:.85rem 1.5rem;display:flex;align-items:center;gap:.65rem}
+.topbar img{height:24px;width:auto}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:1rem}
+.topbar .club{font-size:13px;color:rgba(200,240,200,.75);font-weight:500}
+.topbar a{font-size:13px;color:rgba(230,255,230,.7);text-decoration:none}
+.topbar a:hover{color:#fff}
+.wrap{max-width:880px;margin:0 auto;padding:2.5rem 1.5rem}
+.demo-banner{background:var(--amber-light);border:1.5px solid rgba(232,160,32,.4);border-radius:12px;padding:.85rem 1.1rem;font-size:13.5px;color:#8a6000;margin-bottom:1.75rem;display:flex;align-items:center;gap:.6rem}
+h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(--dark)}
+.sub{color:var(--muted);margin-top:.35rem;margin-bottom:2rem}
+.section-label{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;margin-bottom:2.5rem}
+.event-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;cursor:pointer;transition:all .15s;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+.event-card:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,140,58,.1)}
+.event-card .tag{align-self:flex-start;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--green-light);color:var(--green);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.03em}
+.event-card h3{font-size:17px;font-weight:700;color:var(--dark);margin-bottom:.35rem}
+.event-card .date{font-size:13.5px;color:var(--muted)}
+.event-card .stats{margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border);display:flex;gap:1.25rem;font-size:13px;color:var(--muted)}
+.event-card .stats strong{color:var(--dark);font-weight:700}
+.event-card.new{border-style:dashed;align-items:center;justify-content:center;text-align:center;color:var(--muted);min-height:150px}
+.event-card.new:hover{color:var(--green)}
+.event-card.new .plus{font-size:1.75rem;margin-bottom:.35rem}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="logo-white.png" alt="Lagpasset">
+  <div class="right">
+    <span class="club">Åsa IF (demo)</span>
+    <a href="index.html">Tillbaka</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="demo-banner">
+    🔓 <span><strong>Demo</strong> – så här ser det ut när en förening loggat in. Välj ett arrangemang för att se admin. Inget sparas.</span>
+  </div>
+
+  <h1>Mina arrangemang</h1>
+  <p class="sub">Välj ett arrangemang för att hantera pass och bemanning – eller skapa ett nytt.</p>
+
+  <div class="section-label">Aktiva arrangemang</div>
+  <div class="event-grid">
+    <a class="event-card" href="admin_demo.html?namn=V%C3%A5rcup%202026">
+      <span class="tag">Fotboll</span>
+      <h3>Vårcup 2026</h3>
+      <div class="date">9–10 maj 2026</div>
+      <div class="stats"><span><strong>18</strong> pass</span><span><strong>64</strong> bemannare</span></div>
+    </a>
+    <a class="event-card" href="admin_demo.html?namn=H%C3%B6stcup%202026">
+      <span class="tag">Innebandy</span>
+      <h3>Höstcup 2026</h3>
+      <div class="date">3–4 oktober 2026</div>
+      <div class="stats"><span><strong>24</strong> pass</span><span><strong>80</strong> bemannare</span></div>
+    </a>
+    <div class="event-card new" onclick="alert('I demon är detta avstängt. När ni blivit kund skapar ni nya arrangemang här.')">
+      <div class="plus">+</div>
+      <div>Skapa nytt arrangemang</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

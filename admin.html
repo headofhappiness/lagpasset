@@ -1120,6 +1120,7 @@ Hälsningar,
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
 const _eventParam = (new URLSearchParams(window.location.search)).get('event');
+const _demoName = (new URLSearchParams(window.location.search)).get('namn');
 const EVENT_ID = _eventParam || '00000000-0000-0000-0000-000000000002';
 
 async function sbFetch(table, params) {
@@ -3315,6 +3316,11 @@ async function init() {
     window.location.href = 'events.html';
     return;
   }
+  // Demo: starta alltid vid demo-väljaren om man inte valt ett event
+  if(!_eventParam && !_demoName && typeof IS_DEMO !== 'undefined' && IS_DEMO){
+    window.location.href = 'events_demo.html';
+    return;
+  }
   await loadEvent();
   await loadFromDB();
   renderFeedback();
@@ -3324,10 +3330,11 @@ async function init() {
   fillEventSettings();
   if(typeof fillProfile === 'function') fillProfile();
   if(typeof applyClubBranding === 'function') applyClubBranding();
-  // Visa aktuellt eventnamn i toppbaren
-  if(EVENT && EVENT.name){
+  // Visa aktuellt eventnamn i toppbaren (demo-namn från URL har företräde)
+  const _displayName = _demoName || (EVENT && EVENT.name);
+  if(_displayName){
     const te = document.getElementById('topbarEvent');
-    if(te){ te.textContent = EVENT.name; te.style.display = ''; }
+    if(te){ te.textContent = _displayName; te.style.display = ''; }
   }
   if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
   renderDashboard();

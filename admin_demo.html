@@ -1146,6 +1146,7 @@ Hälsningar,
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
 const _eventParam = (new URLSearchParams(window.location.search)).get('event');
+const _demoName = (new URLSearchParams(window.location.search)).get('namn');
 const EVENT_ID = _eventParam || '00000000-0000-0000-0000-000000000002';
 
 async function sbFetch(table, params) {
@@ -1771,6 +1772,45 @@ function renderAttention(){
 // ═══════════════════════════════════════
 // BARN-TABELL
 // ═══════════════════════════════════════
+// Räknar en persons insats mot målet (pass eller timmar)
+function participantProgress(participantId){
+  const unit = (typeof EVENT !== 'undefined' && EVENT && EVENT.shift_unit) ? EVENT.shift_unit : 'pass';
+  const target = (typeof EVENT !== 'undefined' && EVENT && EVENT.effort_target) ? Number(EVENT.effort_target) : 1;
+  const bookings = DB.bookings.filter(b => b.participant_id === participantId);
+  let done = 0;
+  if(unit === 'timmar'){
+    bookings.forEach(b => {
+      const s = DB.shifts.find(x => x.id === b.shift_id);
+      if(s && s.time_start && s.time_end){
+        const [h1,m1] = s.time_start.split(':').map(Number);
+        const [h2,m2] = s.time_end.split(':').map(Number);
+        let hrs = (h2 + m2/60) - (h1 + m1/60);
+        if(hrs < 0) hrs += 24; // pass över midnatt
+        done += hrs;
+      }
+    });
+  } else {
+    done = bookings.length;
+  }
+  return { unit, target, done, met: done >= target };
+}
+
+function statusBadge(c, useDB){
+  if(!useDB){
+    return c.booked ? '<span class="badge badge-green">Pass valt ✓</span>' : '<span class="badge badge-amber">Inget pass</span>';
+  }
+  const p = participantProgress(c.id);
+  const fmt = n => Number.isInteger(n) ? n : Number(n.toFixed(1));
+  // Enkelt fall: 1 pass per medlem → behåll tydlig text
+  if(p.unit === 'pass' && p.target <= 1){
+    return p.done >= 1 ? '<span class="badge badge-green">Pass valt ✓</span>' : '<span class="badge badge-amber">Inget pass</span>';
+  }
+  const unitLabel = p.unit === 'timmar' ? 'tim' : 'pass';
+  const cls = p.met ? 'badge-green' : (p.done > 0 ? 'badge-amber' : 'badge-red');
+  const check = p.met ? ' ✓' : '';
+  return '<span class="badge ' + cls + '">' + fmt(p.done) + ' av ' + fmt(p.target) + ' ' + unitLabel + check + '</span>';
+}
+
 function renderChildTable(){
   const search = (document.getElementById('childSearch')||{}).value ? document.getElementById('childSearch').value.toLowerCase() : '';
   const teamFilter = (document.getElementById('childTeamFilter')||{}).value || '';
@@ -1817,7 +1857,7 @@ function renderChildTable(){
       <td class="td-muted">${(useDB && c.child_name) ? c.child_name : '<span style="color:var(--muted)">–</span>'}</td>
       <td class="td-muted">${c.team || '–'}</td>
       <td style="font-size:13px;color:var(--text)">${passText !== '–' ? passText : '<span style="color:var(--muted)">–</span>'}</td>
-      <td>${booked ? '<span class="badge badge-green">Pass valt ✓</span>' : '<span class="badge badge-amber">Inget pass</span>'}</td>
+      <td>${statusBadge(c, useDB)}</td>
       <td>${useDB ? (c.phone ? '<span style="font-size:12.5px;color:var(--green)">' + c.phone + '</span>' : '<span style="color:var(--muted)">–</span>') : (c.linkSent ? '<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>' : '<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>')}</td>
       <td><div style="display:flex;gap:.35rem">
         <button class="btn btn-ghost btn-sm" onclick="editChild('${c.id}')" title="Redigera">✏️</button>
@@ -3301,6 +3341,11 @@ async function init() {
     window.location.href = 'events.html';
     return;
   }
+  // Demo: starta alltid vid demo-väljaren om man inte valt ett event
+  if(!_eventParam && !_demoName && typeof IS_DEMO !== 'undefined' && IS_DEMO){
+    window.location.href = 'events_demo.html';
+    return;
+  }
   await loadEvent();
   await loadFromDB();
   renderFeedback();
@@ -3310,10 +3355,11 @@ async function init() {
   fillEventSettings();
   if(typeof fillProfile === 'function') fillProfile();
   if(typeof applyClubBranding === 'function') applyClubBranding();
-  // Visa aktuellt eventnamn i toppbaren
-  if(EVENT && EVENT.name){
+  // Visa aktuellt eventnamn i toppbaren (demo-namn från URL har företräde)
+  const _displayName = _demoName || (EVENT && EVENT.name);
+  if(_displayName){
     const te = document.getElementById('topbarEvent');
-    if(te){ te.textContent = EVENT.name; te.style.display = ''; }
+    if(te){ te.textContent = _displayName; te.style.display = ''; }
   }
   if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
   renderDashboard();
