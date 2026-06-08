@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+<meta name="theme-color" content="#111c13">
+<title>Pris – Lagpasset</title>
+<meta name="description" content="Lagpasset kostar från 3 995 kr per event eller 4 995 kr per år. Inga dolda avgifter, ingen bindningstid. Samma funktioner för alla.">
+<meta property="og:title" content="Pris – Lagpasset">
+<meta property="og:description" content="Från 3 995 kr per event eller 4 995 kr/år. Boka en kostnadsfri demo och se om det passar er förening.">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4;--surface:#fff;--border:#c4d8c4;
+  --green:#1a8c3a;--green-mid:#22a847;--green-light:#e8f7ec;
+  --dark:#111c13;--text:#1e2e20;--muted:#4a6a4e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:16px}
+nav{background:#060e07;padding:.85rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+nav a{text-decoration:none}
+.nav-back{font-size:13px;color:rgba(200,240,200,.7);transition:color .15s}
+.nav-back:hover{color:#fff}
+.hero{text-align:center;padding:4rem 1.5rem 3rem;background:var(--bg)}
+.section-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(26,140,58,.1);border:1px solid rgba(26,140,58,.22);border-radius:100px;padding:5px 14px;font-size:11.5px;color:var(--green);letter-spacing:.06em;font-weight:700;text-transform:uppercase;margin-bottom:1rem}
+h1{font-family:"Nunito",sans-serif;font-size:2.4rem;font-weight:800;color:var(--dark);line-height:1.15;margin-bottom:.75rem}
+h1 em{color:var(--green);font-style:italic}
+.lead{font-size:17px;color:var(--muted);max-width:480px;margin:0 auto;line-height:1.75}
+
+/* Priskort */
+.pricing-wrap{max-width:900px;margin:0 auto;padding:2.5rem 1.5rem}
+.price-toggle{display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:2.5rem;flex-wrap:wrap}
+.toggle-label{font-size:15px;color:var(--muted);font-weight:600}
+.toggle-label.active{color:var(--dark)}
+.price-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.1rem;margin-bottom:1.25rem}
+.price-card{background:var(--surface);border:2px solid var(--border);border-radius:18px;padding:1.75rem;transition:all .2s}
+.price-card:hover{border-color:rgba(26,140,58,.4);transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,140,58,.08)}
+.price-card.featured{background:var(--green-light);border-color:var(--green);box-shadow:0 6px 24px rgba(26,140,58,.15);position:relative}
+.price-card-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem}
+.price-card.featured .price-card-label{color:var(--green)}
+.price-size{font-family:"Nunito",sans-serif;font-size:1.15rem;font-weight:800;color:var(--dark);margin-bottom:.2rem}
+.price-members{font-size:12.5px;color:var(--muted);margin-bottom:.85rem}
+.price-amount{font-family:"Nunito",sans-serif;font-size:2.6rem;font-weight:900;color:var(--dark);line-height:1}
+.price-per{font-size:14px;color:var(--muted);margin-top:4px}
+.price-card.featured .price-per{color:var(--green)}
+.price-badge{position:absolute;top:-1px;right:1.25rem;background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:0 0 8px 8px;letter-spacing:.04em}
+.price-divider{height:1px;background:var(--border);margin:1.25rem 0}
+.price-list{list-style:none;display:flex;flex-direction:column;gap:.65rem}
+.price-list li{display:flex;align-items:flex-start;gap:.6rem;font-size:14px;color:var(--text);line-height:1.5}
+.price-list li::before{content:"✓";color:var(--green);flex-shrink:0;font-weight:700;margin-top:1px}
+.price-note{font-size:12.5px;color:var(--muted);margin-top:1.1rem;line-height:1.6}
+.price-cta{display:block;text-align:center;background:var(--green);color:#fff !important;text-decoration:none;padding:11px 20px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:14.5px;font-weight:700;margin-top:1.25rem;transition:background .15s}
+.price-cta:hover{background:var(--green-mid)}
+
+/* Ingår */
+.includes{max-width:760px;margin:0 auto;padding:0 1.5rem 3rem}
+.includes-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.inc-item{display:flex;align-items:flex-start;gap:.65rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;font-size:14px;color:var(--text);line-height:1.5}
+.inc-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+
+/* FAQ */
+.faq{max-width:720px;margin:0 auto;padding:0 1.5rem 4rem}
+.faq h2{font-family:"Nunito",sans-serif;font-size:1.5rem;font-weight:800;color:var(--dark);text-align:center;margin-bottom:1.5rem}
+.faq-item{border:1px solid var(--border);border-radius:12px;background:var(--surface);margin-bottom:.6rem;overflow:hidden}
+.faq-q{width:100%;text-align:left;background:none;border:none;padding:1rem 1.25rem;font-family:"Outfit",sans-serif;font-size:15px;font-weight:600;color:var(--dark);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.faq-q:hover{color:var(--green)}
+.faq-arrow{font-size:11px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.faq-a{font-size:14.5px;color:var(--text);line-height:1.75;padding:0 1.25rem 1rem;display:none}
+.faq-item.open .faq-a{display:block}
+.faq-item.open .faq-arrow{transform:rotate(180deg)}
+.faq-item.open .faq-q{color:var(--green)}
+
+/* CTA-band */
+.cta-band{background:var(--dark);text-align:center;padding:4rem 1.5rem}
+.cta-band h2{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:#fff;margin-bottom:.75rem}
+.cta-band p{color:rgba(255,255,255,.7);font-size:16px;margin-bottom:2rem;max-width:420px;margin-left:auto;margin-right:auto;line-height:1.75}
+.btn-cta{display:inline-flex;align-items:center;gap:.5rem;background:var(--green);color:#fff !important;text-decoration:none;padding:14px 32px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:700;transition:all .2s}
+.btn-cta:hover{background:var(--green-mid);transform:translateY(-1px)}
+.btn-ghost{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.08);color:rgba(255,255,255,.8) !important;text-decoration:none;padding:14px 32px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:16px;font-weight:600;border:1.5px solid rgba(255,255,255,.2);transition:all .2s;margin-left:.75rem}
+.btn-ghost:hover{background:rgba(255,255,255,.15);color:#fff !important}
+
+footer{background:#060e07;border-top:1px solid rgba(255,255,255,.06);padding:1.75rem;text-align:center;font-size:12px;color:rgba(224,240,224,.4)}
+footer a{color:rgba(200,240,200,.6);text-decoration:none}
+footer a:hover{color:#fff}
+
+@media(max-width:768px){
+  h1{font-size:1.85rem}
+  .price-grid{grid-template-columns:1fr}
+  .includes-grid{grid-template-columns:1fr}
+  .btn-ghost{margin-left:0;margin-top:.75rem}
+}
+@media(max-width:600px){
+  .hero{padding:3rem 1rem 2rem}
+  .pricing-wrap,.includes,.faq{padding-left:1rem;padding-right:1rem}
+  .cta-band{padding:3rem 1rem}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html"><img src="logo-white.png" alt="Lagpasset" style="height:24px;width:auto"></a>
+  <a href="index.html" class="nav-back">← Tillbaka</a>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="section-tag">Pris</div>
+  <h1>Enkelt pris.<br><em>Inga överraskningar.</em></h1>
+  <p class="lead">Samma funktioner för alla – ni väljer storlek baserat på antal aktiva medlemmar. Ingen bindningstid, inga dolda avgifter.</p>
+</div>
+
+<!-- Priskort -->
+<div class="pricing-wrap">
+
+  <!-- Per event -->
+  <h2 style="font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;text-align:center">Per arrangemang</h2>
+  <div class="price-grid">
+    <div class="price-card">
+      <div class="price-card-label">Liten förening</div>
+      <div class="price-size">S</div>
+      <div class="price-members">Under 1 000 aktiva medlemmar</div>
+      <div class="price-amount">3 995<span style="font-size:1.2rem;font-weight:600;color:var(--muted)"> kr</span></div>
+      <div class="price-per">per arrangemang</div>
+      <div class="price-note">Betala bara för de event ni kör.</div>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" class="price-cta">Boka demo →</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge">Vanligast</div>
+      <div class="price-card-label">Medelstor förening</div>
+      <div class="price-size">M</div>
+      <div class="price-members">1 000–3 000 aktiva medlemmar</div>
+      <div class="price-amount">5 995<span style="font-size:1.2rem;font-weight:600;color:var(--green)"> kr</span></div>
+      <div class="price-per">per arrangemang</div>
+      <div class="price-note">Perfekt för föreningar med en till tre cuper per år.</div>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" class="price-cta">Boka demo →</a>
+    </div>
+    <div class="price-card">
+      <div class="price-card-label">Stor förening</div>
+      <div class="price-size">L</div>
+      <div class="price-members">Över 3 000 aktiva medlemmar</div>
+      <div class="price-amount">9 995<span style="font-size:1.2rem;font-weight:600;color:var(--muted)"> kr</span></div>
+      <div class="price-per">per arrangemang</div>
+      <div class="price-note">Kontakta oss för skräddarsydd offert vid speciella behov.</div>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" class="price-cta">Boka demo →</a>
+    </div>
+  </div>
+
+  <!-- Årsabonnemang -->
+  <h2 style="font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:2.5rem 0 1rem;text-align:center">Årsabonnemang – obegränsat antal event</h2>
+  <div class="price-grid">
+    <div class="price-card">
+      <div class="price-card-label">Liten förening</div>
+      <div class="price-size">S</div>
+      <div class="price-members">Under 1 000 aktiva medlemmar</div>
+      <div class="price-amount">4 995<span style="font-size:1.2rem;font-weight:600;color:var(--muted)"> kr</span></div>
+      <div class="price-per">per år · ex. moms</div>
+      <div class="price-note">Kör hur många arrangemang ni vill under året.</div>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" class="price-cta">Boka demo →</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge">Bäst värde</div>
+      <div class="price-card-label">Medelstor förening</div>
+      <div class="price-size">M</div>
+      <div class="price-members">1 000–3 000 aktiva medlemmar</div>
+      <div class="price-amount">7 995<span style="font-size:1.2rem;font-weight:600;color:var(--green)"> kr</span></div>
+      <div class="price-per">per år · ex. moms</div>
+      <div class="price-note">Lönar sig redan vid två arrangemang per år.</div>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" class="price-cta">Boka demo →</a>
+    </div>
+    <div class="price-card">
+      <div class="price-card-label">Stor förening</div>
+      <div class="price-size">L</div>
+      <div class="price-members">Över 3 000 aktiva medlemmar</div>
+      <div class="price-amount">14 995<span style="font-size:1.2rem;font-weight:600;color:var(--muted)"> kr</span></div>
+      <div class="price-per">per år · ex. moms</div>
+      <div class="price-note">Kontakta oss för skräddarsydd offert.</div>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" class="price-cta">Boka demo →</a>
+    </div>
+  </div>
+
+  <p style="text-align:center;font-size:13.5px;color:var(--muted);margin-top:1.25rem">Alla priser exklusive moms · Faktura med 30 dagars betalningsvillkor · Ingen bindningstid</p>
+</div>
+
+<!-- Vad ingår -->
+<div class="includes">
+  <h2 style="font-family:'Nunito',sans-serif;font-size:1.5rem;font-weight:800;color:var(--dark);text-align:center;margin-bottom:1.25rem">Samma funktioner för alla storlekar</h2>
+  <div class="includes-grid">
+    <div class="inc-item"><div class="inc-icon">🔗</div><div>Personliga bokningslänkar till varje deltagare – ingen inloggning krävs</div></div>
+    <div class="inc-item"><div class="inc-icon">📊</div><div>Realtidsöversikt av beläggning per pass och station</div></div>
+    <div class="inc-item"><div class="inc-icon">⏰</div><div>Automatisk påminnelse till de som inte valt pass ännu</div></div>
+    <div class="inc-item"><div class="inc-icon">📧</div><div>Riktade mejlutskick – filtrera på lag, status eller passtyp</div></div>
+    <div class="inc-item"><div class="inc-icon">📥</div><div>CSV-import av deltagarlistan – Excel-export fungerar direkt</div></div>
+    <div class="inc-item"><div class="inc-icon">⭐</div><div>Feedback från volontärerna med AI-sammanfattning per station</div></div>
+    <div class="inc-item"><div class="inc-icon">🖨️</div><div>Utskriftsvänliga bemanningslistor per station</div></div>
+    <div class="inc-item"><div class="inc-icon">👥</div><div>Bemanningspool för reservvolontärer som kan hoppa in</div></div>
+    <div class="inc-item"><div class="inc-icon">📱</div><div>Fullt mobilanpassat för både admin och deltagare</div></div>
+    <div class="inc-item"><div class="inc-icon">🛠️</div><div>Personlig support via mejl och telefon – ingår utan tillägg</div></div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="faq">
+  <h2>Vanliga frågor</h2>
+
+  <div class="faq-item open">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Hur vet jag vilken storlek vi tillhör?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Storleken baseras på antal <em>aktiva</em> medlemmar – alltså de som är registrerade och deltar i er verksamhet. Vet ni inte exakt antal är det bara att uppskatta, eller fråga oss så hjälper vi er. Är ni i gränszonen väljer ni den lägre kategorin och justerar vid behov.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Vad händer om vi har fler än ett arrangemang per år?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Då lönar sig årsabonnemanget oftast snabbt. Exempel: en medelstor förening med två cuper per år betalar 5 995 × 2 = 11 990 kr per event, jämfört med 7 995 kr/år för årsabonnemanget. Har ni tre eller fler arrangemang är årsabonnemanget i princip alltid det smartare valet.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Kan vi testa innan vi bestämmer oss?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Ja. Boka en 20-minuters demo så visar vi hur det fungerar för just er förening – live, utan säljtryck. Ni kan också klicka runt fritt i demon på sajten utan att registrera er. Pilotföreningar kan dessutom använda tjänsten kostnadsfritt under en avgränsad period.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Hur lång är bindningstiden?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Ingen alls. Per-event-priset betalas per tillfälle. Årsabonnemanget kan sägas upp med en månads varsel. Ni betalar aldrig för mer än ni faktiskt använder.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Ingår moms i priserna?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Nej, alla priser är exklusive moms (25%). Faktura skickas via e-post med 30 dagars betalningsvillkor. Vi har inga uppläggningsavgifter, inga startavgifter och inga dolda tilläggsavgifter.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Vi använder redan ett turneringsverktyg – behöver vi Lagpasset?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Förmodligen ja, om ni koordinerar volontärer manuellt idag. Turneringsverktyg hanterar anmälningar, lottning och resultat – Lagpasset hanterar bemanningen av era egna volontärpass (servering, infotält, parkering osv). De två systemen kompletterar varandra och används av samma förening för olika syften.</div>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">
+      Hur kommer vi igång?
+      <span class="faq-arrow">▼</span>
+    </button>
+    <div class="faq-a">Boka en 20-minuters demo. Vi sätter upp er förening, ni importerar er deltagarlista (CSV från Excel), skapar era pass och skickar personliga bokningslänkar. De flesta föreningar är igång på en eftermiddag.</div>
+  </div>
+
+</div>
+
+<!-- CTA-band -->
+<div class="cta-band">
+  <h2>Redo att se det live?</h2>
+  <p>20 minuter räcker. Vi visar hur Lagpasset fungerar för just er förening – kostnadsfritt och utan förpliktelser.</p>
+  <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:.75rem">
+    <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" class="btn-cta">📅 Boka en demo (20 min)</a>
+    <a href="bli-kund.html" class="btn-ghost">Bli kund direkt →</a>
+  </div>
+</div>
+
+<footer>
+  <p><a href="index.html">Lagpasset</a> · Head of Happiness AB · Org.nr 556834-4518</p>
+  <p style="margin-top:.5rem;display:flex;gap:1.25rem;justify-content:center;flex-wrap:wrap">
+    <a href="anvandningsvillkor.html">Användarvillkor</a>
+    <a href="integritetspolicy.html">Integritetspolicy</a>
+  </p>
+</footer>
+
+<script>
+function toggleFaq(btn){
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if(!wasOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>
