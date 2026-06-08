@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Mina arrangemang – Lagpasset</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f7f4;--surface:#fff;--border:#dde8dd;
+  --green:#1a8c3a;--green-light:#e8f7ec;--green-pale:rgba(26,140,58,.06);
+  --dark:#111c13;--text:#1e2e20;--muted:#6a8a6e;
+  --red:#c0392b;--amber:#e8a020;--amber-light:#fff8e8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:15px;min-height:100vh}
+.topbar{background:#060e07;padding:.85rem 1.5rem;display:flex;align-items:center;gap:.65rem}
+.topbar img{height:24px;width:auto}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:1rem}
+.topbar .club{font-size:13px;color:rgba(200,240,200,.75);font-weight:500}
+.topbar a{font-size:13px;color:rgba(230,255,230,.7);text-decoration:none}
+.topbar a:hover{color:#fff}
+.wrap{max-width:880px;margin:0 auto;padding:2.5rem 1.5rem}
+h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(--dark)}
+.sub{color:var(--muted);margin-top:.35rem;margin-bottom:2rem}
+.section-label{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;margin-bottom:2.5rem}
+.event-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;cursor:pointer;transition:all .15s;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+.event-card:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,140,58,.1)}
+.event-card .tag{align-self:flex-start;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--green-light);color:var(--green);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.03em}
+.event-card h3{font-size:17px;font-weight:700;color:var(--dark);margin-bottom:.35rem}
+.event-card .date{font-size:13.5px;color:var(--muted)}
+.event-card .stats{margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border);display:flex;gap:1.25rem;font-size:13px;color:var(--muted)}
+.event-card .stats strong{color:var(--dark);font-weight:700}
+.event-card.new{border-style:dashed;align-items:center;justify-content:center;text-align:center;color:var(--muted);min-height:150px}
+.event-card.new:hover{color:var(--green)}
+.event-card.new .plus{font-size:1.75rem;margin-bottom:.35rem}
+.loading{color:var(--muted);font-style:italic;padding:2rem 0}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(17,28,19,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:1.5rem}
+.modal-title{font-family:"Nunito",sans-serif;font-size:1.2rem;font-weight:800;color:var(--dark);margin-bottom:1.25rem}
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:.35rem}
+.form-group input,.form-group select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px}
+.inline-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.btn{padding:10px 18px;border-radius:100px;font-family:inherit;font-size:14px;font-weight:600;border:none;cursor:pointer}
+.btn-primary{background:var(--green);color:#fff}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}
+.modal-footer{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.25rem}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="logo-white.png" alt="Lagpasset">
+  <div class="right">
+    <span class="club" id="clubName">Åsa IF</span>
+    <a href="index.html">Logga ut</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1>Mina arrangemang</h1>
+  <p class="sub">Välj ett arrangemang för att hantera pass och bemanning – eller skapa ett nytt.</p>
+
+  <div id="eventList">
+    <div class="loading">Laddar arrangemang…</div>
+  </div>
+</div>
+
+<!-- Nytt event-modal -->
+<div class="modal-overlay" id="modalNew">
+  <div class="modal">
+    <div class="modal-title">Nytt arrangemang</div>
+    <div class="form-group">
+      <label class="form-label">Namn</label>
+      <input type="text" id="newName" placeholder="Ex. Åsacupen 2026">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sektion</label>
+      <select id="newSection">
+        <option>Fotboll</option>
+        <option>Innebandy</option>
+        <option>Pingis</option>
+        <option>Hela föreningen</option>
+        <option>Annat</option>
+      </select>
+    </div>
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Första dag</label>
+        <input type="date" id="newStart">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sista dag</label>
+        <input type="date" id="newEnd">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNew()">Avbryt</button>
+      <button class="btn btn-primary" onclick="createEvent()">Skapa →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
+
+// I en riktig inloggning kommer club_id från den inloggade användaren.
+// Tills auth är på plats använder vi föreningen kopplad till demo-eventet.
+const DEMO_EVENT_ID = '00000000-0000-0000-0000-000000000002';
+let CLUB_ID = null;
+
+async function sb(path, opts){
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({
+    headers: { 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', 'Prefer':'return=representation' }
+  }, opts||{}));
+  if(!res.ok) throw new Error(await res.text());
+  return res.status === 204 ? null : res.json();
+}
+
+function fmtRange(start, end){
+  if(!start) return '';
+  const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  const s = new Date(start);
+  if(!end || end === start) return s.getDate() + ' ' + months[s.getMonth()] + ' ' + s.getFullYear();
+  const e = new Date(end);
+  if(s.getMonth() === e.getMonth()) return s.getDate() + '–' + e.getDate() + ' ' + months[s.getMonth()] + ' ' + s.getFullYear();
+  return s.getDate() + ' ' + months[s.getMonth()] + '–' + e.getDate() + ' ' + months[e.getMonth()] + ' ' + s.getFullYear();
+}
+
+async function load(){
+  try {
+    // Hitta föreningen via demo-eventet (tills auth finns)
+    const demoEvent = await sb('events?id=eq.' + DEMO_EVENT_ID + '&select=club_id');
+    if(demoEvent.length && demoEvent[0].club_id){
+      CLUB_ID = demoEvent[0].club_id;
+      const clubs = await sb('clubs?id=eq.' + CLUB_ID + '&select=name');
+      if(clubs.length) document.getElementById('clubName').textContent = clubs[0].name;
+    }
+
+    // Hämta alla event för föreningen (eller bara demo-eventet om club saknas)
+    let events;
+    if(CLUB_ID){
+      events = await sb('events?club_id=eq.' + CLUB_ID + '&order=date_start.desc&select=*');
+    } else {
+      events = await sb('events?id=eq.' + DEMO_EVENT_ID + '&select=*');
+    }
+    render(events);
+  } catch(e){
+    console.error(e);
+    document.getElementById('eventList').innerHTML = '<div class="loading">Kunde inte ladda arrangemang. Försök igen senare.</div>';
+  }
+}
+
+async function render(events){
+  // Räkna pass + deltagare per event
+  let cards = '';
+  for(const ev of events){
+    let shiftCount = 0, partCount = 0;
+    try {
+      const shifts = await sb('shifts?event_id=eq.' + ev.id + '&select=id');
+      shiftCount = shifts.length;
+      const parts = await sb('participants?event_id=eq.' + ev.id + '&select=id');
+      partCount = parts.length;
+    } catch(e){}
+    const section = ev.section || 'Arrangemang';
+    cards += '<a class="event-card" href="admin.html?event=' + ev.id + '">' +
+      '<span class="tag">' + section + '</span>' +
+      '<h3>' + (ev.name || 'Namnlöst event') + '</h3>' +
+      '<div class="date">' + fmtRange(ev.date_start, ev.date_end) + '</div>' +
+      '<div class="stats"><span><strong>' + shiftCount + '</strong> pass</span><span><strong>' + partCount + '</strong> deltagare</span></div>' +
+      '</a>';
+  }
+  cards += '<div class="event-card new" onclick="openNew()"><div class="plus">+</div><div>Skapa nytt arrangemang</div></div>';
+  document.getElementById('eventList').innerHTML = '<div class="section-label">Aktiva arrangemang</div><div class="event-grid">' + cards + '</div>';
+}
+
+function openNew(){ document.getElementById('modalNew').classList.add('open'); }
+function closeNew(){ document.getElementById('modalNew').classList.remove('open'); }
+
+async function createEvent(){
+  const name = document.getElementById('newName').value.trim();
+  const section = document.getElementById('newSection').value;
+  const start = document.getElementById('newStart').value;
+  const end = document.getElementById('newEnd').value;
+  if(!name || !start){ alert('Fyll i namn och första dag.'); return; }
+  try {
+    const row = { name: name, section: section, date_start: start, date_end: end || start };
+    if(CLUB_ID) row.club_id = CLUB_ID;
+    const created = await sb('events', { method:'POST', body: JSON.stringify(row) });
+    closeNew();
+    if(created && created.length){
+      window.location.href = 'admin.html?event=' + created[0].id;
+    } else {
+      load();
+    }
+  } catch(e){
+    console.error(e);
+    alert('Kunde inte skapa arrangemanget. (Tips: kolla att events-tabellen har en "section"-kolumn.)');
+  }
+}
+
+load();
+</script>
+</body>
+</html>
