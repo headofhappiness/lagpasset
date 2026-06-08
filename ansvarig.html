@@ -354,6 +354,27 @@ async function sendResourceRequest(){
       note: note || null,
       status: 'open'
     });
+    // Notis till cupens admin – dynamiskt, föreningens egen adress
+    try {
+      if(EVENT && EVENT.club_id){
+        const clubs = await sbFetch('clubs', '?id=eq.' + EVENT.club_id + '&select=contact_email');
+        const adminEmail = clubs.length ? clubs[0].contact_email : null;
+        if(adminEmail){
+          await fetch(SUPABASE_URL + '/functions/v1/send-links', {
+            method:'POST',
+            headers:{ Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json' },
+            body: JSON.stringify({
+              mode:'message',
+              includeButton:false,
+              subject:'🙋 Resursförfrågan: ' + STATION + ' – ' + (EVENT.name||'eventet'),
+              recipients:[{ name:'Admin', email:adminEmail }],
+              message:(ANSVARIG?ANSVARIG.name:'En ansvarig') + ' har bett om en extra resurs på ' + STATION + ' (' + label + ').' + (note?'\n\n"'+note+'"':'') + '\n\nLogga in i Lagpasset för att tilldela någon ur bemanningspoolen.',
+              eventName:EVENT.name||'eventet'
+            })
+          });
+        }
+      }
+    } catch(e){ /* notisen ska aldrig stoppa själva förfrågan */ }
     msg.className='msg ok'; msg.style.display='block'; msg.textContent='Förfrågan skickad till huvudansvarig ✓';
     document.getElementById('resNote').value='';
   } catch(e){
