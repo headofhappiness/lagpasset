@@ -1388,21 +1388,22 @@ function applyClubBranding(){
   }
 }
 
-let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [] };
+let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [], resourceRequests: [] };
 let editingShiftId = null;
 
 async function loadFromDB() {
   try {
     const allShifts = await sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&select=id');
     const shiftIds = allShifts.map(function(s){ return s.id; });
-    const [shifts, bookings, participants, pool, contacts, feedback, arguments_emailLog] = await Promise.all([
+    const [shifts, bookings, participants, pool, contacts, feedback, arguments_emailLog, resourceReqs] = await Promise.all([
       sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&order=date.asc,time_start.asc'),
       shiftIds.length ? sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')') : Promise.resolve([]),
       sbFetch('participants', '?event_id=eq.' + EVENT_ID + '&order=team.asc,name.asc'),
       sbFetch('pool_members', '?event_id=eq.' + EVENT_ID + '&order=name.asc'),
       sbFetch('contacts', '?event_id=eq.' + EVENT_ID + '&order=sort_order.asc'),
       shiftIds.length ? sbFetch('feedback', '?shift_id=in.(' + shiftIds.join(',') + ')&order=submitted_at.desc') : Promise.resolve([]),
-      sbFetch('email_log', '?event_id=eq.' + EVENT_ID + '&order=created_at.desc').catch(function(){ return []; })
+      sbFetch('email_log', '?event_id=eq.' + EVENT_ID + '&order=created_at.desc').catch(function(){ return []; }),
+      sbFetch('resource_requests', '?event_id=eq.' + EVENT_ID + '&status=eq.open&order=created_at.desc').catch(function(){ return []; })
     ]);
     DB.shifts = shifts;
     DB.bookings = bookings;
@@ -1411,6 +1412,7 @@ async function loadFromDB() {
     DB.contacts = contacts;
     DB.feedback = feedback;
     DB.emailLog = arguments_emailLog || [];
+    DB.resourceRequests = resourceReqs || [];
     console.log('DB laddat:', DB.shifts.length, 'pass,', DB.participants.length, 'deltagare,', DB.feedback.length, 'feedback');
   } catch(e) {
     console.error('DB-fel:', e);
@@ -2298,8 +2300,13 @@ function requestFillPool(reqId){
   window._pendingResourceReq = reqId;
 }
 
-function dismissResourceReq(reqId){
+async function dismissResourceReq(reqId){
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
   dismissedResourceReqs.add(reqId);
+  if(!isDemo){
+    try { await sbUpdate('resource_requests', reqId, { status: 'dismissed' }); } catch(e){ console.error(e); }
+    DB.resourceRequests = DB.resourceRequests.filter(r => r.id !== reqId);
+  }
   renderResourceRequests();
   if(typeof renderAttention === 'function') renderAttention();
 }
@@ -2361,8 +2368,14 @@ async function confirmFillPool(){
     showToast(name + ' tilldelad passet');
     // Stäng ev. resursförfrågan som detta löste
     if(window._pendingResourceReq){
-      dismissedResourceReqs.add(window._pendingResourceReq);
+      const rid = window._pendingResourceReq;
       window._pendingResourceReq = null;
+      dismissedResourceReqs.add(rid);
+      const isDemoFill = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+      if(!isDemoFill){
+        try { await sbUpdate('resource_requests', rid, { status: 'resolved' }); } catch(e){ console.error(e); }
+        DB.resourceRequests = DB.resourceRequests.filter(r => r.id !== rid);
+      }
       if(typeof renderResourceRequests === 'function') renderResourceRequests();
       if(typeof renderAttention === 'function') renderAttention();
     }

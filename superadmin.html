@@ -52,7 +52,7 @@ td{padding:.7rem .5rem;border-bottom:1px solid var(--border);font-size:14px;vert
 </head>
 <body>
 <div class="nav">
-  <div class="nav-logo">Lag<span>passet</span> <span class="badge-sa">SUPERADMIN</span></div>
+  <div class="nav-logo"><img src="logo.png" alt="Lagpasset" style="height:24px;vertical-align:middle"> <span class="badge-sa">SUPERADMIN</span></div>
   <div class="nav-right"><span id="whoami"></span><button class="linkbtn" onclick="logout()">Logga ut</button></div>
 </div>
 
@@ -142,10 +142,13 @@ async function addClub(){
   if(!name || !email){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Fyll i minst föreningsnamn och admin-e-post.'; return; }
   const btn = document.getElementById('addBtn'); btn.disabled = true; btn.textContent = 'Sparar...';
   try {
-    const { error } = await sb.from('clubs').insert({ name: name, contact_name: contact || null, contact_email: email, contact_phone: phone || null });
+    const { data, error } = await sb.functions.invoke('create-admin-user', {
+      body: { clubName: name, contactName: contact || null, email: email, phone: phone || null }
+    });
     if(error) throw error;
+    if(data && data.error) throw new Error(data.error);
     msg.className='msg ok'; msg.style.display='block';
-    msg.innerHTML = '✓ <strong>' + name + '</strong> tillagd. Be ' + (contact||'admin') + ' logga in på login.html med <strong>' + email + '</strong> – kontot kopplas då automatiskt.';
+    msg.innerHTML = '✓ <strong>' + name + '</strong> tillagd och admin-konto skapat. Be ' + (contact||'admin') + ' logga in på login.html med <strong>' + email + '</strong>.';
     document.getElementById('cName').value=''; document.getElementById('cContact').value=''; document.getElementById('cEmail').value=''; document.getElementById('cPhone').value='';
     await loadClubs();
   } catch(e){
