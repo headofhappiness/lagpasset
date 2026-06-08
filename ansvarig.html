@@ -64,6 +64,19 @@ label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bott
 .collapse.open{display:block}
 .demo-banner{background:var(--amber-light);border:1px solid #f0c878;border-radius:10px;padding:.6rem .9rem;font-size:12.5px;color:#7a5a00;margin-bottom:1rem}
 select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.7rem .85rem;font-family:"Outfit",sans-serif;font-size:15px;background:#fff;color:var(--text)}
+
+/* ── Inputs: hindrar iOS-zoom ── */
+input,select,textarea{font-size:16px !important}
+
+/* ── Mobil ── */
+@media(max-width:600px){
+  .page{padding:1.25rem 1rem 4rem}
+  .hero h1{font-size:1.4rem}
+  .nav{padding:.7rem 1rem}
+  .actions{flex-direction:column}
+  .actions .btn{width:100%}
+  .pass-head{flex-direction:column;align-items:flex-start;gap:.25rem}
+}
 </style>
 </head>
 <body>

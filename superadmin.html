@@ -28,6 +28,18 @@ h1{font-family:"Nunito",sans-serif;font-size:1.8rem;color:var(--dark);font-weigh
 .card-title{font-family:"Nunito",sans-serif;font-size:1.15rem;font-weight:800;color:var(--dark);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
 @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+
+/* ── Inputs: hindrar iOS-zoom ── */
+input,select,textarea{font-size:16px !important}
+
+/* ── Mobil ── */
+@media(max-width:600px){
+  .page{padding:1.25rem 1rem 3rem}
+  h1{font-size:1.45rem}
+  .nav{padding:.7rem 1rem}
+  .card{padding:1rem 1.1rem}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
 label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:.35rem}
 input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.7rem .85rem;font-family:"Outfit",sans-serif;font-size:15px;color:var(--text)}
 input:focus{outline:none;border-color:var(--green)}
@@ -77,7 +89,7 @@ td{padding:.7rem .5rem;border-bottom:1px solid var(--border);font-size:14px;vert
 
   <div class="card">
     <div class="card-title">🏟️ Alla föreningar</div>
-    <div id="clubTableWrap"><div class="muted">Laddar...</div></div>
+    <div class="table-wrap"><div id="clubTableWrap"><div class="muted">Laddar...</div></div></div>
   </div>
 </div>
 

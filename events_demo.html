@@ -47,6 +47,20 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
 .demo-step-list{text-align:left;margin:.75rem 0 1.25rem;display:flex;flex-direction:column;gap:.55rem}
 .demo-step{display:flex;align-items:flex-start;gap:.65rem;font-size:13.5px;color:var(--text);line-height:1.5}
 .demo-step-num{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+
+/* ── Inputs: hindrar iOS-zoom ── */
+input,select,textarea{font-size:16px !important}
+
+/* ── Mobil ── */
+@media(max-width:600px){
+  .wrap{padding:1.5rem 1rem}
+  h1{font-size:1.4rem}
+  .sub{font-size:14px;margin-bottom:1.5rem}
+  .topbar{padding:.7rem 1rem}
+  .event-grid{grid-template-columns:1fr}
+  .demo-welcome-card{padding:1.5rem 1.25rem 1.75rem}
+  .demo-welcome-title{font-size:1.15rem}
+}
 </style>
 </head>
 <body>
