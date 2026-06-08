@@ -1273,6 +1273,32 @@ function renderDashboard(){
 
 // Aggregera SHIFTS_DATA per station (type)
 function getStationStats(){
+  if(DB.shifts.length > 0){
+    // DB-driven
+    const iconMap = {'Servering':'🍽️','Parkering':'🅿️','Kiosk':'🛒','Resultatrapportering':'📋','Bygg':'🔨','Nattvakt':'🌙','Infotält':'ℹ️'};
+    const stations = {};
+    DB.shifts.forEach(s=>{
+      const key = s.title;
+      const taken = DB.bookings.filter(b=>b.shift_id===s.id).length;
+      const total = s.slots;
+      if(!stations[key]) stations[key] = {name:key, icon:iconMap[key]||'📌', cat:key.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').replace(/\s+/g,'-'), total:0, taken:0, shifts:0, weakest:null};
+      stations[key].total += total;
+      stations[key].taken += taken;
+      stations[key].shifts += 1;
+      const pct = total>0 ? taken/total : 0;
+      if(!stations[key].weakest || pct < stations[key].weakest.pct){
+        const d = new Date(s.date);
+        const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+        stations[key].weakest = {day:days[d.getDay()], time:s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5), pct, taken, total};
+      }
+    });
+    return Object.values(stations).map(st=>{
+      st.pct = st.total>0 ? Math.round(st.taken/st.total*100) : 0;
+      st.color = st.pct>=90 ? 'green' : st.pct>=60 ? 'amber' : 'red';
+      return st;
+    }).sort((a,b)=>a.pct-b.pct);
+  }
+  // Fallback hårdkodad
   const stationMeta = {
     servering: {name:'Servering', icon:'🍽️', cat:'servering'},
     infotalt:  {name:'Infotält',  icon:'ℹ️', cat:'infotalt'},
@@ -1296,7 +1322,7 @@ function getStationStats(){
     st.pct = Math.round(st.taken/st.total*100);
     st.color = st.pct>=90 ? 'green' : st.pct>=60 ? 'amber' : 'red';
     return st;
-  }).sort((a,b)=>a.pct-b.pct); // lägst (rött) överst
+  }).sort((a,b)=>a.pct-b.pct);
 }
 
 function renderStationOverview(){
@@ -1924,13 +1950,33 @@ const categoryData = {
 };
 
 function openCategory(cat) {
-  const data = categoryData[cat];
   currentInstructionCat = cat;
   document.getElementById('shiftCategoryView').style.display = 'none';
   document.getElementById('shiftDetailView').style.display = 'block';
-  document.getElementById('categoryTitle').textContent = data.title;
-  document.getElementById('shiftsSubtitle').textContent = data.title + ' – enskilda pass';
-  // Återställ till pass-vy
+
+  // Hämta titel — DB eller hårdkodad
+  let title = cat;
+  let days = ['Alla'];
+  if(DB.shifts.length > 0){
+    // cat är nu title-baserat (t.ex. "servering" eller "Servering")
+    const dbShifts = DB.shifts.filter(s => s.title.toLowerCase() === cat.toLowerCase() || s.title.toLowerCase().replace(/\s+/g,'-') === cat);
+    if(dbShifts.length > 0){
+      title = dbShifts[0].title;
+      // Bygg dag-tabs från faktiska datum
+      const uniqueDays = [...new Set(dbShifts.map(s => {
+        const d = new Date(s.date);
+        const dayNames = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+        return dayNames[d.getDay()];
+      }))];
+      days = ['Alla', ...uniqueDays];
+    }
+  } else if(categoryData[cat]){
+    title = categoryData[cat].title;
+    days = categoryData[cat].days;
+  }
+
+  document.getElementById('categoryTitle').textContent = title;
+  document.getElementById('shiftsSubtitle').textContent = title + ' – enskilda pass';
   document.getElementById('shiftPassView').style.display = 'block';
   document.getElementById('shiftInstructionView').style.display = 'none';
   document.getElementById('btnShowPasses').style.borderColor = 'var(--green)';
@@ -1938,7 +1984,7 @@ function openCategory(cat) {
   document.getElementById('btnShowInstructions').style.borderColor = '';
   document.getElementById('btnShowInstructions').style.color = '';
   const tabs = document.getElementById('dayTabs');
-  tabs.innerHTML = data.days.map((d,i) =>
+  tabs.innerHTML = days.map((d,i) =>
     `<div class="tab ${i===0?'active':''}" onclick="filterShiftDay('${d}',this,'${cat}')">${d}</div>`
   ).join('');
   renderShiftDetail(cat, 'Alla');
@@ -1980,60 +2026,96 @@ function peopleForShift(s, taken){
 }
 
 function renderShiftDetail(cat, day) {
+  // Använd DB-data om tillgänglig, annars hårdkodad
+  if (DB.shifts.length > 0) {
+    const dbShifts = DB.shifts.filter(s => s.title.toLowerCase() === cat.toLowerCase() || s.title.toLowerCase().replace(/ /g,'-') === cat.toLowerCase());
+    const filtered = day === 'Alla' ? dbShifts : dbShifts.filter(s => {
+      const d = new Date(s.date);
+      const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+      return days[d.getDay()] === day;
+    });
+    document.getElementById('shiftDetailTable').innerHTML = filtered.map((s, idx) => {
+      const bookingsForShift = DB.bookings.filter(b => b.shift_id === s.id);
+      const taken = bookingsForShift.length;
+      const total = s.slots;
+      const free = total - taken;
+      const pct = total > 0 ? Math.round(taken/total*100) : 0;
+      const color = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
+      const d = new Date(s.date);
+      const dayNames = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+      const dag = dayNames[d.getDay()];
+      const tid = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+      const rowId = 'shift-db-' + s.id;
+      const peopleRows = bookingsForShift.map(b => {
+        const p = DB.participants.find(p => p.id === b.participant_id);
+        if(!p) return '';
+        const initials = p.name.split(' ').map(w=>w[0]).slice(0,2).join('');
+        return `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .25rem;border-bottom:1px solid var(--border)">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);flex-shrink:0">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;color:var(--dark);font-weight:600">${p.name} <span style="font-size:11px;color:var(--muted);font-weight:500">${p.team||''}</span></div>
+            <div style="display:flex;gap:.85rem;margin-top:1px;flex-wrap:wrap">
+              ${p.phone ? '<a href="tel:'+p.phone.replace(/\s/g,'')+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--green);text-decoration:none;font-weight:500">📞 '+p.phone+'</a>' : ''}
+              ${p.email ? '<a href="mailto:'+p.email+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ '+p.email+'</a>' : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      const emptyRows = Array.from({length:free}).map(()=>
+        `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
+            <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSection('pool')" style="font-size:11px">Fyll från pool</button>
+        </div>`
+      ).join('');
+      return `
+      <tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer">
+        <td><strong>${s.title}</strong>${s.location ? '<br><span style="font-size:11px;color:var(--muted)">'+s.location+'</span>' : ''} <span id="${rowId}-arrow" style="color:var(--muted);font-size:11px">▸</span></td>
+        <td>${dag}</td>
+        <td>${tid}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:80px;height:5px;background:#e0ece0;border-radius:3px;overflow:hidden">
+              <div style="height:5px;width:${pct}%;background:${color};border-radius:3px"></div>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:${color}">${taken}/${total}</span>
+          </div>
+        </td>
+        <td style="font-size:12px;color:var(--muted)">${s.contact_name||'–'}</td>
+        <td><div style="display:flex;gap:.35rem">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">✏️</button>
+          <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();deleteShift('${s.id}')">🗑</button>
+        </div></td>
+      </tr>
+      <tr id="${rowId}" style="display:none">
+        <td colspan="6" style="background:#fafbfa;padding:1rem 1.25rem">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Valt detta pass (${taken} av ${total})</div>
+          ${peopleRows}
+          ${emptyRows}
+        </td>
+      </tr>`;
+    }).join('');
+    return;
+  }
+
+  // Fallback: hårdkodad data
   const data = categoryData[cat];
   const rows = data.shifts.filter(s => day === 'Alla' || s.dag === day);
   document.getElementById('shiftDetailTable').innerHTML = rows.map((s, idx) => {
     const [taken, total] = s.platser.split('/').map(n=>parseInt(n));
     const free = total - taken;
-    const people = peopleForShift(s, taken);
-    const rowId = `shift-${cat}-${idx}`;
-    const peopleRows = people.map(p=>
-      `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .25rem;border-bottom:1px solid var(--border)">
-        <div style="width:28px;height:28px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);flex-shrink:0">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;color:var(--dark);font-weight:600">${p.name} <span style="font-size:11px;color:var(--muted);font-weight:500">${p.team}</span></div>
-          <div style="display:flex;gap:.85rem;margin-top:1px;flex-wrap:wrap">
-            <a href="tel:${p.phone.replace(/\s/g,'')}" onclick="event.stopPropagation()" style="font-size:12px;color:var(--green);text-decoration:none;font-weight:500">📞 ${p.phone}</a>
-            <a href="mailto:${p.email}" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ ${p.email}</a>
-          </div>
-        </div>
-      </div>`
-    ).join('');
-    const emptyRows = Array.from({length:free}).map(()=>
-      `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
-        <div style="display:flex;align-items:center;gap:.6rem">
-          <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
-          <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSection('pool')" style="font-size:11px">Fyll från pool</button>
-      </div>`
-    ).join('');
-    return `
-    <tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer">
+    const rowId = 'shift-'+cat+'-'+idx;
+    return `<tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer">
       <td><strong>${data.title}</strong> <span id="${rowId}-arrow" style="color:var(--muted);font-size:11px">▸</span></td>
-      <td>${s.dag}</td>
-      <td>${s.tid}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="width:80px;height:5px;background:#e0ece0;border-radius:3px;overflow:hidden">
-            <div style="height:5px;width:${s.pct}%;background:${s.color};border-radius:3px"></div>
-          </div>
-          <span style="font-size:12px;font-weight:600;color:${s.color}">${s.platser}</span>
-        </div>
-      </td>
+      <td>${s.dag}</td><td>${s.tid}</td>
+      <td><span style="font-size:12px;font-weight:600">${s.platser}</span></td>
       <td style="font-size:12px;color:var(--muted)">${s.lag}</td>
-      <td><div style="display:flex;gap:.35rem">
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">✏️</button>
-        <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation()">🗑</button>
-      </div></td>
-    </tr>
-    <tr id="${rowId}" style="display:none">
-      <td colspan="6" style="background:#fafbfa;padding:1rem 1.25rem">
-        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Valt detta pass (${taken} av ${total})</div>
-        ${peopleRows}
-        ${emptyRows}
-      </td>
-    </tr>`;
+      <td></td></tr>
+    <tr id="${rowId}" style="display:none"><td colspan="6" style="padding:1rem">
+      <div style="color:var(--muted);font-style:italic;font-size:13px">Demodata – anslut databasen för riktiga bokningar</div>
+    </td></tr>`;
   }).join('');
 }
 
