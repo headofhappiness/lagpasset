@@ -256,7 +256,7 @@ setVH(); window.addEventListener('resize',setVH);
     </a>
     <div class="nav-section">Administration</div>
     <a class="nav-item" onclick="showSection('children')" href="#">
-      <span class="nav-icon">🧑</span> Deltagare
+      <span class="nav-icon">🧑</span> Bemanning
     </a>
     <a class="nav-item" onclick="showSection('pool')" href="#">
       <span class="nav-icon">🧑‍🤝‍🧑</span> Bemanningspool
@@ -361,14 +361,14 @@ setVH(); window.addEventListener('resize',setVH);
     <div class="section" id="sec-children">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
         <div>
-          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Deltagare</h2>
-          <p style="font-size:13px;color:var(--muted);margin-top:2px">Importerade deltagare. Varje rad får en personlig länk för passval.</p>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bemanning</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Personerna som bemannar passen. Varje rad får en personlig länk för passval.</p>
         </div>
-        <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till deltagare</button>
+        <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till person</button>
       </div>
 
       <div class="msg info">
-        <strong>Tips:</strong> Om en deltagare inte väljer själv kan du tilldela ett pass manuellt – då visas "Tilldelad av admin". Du kan också skriva in ett påhittat visningsnamn om du behöver.
+        <strong>Tips:</strong> Om en person inte väljer själv kan du tilldela ett pass manuellt – då visas "Tilldelad av admin". Du kan också skriva in ett påhittat visningsnamn om du behöver.
       </div>
 
       <!-- Filter/sök -->
@@ -390,7 +390,7 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
 
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-          <thead><tr><th>Deltagare</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Länk skickad</th></tr></thead>
+          <thead><tr><th>Namn</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Länk skickad</th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
       </div>
@@ -813,7 +813,7 @@ Hälsningar,
       <div class="card">
         <div class="card-title" style="margin-bottom:.5rem">Integritet &amp; GDPR</div>
         <div class="msg info">Ni är personuppgiftsansvariga för den data ni lägger in. Lagpasset är personuppgiftsbiträde och lagrar data i EU (Frankfurt). Barnens förnamn, lag och förälderns e-post är det enda som lagras. Inga efternamn, personnummer eller adresser krävs.</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:.5rem">Behöver en deltagare extra integritet kan du använda ett påhittat visningsnamn. Personliga länkar och e-post visas aldrig för andra deltagare.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:.5rem">Behöver en person extra integritet kan du använda ett påhittat visningsnamn. Personliga länkar och e-post visas aldrig för andra.</p>
         <a href="#" style="font-size:13px;color:var(--green);text-decoration:underline;text-underline-offset:3px;display:inline-block;margin-top:.5rem">Läs biträdesavtalet →</a>
       </div>
     </div>
@@ -827,7 +827,7 @@ Hälsningar,
 <div class="modal-overlay" id="modalAddChild">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Lägg till deltagare</div>
+      <div class="modal-title">Lägg till person</div>
       <button class="modal-close" onclick="closeModal('modalAddChild')">✕</button>
     </div>
     <div class="form-group">
@@ -1113,7 +1113,7 @@ Hälsningar,
 // ═══════════════════════════════════════
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
-const EVENT_ID = '00000000-0000-0000-0000-000000000002';
+const EVENT_ID = (new URLSearchParams(window.location.search)).get('event') || '00000000-0000-0000-0000-000000000002';
 
 async function sbFetch(table, params) {
   params = params || '';
@@ -1471,7 +1471,7 @@ function showSection(id){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
-  const titles={dashboard:'Översikt',children:'Deltagare',pool:'Bemanningspool',shifts:'Pass & beläggning',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
+  const titles={dashboard:'Översikt',children:'Bemanning',pool:'Bemanningspool',shifts:'Pass & beläggning',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='pool') renderPoolTable();
@@ -3184,6 +3184,11 @@ async function init() {
   fillEventSettings();
   if(typeof fillProfile === 'function') fillProfile();
   if(typeof applyClubBranding === 'function') applyClubBranding();
+  // Visa aktuellt eventnamn i toppbaren
+  if(EVENT && EVENT.name){
+    const te = document.getElementById('topbarEvent');
+    if(te){ te.textContent = EVENT.name; te.style.display = ''; }
+  }
   if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
   renderDashboard();
   renderShiftTable();
