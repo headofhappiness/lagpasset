@@ -3395,6 +3395,11 @@ function renderFeedback(){
   }
   // Riktig data → räkna statistik
   const sc = document.getElementById('statCount'); if(sc) sc.textContent = DB.feedback.length;
+  const ratings = DB.feedback.map(f => f.rating).filter(r => r != null && !isNaN(r));
+  const sa = document.getElementById('statAvg');
+  if(sa) sa.textContent = ratings.length ? (ratings.reduce((a,b)=>a+Number(b),0)/ratings.length).toFixed(1) : '–';
+  const improveCount = DB.feedback.filter(f => (f.comment||'').toLowerCase().includes('förbättring:')).length;
+  const si = document.getElementById('statImprove'); if(si) si.textContent = improveCount;
   list.innerHTML = DB.feedback.map(f => {
     const shift = DB.shifts.find(s => s.id === f.shift_id);
     const participant = DB.participants.find(p => p.id === f.participant_id);

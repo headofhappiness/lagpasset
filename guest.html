@@ -395,14 +395,6 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
       <div id="contactCard"></div>
     </div>
-
-    <!-- FLER BARN -->
-    <div id="moreChildrenWrap" style="display:none;margin-top:.75rem">
-      <button class="add-another" onclick="bookAnotherChild()">
-        <div class="add-plus">+</div>
-        Välj pass för nästa barn
-      </button>
-    </div>
   </div>
 </div>
 
@@ -753,6 +745,7 @@ function updateLagStats(){
 function renderChildList(){
   if(!currentTeam) return;
   const list = document.getElementById('childList');
+  if(!list) return;
   const children = currentTeam.children;
   const totalBooked = children.filter(c=>bookedMap[c.id]).length;
 
@@ -909,10 +902,6 @@ function showConfirmation(name,phone){
   const now=new Date();
   document.getElementById('doneTimestamp').textContent='Valt '+now.toLocaleDateString('sv-SE')+' kl '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 
-  // Kolla fler obokade barn i samma lag
-  const unbooked=currentTeam.children.filter(ch=>!bookedMap[ch.id]);
-  document.getElementById('moreChildrenWrap').style.display=unbooked.length>0?'block':'none';
-
   document.getElementById('mainContent').style.display='none';
   document.getElementById('stepIndicator').style.display='none';
   document.getElementById('siLabels').style.display='none';
@@ -977,6 +966,7 @@ async function submitFeedback(){
       await sbInsert('feedback', {
         shift_id: myBooking ? myBooking.shift_id : null,
         participant_id: LIVE.participant.id,
+        rating: starRating || null,
         staffing_score: window._staffing || null,
         comment: comment || null
       });
@@ -1337,7 +1327,6 @@ function showLiveConfirmation(name, phone){
     '<div class="conf-row"><span class="conf-label">Telefon</span><strong>'+phone+'</strong></div>';
   const now = new Date();
   document.getElementById('doneTimestamp').textContent = 'Valt '+now.toLocaleDateString('sv-SE')+' kl '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  document.getElementById('moreChildrenWrap').style.display='none';
   document.getElementById('mainContent').style.display='none';
   document.getElementById('stepIndicator').style.display='none';
   document.getElementById('siLabels').style.display='none';
