@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Din station – Lagpasset</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="description" content="Hantera din station. Se besättningen, dela info och be om resurs.">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4; --surface:#fff; --border:#c4d8c4;
+  --green:#1a8c3a; --green-mid:#22a847; --green-light:#e8f7ec; --green-pale:rgba(26,140,58,.07);
+  --dark:#111c13; --text:#1e2e20; --muted:#4a6a4e;
+  --amber:#e8a020; --amber-light:#fff8e8; --red:#c0392b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:16px;line-height:1.6;min-height:100vh}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.4rem;border-bottom:1px solid var(--border);background:rgba(250,248,244,.97);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+.nav-logo{font-family:"Nunito",sans-serif;font-size:1.15rem;color:var(--dark);text-decoration:none;font-weight:800}
+.nav-logo span{color:var(--green)}
+.nav-right{display:flex;align-items:center;gap:.7rem;font-size:13px;color:var(--muted);font-weight:600}
+.event-pill{font-size:12px;background:var(--green-light);color:var(--green);border:1px solid rgba(26,140,58,.22);border-radius:100px;padding:3px 10px;font-weight:700}
+.page{max-width:600px;margin:0 auto;padding:1.75rem 1.25rem 5rem}
+.hero{margin-bottom:1.5rem}
+.hero h1{font-family:"Nunito",sans-serif;font-size:1.7rem;color:var(--dark);font-weight:900;line-height:1.15}
+.green-line{width:46px;height:4px;background:var(--green);border-radius:3px;margin:.55rem 0 .7rem}
+.hero p{font-size:14px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.15rem 1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.card-title{font-family:"Nunito",sans-serif;font-size:1.05rem;font-weight:800;color:var(--dark);display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem}
+.card-sub{font-size:13px;color:var(--muted);margin-bottom:.9rem}
+.pass-block{border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;margin-bottom:.7rem}
+.pass-block:last-child{margin-bottom:0}
+.pass-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
+.pass-title{font-weight:700;color:var(--dark);font-size:14.5px}
+.pass-meta{font-size:12.5px;color:var(--muted)}
+.fill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700}
+.person{display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-top:1px solid var(--border)}
+.person-av{width:30px;height:30px;border-radius:50%;background:var(--green-light);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;font-family:"Nunito",sans-serif}
+.person-info{flex:1;min-width:0}
+.person-name{font-size:13.5px;font-weight:600;color:var(--dark)}
+.person-links{display:flex;gap:.85rem;flex-wrap:wrap;margin-top:1px}
+.person-links a{font-size:12px;text-decoration:none;color:var(--green);font-weight:500}
+.empty-slot{display:flex;align-items:center;gap:.5rem;padding:.45rem 0;border-top:1px dashed var(--border);font-size:13px;color:var(--muted);font-style:italic}
+textarea,input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.7rem .85rem;font-family:"Outfit",sans-serif;font-size:15px;color:var(--text);background:#fff;resize:vertical}
+textarea:focus,input:focus{outline:none;border-color:var(--green)}
+label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:.4rem}
+.btn{border:none;border-radius:10px;padding:.7rem 1.2rem;font-family:"Outfit",sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-mid)}
+.btn-ghost{background:#fff;border:1.5px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-sm{padding:.45rem .8rem;font-size:13px}
+.btn-block{width:100%}
+.actions{display:flex;gap:.6rem;flex-wrap:wrap}
+.msg{border-radius:10px;padding:.7rem .9rem;font-size:13.5px;margin-top:.75rem}
+.msg.ok{background:var(--green-light);color:var(--green)}
+.msg.info{background:#eef4ff;color:#1d4ed8}
+.msg.err{background:#fdecea;color:var(--red)}
+.loading{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.collapse{display:none;margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--border)}
+.collapse.open{display:block}
+.demo-banner{background:var(--amber-light);border:1px solid #f0c878;border-radius:10px;padding:.6rem .9rem;font-size:12.5px;color:#7a5a00;margin-bottom:1rem}
+select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.7rem .85rem;font-family:"Outfit",sans-serif;font-size:15px;background:#fff;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="nav">
+  <a class="nav-logo" href="#">Lag<span>passet</span></a>
+  <div class="nav-right"><span id="navClub"></span><span class="event-pill" id="navEvent">–</span></div>
+</div>
+
+<div class="page">
+  <div id="loadingState" class="loading"><span class="spinner"></span> Laddar din station...</div>
+  <div id="errorState" style="display:none" class="msg err"></div>
+
+  <div id="main" style="display:none">
+    <div id="demoBanner" class="demo-banner" style="display:none">👋 Det här är en demo av stationsansvarigs vy. Inget sparas. Den riktiga vyn nås via en personlig länk som föreningen skickar.</div>
+
+    <div class="hero">
+      <h1 id="stationName">Station</h1>
+      <div class="green-line"></div>
+      <p id="heroSub">Du är ansvarig för den här stationen.</p>
+    </div>
+
+    <!-- BESÄTTNING -->
+    <div class="card">
+      <div class="card-title">👥 Din besättning</div>
+      <div class="card-sub" id="crewSub">De som är inbokade på dina pass.</div>
+      <div id="crewList"></div>
+    </div>
+
+    <!-- INFO TILL DE SOM JOBBAR -->
+    <div class="card">
+      <div class="card-title">📋 Information till er som jobbar</div>
+      <div class="card-sub" id="infoSub">Skriv praktisk info – samlingstid, klädsel, var man hämtar västar. De inbokade ser den i sin bekräftelse, och du kan skicka med den i mejlet.</div>
+      <textarea id="stationInfo" rows="4" placeholder="Ex. Samling vid kiosken 08:45. Ta med varma kläder. Västar finns i sekretariatet."></textarea>
+      <div style="margin-top:.7rem"><button class="btn btn-primary btn-sm" onclick="saveInfo()">Spara informationen</button></div>
+      <div id="infoMsg" class="msg ok" style="display:none">Sparat ✓</div>
+    </div>
+
+    <!-- ÅTGÄRDER -->
+    <div class="card">
+      <div class="card-title">✉️ Hör av dig</div>
+      <div class="card-sub">Skicka ett meddelande till hela din besättning, eller be huvudansvarig om en extra resurs om ni blir för få.</div>
+      <div class="actions">
+        <button class="btn btn-primary btn-sm" onclick="togglePanel('mailPanel')">✉️ Mejla besättningen</button>
+        <button class="btn btn-ghost btn-sm" onclick="togglePanel('resourcePanel')">🙋 Be om resurs</button>
+      </div>
+
+      <!-- MEJLA-PANEL -->
+      <div id="mailPanel" class="collapse">
+        <label>Ämne</label>
+        <input id="mailSubject" type="text" placeholder="Ex. Inför ert pass på Servering">
+        <div style="margin-top:.7rem"></div>
+        <label>Meddelande</label>
+        <textarea id="mailBody" rows="4" placeholder="Skriv ditt meddelande till besättningen..."></textarea>
+        <label style="margin-top:.7rem;display:flex;align-items:center;gap:.5rem;font-weight:500;cursor:pointer"><input type="checkbox" id="mailInclInfo" style="width:auto" checked> Inkludera stationsinformationen ovan</label>
+        <div style="margin-top:.8rem"><button class="btn btn-primary btn-block" onclick="sendCrewMail()" id="mailBtn">Skicka till <span id="mailCount">0</span> i besättningen</button></div>
+        <div id="mailMsg" class="msg" style="display:none"></div>
+      </div>
+
+      <!-- RESURS-PANEL -->
+      <div id="resourcePanel" class="collapse">
+        <label>Vilket pass behöver hjälp?</label>
+        <select id="resPass"></select>
+        <div style="margin-top:.7rem"></div>
+        <label>Beskriv kort varför</label>
+        <textarea id="resNote" rows="3" placeholder="Ex. Vi blir för få på eftermiddagspasset, en till hade hjälpt."></textarea>
+        <div style="margin-top:.8rem"><button class="btn btn-primary btn-block" onclick="sendResourceRequest()">Skicka förfrågan till huvudansvarig</button></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:.6rem">Huvudansvarig avgör om någon ur bemanningspoolen kan fylla passet. Du tilldelar inte själv.</div>
+        <div id="resMsg" class="msg" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
+const DEMO_EVENT_ID = '00000000-0000-0000-0000-000000000002';
+
+const params = new URLSearchParams(location.search);
+const TOKEN = params.get('token');
+const IS_DEMO = !TOKEN; // ingen token = demo
+
+let STATION = null;   // stationens namn (= contact.area / shift.title)
+let ANSVARIG = null;  // {name, email, phone}
+let EVENT = null;
+let SHIFTS = [];      // pass i stationen
+let CREW = [];        // {name, email, phone, pass_label}
+
+async function sbFetch(table, query){
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + query, {
+    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+  });
+  if(!res.ok) throw new Error('Fetch-fel ' + table);
+  return res.json();
+}
+async function sbInsert(table, data){
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table, {
+    method:'POST',
+    headers:{ apikey:SUPABASE_KEY, Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', Prefer:'return=representation' },
+    body: JSON.stringify(data)
+  });
+  if(!res.ok) throw new Error('Insert-fel ' + table);
+  return res.json();
+}
+
+function fmtDay(dateStr){
+  const d = new Date(dateStr);
+  const days = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  return days[d.getDay()];
+}
+function passLabel(s){
+  return STATION + ' · ' + fmtDay(s.date) + ' ' + s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+}
+function initials(name){ return (name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+
+async function load(){
+  try {
+    let eventId;
+    if(IS_DEMO){
+      eventId = DEMO_EVENT_ID;
+      STATION = 'Servering';
+      ANSVARIG = { name:'Anna Svensson', email:'lisa@headofhappiness.se', phone:'070-111 22 33' };
+      document.getElementById('demoBanner').style.display = 'block';
+    } else {
+      const contacts = await sbFetch('contacts', '?token=eq.' + encodeURIComponent(TOKEN) + '&limit=1');
+      if(!contacts.length) throw new Error('Länken känns inte igen. Be föreningen skicka en ny.');
+      const c = contacts[0];
+      eventId = c.event_id;
+      STATION = c.area;
+      ANSVARIG = { name:c.name, email:c.email, phone:c.phone };
+    }
+
+    const events = await sbFetch('events', '?id=eq.' + eventId + '&limit=1');
+    EVENT = events[0] || { name:'Eventet' };
+
+    const allShifts = await sbFetch('shifts', '?event_id=eq.' + eventId);
+    SHIFTS = allShifts.filter(s => (s.title||'').toLowerCase() === (STATION||'').toLowerCase())
+                      .sort((a,b)=> (a.date+a.time_start).localeCompare(b.date+b.time_start));
+    const shiftIds = SHIFTS.map(s=>s.id);
+
+    let bookings = [], participants = [];
+    if(shiftIds.length){
+      bookings = await sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')');
+      const pids = [...new Set(bookings.map(b=>b.participant_id).filter(Boolean))];
+      if(pids.length) participants = await sbFetch('participants', '?id=in.(' + pids.join(',') + ')');
+    }
+
+    // Bygg besättning per pass
+    CREW = [];
+    SHIFTS.forEach(s => {
+      s._crew = bookings.filter(b => b.shift_id === s.id).map(b => {
+        const p = participants.find(x => x.id === b.participant_id);
+        const person = p ? {name:p.name, email:p.email, phone:p.phone} : {name:b.display_name||'Okänd', email:'', phone:''};
+        if(person.email) CREW.push(person);
+        return person;
+      });
+    });
+
+    // Hämta ev. sparad stationsinfo
+    if(!IS_DEMO){
+      try {
+        const notes = await sbFetch('station_notes', '?event_id=eq.' + eventId + '&station=eq.' + encodeURIComponent(STATION) + '&limit=1');
+        if(notes.length && notes[0].info) document.getElementById('stationInfo').value = notes[0].info;
+      } catch(e){ /* tabell kanske inte finns än */ }
+    }
+
+    render();
+  } catch(e){
+    document.getElementById('loadingState').style.display='none';
+    const err = document.getElementById('errorState');
+    err.style.display='block';
+    err.textContent = e.message || 'Något gick fel. Försök igen.';
+  }
+}
+
+function render(){
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('main').style.display='block';
+  document.getElementById('navClub').textContent = (EVENT && EVENT.club_name) ? EVENT.club_name : 'Åsa IF';
+  document.getElementById('navEvent').textContent = (EVENT && EVENT.name) || 'Eventet';
+  document.getElementById('stationName').textContent = STATION;
+  document.getElementById('heroSub').textContent = 'Du är ansvarig för ' + STATION + '.' + (ANSVARIG && ANSVARIG.name ? ' (' + ANSVARIG.name + ')' : '');
+
+  // Besättning per pass
+  const list = document.getElementById('crewList');
+  if(!SHIFTS.length){ list.innerHTML = '<div style="font-size:13px;color:var(--muted);font-style:italic">Inga pass på den här stationen ännu.</div>'; }
+  else {
+    list.innerHTML = SHIFTS.map(s => {
+      const taken = s._crew.length, total = s.slots, free = Math.max(0, total - taken);
+      const pct = total ? Math.round(taken/total*100) : 0;
+      const color = pct>=100 ? 'var(--green)' : pct>=60 ? 'var(--amber)' : 'var(--red)';
+      const people = s._crew.map(p =>
+        '<div class="person"><div class="person-av">'+initials(p.name)+'</div>' +
+        '<div class="person-info"><div class="person-name">'+p.name+'</div><div class="person-links">' +
+        (p.phone ? '<a href="tel:'+p.phone.replace(/\s/g,'')+'">📞 '+p.phone+'</a>' : '') +
+        (p.email ? '<a href="mailto:'+p.email+'">✉️ '+p.email+'</a>' : '') +
+        '</div></div></div>'
+      ).join('');
+      const empties = Array.from({length:free}).map(()=>'<div class="empty-slot">+ Ledig plats</div>').join('');
+      return '<div class="pass-block"><div class="pass-head">' +
+        '<div><div class="pass-title">'+fmtDay(s.date)+' '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5)+'</div>' +
+        (s.location ? '<div class="pass-meta">'+s.location+'</div>' : '') + '</div>' +
+        '<span class="fill" style="color:'+color+'">'+taken+'/'+total+'</span></div>' +
+        people + empties + '</div>';
+    }).join('');
+  }
+
+  // Mejl-räknare
+  document.getElementById('mailCount').textContent = CREW.length;
+  // Resurs-passväljare
+  const sel = document.getElementById('resPass');
+  sel.innerHTML = SHIFTS.map(s => '<option value="'+s.id+'">'+fmtDay(s.date)+' '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5)+'</option>').join('') || '<option>Inga pass</option>';
+}
+
+function togglePanel(id){
+  const el = document.getElementById(id);
+  const open = el.classList.contains('open');
+  document.querySelectorAll('.collapse').forEach(c=>c.classList.remove('open'));
+  if(!open) el.classList.add('open');
+}
+
+async function saveInfo(){
+  const info = document.getElementById('stationInfo').value.trim();
+  const msg = document.getElementById('infoMsg');
+  if(IS_DEMO){ msg.style.display='block'; msg.textContent='Sparat ✓ (sparas inte i demo)'; setTimeout(()=>msg.style.display='none',3000); return; }
+  try {
+    // Skriv över ev. befintlig not för stationen
+    await sbInsert('station_notes', { event_id: EVENT.id, station: STATION, info: info, updated_at: new Date().toISOString() });
+    msg.className='msg ok'; msg.style.display='block'; msg.textContent='Sparat ✓ – de inbokade ser informationen.';
+    setTimeout(()=>msg.style.display='none',4000);
+  } catch(e){
+    msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte spara informationen.';
+  }
+}
+
+async function sendCrewMail(){
+  const subject = document.getElementById('mailSubject').value.trim();
+  let body = document.getElementById('mailBody').value.trim();
+  const msg = document.getElementById('mailMsg');
+  if(!subject || !body){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Fyll i ämne och meddelande.'; return; }
+  if(document.getElementById('mailInclInfo').checked){
+    const info = document.getElementById('stationInfo').value.trim();
+    if(info) body += '\n\n— Information om stationen —\n' + info;
+  }
+  if(!CREW.length){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Det finns ingen i besättningen med e-post att skicka till.'; return; }
+  const btn = document.getElementById('mailBtn'); btn.disabled=true; btn.textContent='Skickar...';
+  if(IS_DEMO){
+    setTimeout(()=>{ msg.className='msg ok'; msg.style.display='block'; msg.textContent='Skulle skickat till '+CREW.length+' personer (skickas inte i demo).'; btn.disabled=false; btn.innerHTML='Skicka till <span id="mailCount">'+CREW.length+'</span> i besättningen'; }, 800);
+    return;
+  }
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-links', {
+      method:'POST',
+      headers:{ Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        mode:'message',
+        includeButton:false,
+        subject: subject,
+        recipients: CREW.map(p=>({name:p.name, email:p.email})),
+        message: body,
+        eventName: (EVENT && EVENT.name) || 'eventet'
+      })
+    });
+    const data = await res.json();
+    if(res.ok){ msg.className='msg ok'; msg.style.display='block'; msg.textContent=(data.sent||CREW.length)+' mejl skickade ✓'; }
+    else { msg.className='msg err'; msg.style.display='block'; msg.textContent='Fel: '+(data.error||'kunde inte skicka'); }
+  } catch(e){
+    msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte skicka mejlen.';
+  }
+  btn.disabled=false; btn.innerHTML='Skicka till <span id="mailCount">'+CREW.length+'</span> i besättningen';
+}
+
+async function sendResourceRequest(){
+  const sel = document.getElementById('resPass');
+  const note = document.getElementById('resNote').value.trim();
+  const msg = document.getElementById('resMsg');
+  if(!SHIFTS.length){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Inga pass att begära resurs för.'; return; }
+  const shift = SHIFTS.find(s=>s.id===sel.value);
+  const label = shift ? (fmtDay(shift.date)+' '+shift.time_start.slice(0,5)+'–'+shift.time_end.slice(0,5)) : '';
+  if(IS_DEMO){ msg.className='msg ok'; msg.style.display='block'; msg.textContent='Förfrågan skickad till huvudansvarig ✓ (skickas inte i demo).'; document.getElementById('resNote').value=''; return; }
+  try {
+    await sbInsert('resource_requests', {
+      event_id: EVENT.id,
+      station: STATION,
+      pass_label: label,
+      requested_by: ANSVARIG ? ANSVARIG.name : 'Ansvarig',
+      role: STATION + 'ansvarig',
+      note: note || null,
+      status: 'open'
+    });
+    msg.className='msg ok'; msg.style.display='block'; msg.textContent='Förfrågan skickad till huvudansvarig ✓';
+    document.getElementById('resNote').value='';
+  } catch(e){
+    msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte skicka förfrågan.';
+  }
+}
+
+load();
+</script>
+</body>
+</html>
