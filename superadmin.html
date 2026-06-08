@@ -184,9 +184,15 @@ async function addClub(){
     if(error) throw error;
     if(data && data.error) throw new Error(data.error);
     msg.className='msg ok'; msg.style.display='block';
-    msg.innerHTML = '✓ <strong>' + name + '</strong> tillagd och admin-konto skapat. Be ' + (contact||'admin') + ' logga in på login.html med <strong>' + email + '</strong>.';
+    msg.innerHTML = '✓ <strong>' + name + '</strong> tillagd. Välkomstmejl skickat till <strong>' + email + '</strong>.';
     document.getElementById('cName').value=''; document.getElementById('cContact').value=''; document.getElementById('cEmail').value=''; document.getElementById('cPhone').value='';
     await loadClubs();
+    // Skicka välkomstmejl (tyst – blockerar inte om det misslyckas)
+    try {
+      await sb.functions.invoke('send-welcome', {
+        body: { adminName: contact || null, clubName: name, email: email }
+      });
+    } catch(e){ console.warn('Välkomstmejl kunde inte skickas:', e); }
   } catch(e){
     msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte spara: ' + (e.message||'okänt fel');
   }

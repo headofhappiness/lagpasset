@@ -399,7 +399,10 @@ setVH(); window.addEventListener('resize',setVH);
           <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bemanning</h2>
           <p style="font-size:13px;color:var(--muted);margin-top:2px">Alla personer som ska hjälpa till. Lägg till, redigera och tilldela pass direkt.</p>
         </div>
-        <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till person</button>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till person</button>
+          <button class="btn btn-ghost" onclick="openImportModal()" title="Importera från CSV-fil">📂 Importera</button>
+        </div>
       </div>
 
       <div class="msg info">
@@ -897,6 +900,61 @@ Hälsningar,
 
 <!-- ═══ MODALER ═══ -->
 
+
+<!-- ═══ IMPORTERA DELTAGARE ═══ -->
+<div class="modal-overlay" id="modalImport">
+  <div class="modal" style="max-width:620px;width:100%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div class="modal-title" style="margin:0">📂 Importera deltagare</div>
+      <button class="modal-close" onclick="closeModal('modalImport')">✕</button>
+    </div>
+
+    <!-- Steg 1: Filval -->
+    <div id="importStep1">
+      <div id="importDropZone"
+        style="border:2px dashed var(--border);border-radius:12px;padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)"
+        onclick="document.getElementById('importFileInput').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--green)';this.style.background='var(--green-light)'"
+        ondragleave="this.style.borderColor='var(--border)';this.style.background='var(--bg)'"
+        ondrop="event.preventDefault();this.style.borderColor='var(--border)';this.style.background='var(--bg)';handleImportDrop(event)">
+        <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
+        <div style="font-weight:700;color:var(--dark);margin-bottom:.25rem">Dra hit en CSV-fil eller klicka</div>
+        <div style="font-size:13px;color:var(--muted)">Kolumner som stöds: Namn, E-post, Telefon, Lag, Barn</div>
+        <input type="file" id="importFileInput" accept=".csv,.txt" style="display:none" onchange="handleImportFile(this.files[0])">
+      </div>
+      <div style="background:var(--amber-light);border:1px solid rgba(232,160,32,.35);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:#7a5a00;margin-top:.85rem;line-height:1.6">
+        💡 <strong>Har du Excel?</strong> Öppna filen → Arkiv → Spara som → välj <strong>CSV (kommaavgränsad)</strong> → ladda upp här.
+      </div>
+    </div>
+
+    <!-- Steg 2: Kolumnmappning + förhandsgranskning -->
+    <div id="importStep2" style="display:none">
+      <div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:.75rem">Matcha kolumner</div>
+      <div id="importMappingArea" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem"></div>
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">Förhandsgranskning (5 första rader)</div>
+      <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border)">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead id="importPreviewHead" style="background:var(--bg)"></thead>
+          <tbody id="importPreviewBody"></tbody>
+        </table>
+      </div>
+      <div id="importStats" style="font-size:13px;color:var(--muted);margin-top:.75rem"></div>
+    </div>
+
+    <!-- Steg 3: Resultat -->
+    <div id="importStep3" style="display:none;text-align:center;padding:1rem 0">
+      <div id="importResultIcon" style="font-size:2.5rem;margin-bottom:.5rem"></div>
+      <div id="importResultText" style="font-size:15px;font-weight:700;color:var(--dark);margin-bottom:.3rem"></div>
+      <div id="importResultSub" style="font-size:13px;color:var(--muted)"></div>
+    </div>
+
+    <div class="modal-footer" style="margin-top:1.25rem">
+      <button class="btn btn-ghost" onclick="closeModal('modalImport')">Stäng</button>
+      <button class="btn btn-primary" id="importRunBtn" onclick="runImport()" style="display:none">Importera →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Lägg till barn -->
 <div class="modal-overlay" id="modalAddChild">
   <div class="modal">
@@ -1188,6 +1246,7 @@ Hälsningar,
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5/papaparse.min.js"></script>
 <script>
 // ═══════════════════════════════════════
 // SUPABASE – koppling
@@ -3689,6 +3748,211 @@ function renderStaffingAnalysis(){
   });
   rows.innerHTML = html;
   card.style.display = 'block';
+}
+
+
+// ════════════════════════════════════════════════════════════
+// IMPORTERA DELTAGARE (CSV)
+// ════════════════════════════════════════════════════════════
+let _importData  = [];  // alla rader
+let _importCols  = {};  // { namn, epost, telefon, lag, barn } → kolumnindex
+
+const _COL_SYNONYMS = {
+  namn:     ['namn','name','fullständigt namn','full name','contact','kontakt','bemannarens namn'],
+  epost:    ['e-post','epost','email','mail','e_post','mejl'],
+  telefon:  ['telefon','tel','phone','mobil','mobile','mob','telefonnummer'],
+  lag:      ['lag','team','grupp','group','sektion','klass','avdelning'],
+  barn:     ['barn','child','barnets namn','spelares namn','spelare','ungdom','kid'],
+};
+
+function _detectCols(headers) {
+  const map = {};
+  headers.forEach((h, i) => {
+    const lc = String(h).toLowerCase().trim();
+    for (const [field, synonyms] of Object.entries(_COL_SYNONYMS)) {
+      if (!map[field] && synonyms.some(s => lc === s || lc.startsWith(s))) {
+        map[field] = i;
+      }
+    }
+  });
+  return map;
+}
+
+function handleImportDrop(e) {
+  const file = e.dataTransfer.files[0];
+  if (file) handleImportFile(file);
+}
+
+function handleImportFile(file) {
+  if (!file) return;
+  if (!file.name.match(/\.(csv|txt)$/i)) {
+    alert('Välj en CSV-fil (.csv). Exportera från Excel via Arkiv → Spara som → CSV.');
+    return;
+  }
+  if (typeof Papa === 'undefined') {
+    alert('CSV-parsern laddades inte. Kontrollera din internetanslutning och försök igen.');
+    return;
+  }
+  Papa.parse(file, {
+    header: false,
+    skipEmptyLines: true,
+    complete: function(results) {
+      const rows = results.data;
+      if (!rows.length) { alert('Filen verkar tom.'); return; }
+      const headers = rows[0].map(h => String(h).trim());
+      _importData = rows.slice(1).filter(r => r.some(c => String(c).trim()));
+      _importCols = _detectCols(headers);
+      renderImportMapping(headers);
+      renderImportPreview(headers, _importData.slice(0, 5));
+      document.getElementById('importStep1').style.display = 'none';
+      document.getElementById('importStep2').style.display = 'block';
+      document.getElementById('importRunBtn').style.display = 'inline-flex';
+      document.getElementById('importStats').textContent =
+        _importData.length + ' rader hittade. ' +
+        (!_importCols.namn ? '⚠️ Kolumn för namn saknas – välj nedan.' :
+         !_importCols.epost ? '⚠️ Kolumn för e-post saknas – välj nedan.' :
+         '✓ Namn och e-post identifierade.');
+    },
+    error: function(err) { alert('Kunde inte läsa filen: ' + err.message); }
+  });
+}
+
+function renderImportMapping(headers) {
+  const area = document.getElementById('importMappingArea');
+  const fields = [
+    { key: 'namn',    label: 'Namn *',     required: true  },
+    { key: 'epost',   label: 'E-post *',   required: true  },
+    { key: 'telefon', label: 'Telefon',    required: false },
+    { key: 'lag',     label: 'Lag/grupp',  required: false },
+    { key: 'barn',    label: 'Barnets namn', required: false },
+  ];
+  area.innerHTML = fields.map(f => {
+    const val = _importCols[f.key] !== undefined ? _importCols[f.key] : '';
+    const opts = ['<option value="">— Välj kolumn —</option>',
+      ...headers.map((h, i) => `<option value="${i}" ${val === i ? 'selected' : ''}>${h || '(kolumn ' + (i+1) + ')'}</option>`)
+    ].join('');
+    return `<div>
+      <label style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:3px;display:block">${f.label}</label>
+      <select onchange="_importCols['${f.key}']=this.value===''?undefined:parseInt(this.value)" style="width:100%;font-size:13px">
+        ${opts}
+      </select>
+    </div>`;
+  }).join('');
+}
+
+function renderImportPreview(headers, rows) {
+  const head = document.getElementById('importPreviewHead');
+  const body = document.getElementById('importPreviewBody');
+  head.innerHTML = '<tr>' + headers.map(h => `<th style="padding:6px 10px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap">${h}</th>`).join('') + '</tr>';
+  body.innerHTML = rows.map(r =>
+    '<tr>' + r.map(c => `<td style="padding:6px 10px;border-top:1px solid var(--border);font-size:12.5px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis">${String(c).trim()}</td>`).join('') + '</tr>'
+  ).join('');
+}
+
+function _genToken() {
+  return 'tok-' + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8);
+}
+
+async function runImport() {
+  if (_importCols.namn === undefined || _importCols.epost === undefined) {
+    alert('Välj minst kolumnerna för Namn och E-post innan du importerar.');
+    return;
+  }
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+  const btn = document.getElementById('importRunBtn');
+  btn.disabled = true; btn.textContent = 'Importerar...';
+
+  // Bygg rader
+  const rows = _importData
+    .map(r => ({
+      event_id:   EVENT_ID,
+      name:       String(r[_importCols.namn] || '').trim(),
+      email:      String(r[_importCols.epost] || '').trim().toLowerCase(),
+      phone:      _importCols.telefon !== undefined ? (String(r[_importCols.telefon] || '').trim() || null) : null,
+      team:       _importCols.lag     !== undefined ? (String(r[_importCols.lag]     || '').trim() || null) : null,
+      child_name: _importCols.barn    !== undefined ? (String(r[_importCols.barn]    || '').trim() || null) : null,
+      token:      _genToken(),
+    }))
+    .filter(r => r.name && r.email && r.email.includes('@'));
+
+  const invalid = _importData.length - rows.length;
+
+  if (!rows.length) {
+    alert('Inga giltiga rader hittades. Kontrollera att Namn och E-post är korrekt mappade.');
+    btn.disabled = false; btn.textContent = 'Importera →';
+    return;
+  }
+
+  if (isDemo) {
+    // Demo: simulera
+    await new Promise(r => setTimeout(r, 700));
+    showImportResult('✅', rows.length + ' deltagare importerade', invalid ? invalid + ' rader hoppades över (ogiltiga).' : 'Alla rader importerades utan problem.', rows.slice(0, 3));
+    btn.disabled = false; btn.textContent = 'Importera →';
+    return;
+  }
+
+  // Riktig import: kolla dubbletter via e-post
+  try {
+    const existingEmails = new Set(
+      (DB.participants || []).map(p => (p.email||'').toLowerCase())
+    );
+    const newRows    = rows.filter(r => !existingEmails.has(r.email));
+    const skipped    = rows.length - newRows.length;
+
+    if (!newRows.length) {
+      showImportResult('ℹ️', 'Inga nya deltagare', 'Alla ' + rows.length + ' rader finns redan i systemet (samma e-post).', []);
+      btn.disabled = false; btn.textContent = 'Importera →';
+      return;
+    }
+
+    // Batch-insert (max 100 i taget)
+    let inserted = 0;
+    for (let i = 0; i < newRows.length; i += 100) {
+      const batch = newRows.slice(i, i + 100);
+      const result = await sbInsert('participants', batch);
+      if (result && result.length) {
+        result.forEach(p => DB.participants.push(p));
+        inserted += result.length;
+      }
+    }
+
+    DB.participants.sort((a, b) => (a.team||'').localeCompare(b.team||'') || a.name.localeCompare(b.name));
+    renderChildTable();
+    renderDashboard();
+    showImportResult(
+      '✅',
+      inserted + ' deltagare importerade',
+      [
+        skipped   ? skipped + ' hoppades över (finns redan).' : '',
+        invalid   ? invalid + ' rader saknade namn/e-post och ignorerades.' : '',
+      ].filter(Boolean).join(' ') || 'Alla rader importerades utan problem.'
+    );
+    showToast(inserted + ' deltagare importerade');
+  } catch(e) {
+    console.error(e);
+    showImportResult('❌', 'Import misslyckades', e.message || 'Okänt fel. Försök igen.');
+  }
+  btn.disabled = false; btn.textContent = 'Importera →';
+}
+
+function showImportResult(icon, title, sub) {
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importRunBtn').style.display = 'none';
+  document.getElementById('importStep3').style.display = 'block';
+  document.getElementById('importResultIcon').textContent = icon;
+  document.getElementById('importResultText').textContent = title;
+  document.getElementById('importResultSub').textContent = sub || '';
+}
+
+function openImportModal() {
+  // Reset state
+  _importData = []; _importCols = {};
+  document.getElementById('importStep1').style.display = 'block';
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importStep3').style.display = 'none';
+  document.getElementById('importRunBtn').style.display = 'none';
+  document.getElementById('importFileInput').value = '';
+  openModal('modalImport');
 }
 
 // ── Skicka påminnelse nu ──────────────────────────────────────────────────
