@@ -1841,7 +1841,9 @@ function renderAttention(){
   // (Sjuk-/förhinderanmälan visas här när funktionen finns kopplad till databasen)
   // Ej valt-varning
   const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
-  const remaining = DB.participants.length ? DB.participants.filter(p => !bookedIds.has(p.id)).length : 24;
+  const _isDemoMode = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  const _partSource = _isDemoMode ? CHILDREN : DB.participants;
+  const remaining = _partSource.length ? (_isDemoMode ? _partSource.filter(p => !p.booked).length : _partSource.filter(p => !bookedIds.has(p.id)).length) : 24;
   if(remaining > 0){
     // Räkna ut när automatisk påminnelse går ut
     let reminderInfo = '';
@@ -1942,8 +1944,10 @@ function renderChildTable(){
   const teamFilter = (document.getElementById('childTeamFilter')||{}).value || '';
   const statusFilter = (document.getElementById('childStatusFilter')||{}).value || '';
 
-  const source = DB.participants.length ? DB.participants : CHILDREN;
-  const useDB = DB.participants.length > 0;
+  // I demo: visa alltid hårdkodad fake-data, aldrig riktig DB-data
+  const forceDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  const source = (!forceDemo && DB.participants.length) ? DB.participants : CHILDREN;
+  const useDB = !forceDemo && DB.participants.length > 0;
 
   const filtered = source.filter(c=>{
     const name = useDB ? c.name : c.name;
@@ -3014,10 +3018,12 @@ const EDGE_SEND_URL = SUPABASE_URL + '/functions/v1/send-links';
 function fillSendLinksInfo(){
   const info = document.getElementById('sendLinksInfo');
   if(!info) return;
-  const total = DB.participants.length;
-  const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
-  const unbooked = DB.participants.filter(p => !bookedIds.has(p.id)).length;
-  info.innerHTML = total + ' deltagare i systemet · ' + (total - unbooked) + ' har valt pass · <strong>' + unbooked + ' har inte valt pass ännu</strong>';
+  const _demoMode = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  const _src = _demoMode ? CHILDREN : DB.participants;
+  const total = _src.length;
+  const bookedCount = _demoMode ? _src.filter(p => p.booked).length : new Set(DB.bookings.map(b => b.participant_id).filter(Boolean)).size;
+  const unbooked = total - bookedCount;
+  info.innerHTML = total + ' deltagare i systemet · ' + bookedCount + ' har valt pass · <strong>' + unbooked + ' har inte valt pass ännu</strong>';
 }
 
 async function sendLinks(){
