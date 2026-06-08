@@ -645,7 +645,7 @@ Hälsningar,
           <span style="font-size:1.15rem">⚖️</span>
           <div style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Bemanningsanalys – AI:s tips inför nästa gång</div>
         </div>
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Sammanställt från vad volontärerna svarat om bemanningen på sina pass. Använd för att sätta rätt antal personer nästa år.</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Sammanställt från vad volontärerna svarat om bemanningen på sina pass. Använd för att sätta rätt antal personer nästa år. <strong style="color:var(--dark)">Tänk på att behovet också beror på hur många lag och besökare som kommer</strong> – blir cupen större kan även "lagom" pass behöva fler.</div>
         <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
       </div>
 
@@ -3185,33 +3185,46 @@ function aiSummarizeFeedback() {
   const box = document.getElementById('aiSummaryBox');
   const txt = document.getElementById('aiSummaryText');
   box.style.display = 'block';
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+  if(!isDemo && (!DB.feedback || DB.feedback.length === 0)){
+    txt.innerHTML = '<div style="color:var(--muted);font-size:13.5px">Det finns ingen feedback att sammanställa än. Sammanställningen skapas automatiskt när svar kommit in.</div>';
+    return;
+  }
   txt.innerHTML = '<em style="color:#999">Sammanställer feedback...</em>';
   setTimeout(() => {
     txt.innerHTML = `
-      <strong>Övergripande · Åsacupen 2026:</strong> Snittbetyg 4.2/5 från 18 svar. Stämningen och organisationen får genomgående beröm.<br><br>
+      <div style="margin-bottom:1.1rem;padding:1rem 1.1rem;background:#f0f7ff;border-radius:10px;border:1.5px solid #bcd5f5">
+        <div style="font-weight:800;font-family:'Nunito',sans-serif;color:var(--dark);margin-bottom:.35rem">📊 Totalt · Åsacupen 2026</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--text)">Snittbetyg <strong>4.2 / 5</strong> från <strong>18 svar</strong>. Stämningen och organisationen får genomgående beröm. De vanligaste önskemålen handlar om tydligare info vid passstart och dryck till de som jobbar.</div>
+      </div>
 
-      <div style="margin:0 0 1rem;padding:.85rem 1rem;background:#fffaf0;border-radius:10px;border:1.5px solid rgba(232,160,32,.3)">
-        <strong style="color:var(--dark)">⚖️ Bemanningsnivå – vad volontärerna upplevde</strong>
-        <div style="font-size:12.5px;color:var(--muted);margin:.2rem 0 .65rem">Baserat på frågan "Hur var bemanningen på ditt pass?" – använd detta för att sätta rätt kvoter nästa år.</div>
-        <div style="display:flex;flex-direction:column;gap:.45rem">
-          <div style="display:flex;align-items:center;gap:.6rem;font-size:13px"><span style="background:#fdecea;color:#c0392b;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;min-width:90px;text-align:center">FÖR LITE</span> <strong>Servering söndag 12–16</strong> – 4 av 5 tyckte det var underbemannat. <span style="color:var(--green)">Höj kvoten nästa år.</span></div>
-          <div style="display:flex;align-items:center;gap:.6rem;font-size:13px"><span style="background:#fff3e0;color:#b07000;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;min-width:90px;text-align:center">FÖR MYCKET</span> <strong>Servering lördag 08–12</strong> – 3 av 6 tyckte det var överbemannat. <span style="color:var(--green)">Sänk kvoten nästa år.</span></div>
-          <div style="display:flex;align-items:center;gap:.6rem;font-size:13px"><span style="background:#fff3e0;color:#b07000;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;min-width:90px;text-align:center">FÖR MYCKET</span> <strong>Bygg torsdag 17–20</strong> – flera nämnde att de stod sysslolösa.</div>
-          <div style="display:flex;align-items:center;gap:.6rem;font-size:13px"><span style="background:#e8f7ec;color:#1a8c3a;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;min-width:90px;text-align:center">LAGOM</span> Övriga pass upplevdes välbemannade.</div>
+      <div style="font-weight:700;color:var(--dark);margin:0 0 .55rem;font-size:13.5px">Per station</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <div style="padding:.7rem .9rem;border:1px solid var(--border);border-radius:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.3rem"><strong>🌭 Servering</strong><span style="font-size:12px;color:var(--muted)">snitt 4.3/5 · 7 svar</span></div>
+          <div style="font-size:13px;line-height:1.6"><span style="color:#1a8c3a;font-weight:700">+ Bra:</span> god stämning, kände sig behövda. <span style="color:#b07000;font-weight:700">→ Förbättring:</span> vatten/dryck till de som jobbade saknades.</div>
+        </div>
+        <div style="padding:.7rem .9rem;border:1px solid var(--border);border-radius:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.3rem"><strong>🥐 Frukost</strong><span style="font-size:12px;color:var(--muted)">snitt 4.0/5 · 4 svar</span></div>
+          <div style="font-size:13px;line-height:1.6"><span style="color:#1a8c3a;font-weight:700">+ Bra:</span> lugnt och trevligt på morgonen. <span style="color:#b07000;font-weight:700">→ Förbättring:</span> lite kort om folk vid det allra tidigaste passet.</div>
+        </div>
+        <div style="padding:.7rem .9rem;border:1px solid var(--border);border-radius:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.3rem"><strong>🅿️ Parkering</strong><span style="font-size:12px;color:var(--muted)">snitt 4.4/5 · 4 svar</span></div>
+          <div style="font-size:13px;line-height:1.6"><span style="color:#1a8c3a;font-weight:700">+ Bra:</span> tydliga instruktioner, bra flyt. <span style="color:#b07000;font-weight:700">→ Förbättring:</span> reflexvästar saknades vid ett pass.</div>
+        </div>
+        <div style="padding:.7rem .9rem;border:1px solid var(--border);border-radius:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.3rem"><strong>📋 Sekretariat</strong><span style="font-size:12px;color:var(--muted)">snitt 4.6/5 · 3 svar</span></div>
+          <div style="font-size:13px;line-height:1.6"><span style="color:#1a8c3a;font-weight:700">+ Bra:</span> mycket nöjda, tydliga rutiner. Inga förbättringsförslag.</div>
         </div>
       </div>
 
-      <strong>Servering</strong> — Bra: tydlig info, god stämning. Förbättring: vatten/dryck till volontärer saknas.<br><br>
-      <strong>Infotält</strong> — Bra: bra bemanning. Förbättring: önskan om kort briefing vid passstart.<br><br>
-      <strong>Bygg &amp; Riv</strong> — Bra: engagerande uppgift. Förbättring: brist på verktyg orsakade onödig väntetid.<br><br>
-      <strong>Nattvakt</strong> — Mycket nöjda. Inga förbättringsförslag.<br><br>
-      <div style="margin-top:.75rem;padding:.75rem 1rem;background:#f0f7ff;border-radius:8px;border-left:3px solid #2563eb">
+      <div style="margin-top:1rem;padding:.75rem 1rem;background:#f0f7ff;border-radius:8px;border-left:3px solid #2563eb">
         <strong style="color:#1d4ed8">💡 Förslag inför nästa år</strong><br>
         <span style="font-size:13px;color:#1e3a5f;line-height:1.7">
-          1. <strong>Justera bemanningen:</strong> fler på Servering söndag eftermiddag, färre på Servering lördag morgon.<br>
-          2. Se över Bygg torsdag – färre personer räcker.<br>
-          3. Ha vatten tillgängligt vid alla serveringspass — nämns av 3 av 18.<br>
-          4. Lägg en 5-minuters briefing i schemat vid passstart för Infotält.
+          1. Ha vatten/dryck redo vid serveringspassen – nämns av flera.<br>
+          2. En kort briefing vid passstart för de tidigaste passen.<br>
+          3. Lägg fram reflexvästar vid parkeringen.<br>
+          4. Se bemanningsanalysen ovan för vilka pass som behöver fler eller färre personer.
         </span>
       </div>
       <div style="margin-top:.75rem;display:flex;gap:.6rem;flex-wrap:wrap">
