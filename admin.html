@@ -881,7 +881,7 @@ Hälsningar,
 <div class="modal-overlay" id="modalAddShift">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Skapa nytt pass</div>
+      <div class="modal-title" id="addShiftTitle">Skapa nytt pass</div>
       <button class="modal-close" onclick="closeModal('modalAddShift')">✕</button>
     </div>
     <div class="form-group">
@@ -1138,6 +1138,7 @@ async function saveEventSettings(){
 }
 
 let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [] };
+let editingShiftId = null;
 
 async function loadFromDB() {
   try {
@@ -1655,7 +1656,7 @@ function renderShiftTable(){
       </td>
       <td>
         <div style="display:flex;gap:4px">
-          <button class="btn btn-ghost btn-sm btn-icon" title="Redigera" onclick="event.stopPropagation()">✏️</button>
+          <button class="btn btn-ghost btn-sm btn-icon" title="Redigera" onclick="event.stopPropagation();editShift('${s.id}')">✏️</button>
           <button class="btn btn-danger btn-sm btn-icon" title="Ta bort" onclick="event.stopPropagation();deleteShift('${s.id}')">🗑</button>
         </div>
       </td>
@@ -1686,12 +1687,13 @@ function renderShiftDetailInline(shiftId){
   const bookings = DB.bookings.filter(b => b.shift_id === shiftId);
   const participants = bookings.map(b => {
     const p = DB.participants.find(p => p.id === b.participant_id);
-    return p ? {...p, ...b} : {name: b.display_name || 'Okänd', team:'–', phone:'', email:''};
+    return p ? {...p, ...b, bookingId: b.id} : {name: b.display_name || 'Okänd', team:'–', phone:'', email:'', bookingId: b.id};
   });
   const free = (shift ? shift.slots : 0) - bookings.length;
   let html = '<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem">';
   participants.forEach(p => {
-    html += `<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.4rem .75rem;font-size:13px">
+    html += `<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.4rem .75rem;font-size:13px;position:relative">
+      <button onclick="removeBooking('${p.bookingId}','${shiftId}')" title="Avboka" style="position:absolute;top:2px;right:4px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1">✕</button>
       <strong>${p.name}</strong> <span style="color:var(--muted)">${p.team || ''}</span><br>
       ${p.phone ? '<a href="tel:' + p.phone + '" style="color:var(--green);text-decoration:none">📞 ' + p.phone + '</a> ' : ''}
       ${p.email ? '<a href="mailto:' + p.email + '" style="color:var(--green);text-decoration:none">✉️ ' + p.email + '</a>' : ''}
@@ -1720,13 +1722,41 @@ async function deleteShift(id){
   }
 }
 
+async function removeBooking(bookingId, shiftId){
+  if(!confirm('Avboka denna person från passet?')) return;
+  try {
+    await sbDelete('bookings', bookingId);
+    DB.bookings = DB.bookings.filter(b => b.id !== bookingId);
+    renderShiftTable();
+    renderDashboard();
+    // Uppdatera öppen detaljvy
+    const detailRow = document.getElementById('detail-' + shiftId);
+    if(detailRow && detailRow.style.display !== 'none'){
+      renderShiftDetailInline(shiftId);
+    }
+    if(typeof currentInstructionCat !== 'undefined' && currentInstructionCat){
+      renderShiftDetail(currentInstructionCat, 'Alla');
+    }
+    showToast('Avbokad');
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte avboka', 'error');
+  }
+}
+
 // ═══════════════════════════════════════
 // MODALER
 // ═══════════════════════════════════════
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id === 'modalPrint') buildPrintOptions();
-  if(id === 'modalAddShift') fillNewShiftDays();
+  if(id === 'modalAddShift'){
+    editingShiftId = null;
+    const t = document.getElementById('addShiftTitle');
+    if(t) t.textContent = 'Skapa nytt pass';
+    ['nsTitle','nsLocation','nsContactName','nsContactPhone','nsNotes'].forEach(fid=>{ const e=document.getElementById(fid); if(e) e.value=''; });
+    fillNewShiftDays();
+  }
 }
 
 function fillNewShiftDays(){
@@ -1738,6 +1768,24 @@ function fillNewShiftDays(){
     return;
   }
   sel.innerHTML = days.map(d => '<option value="' + d.value + '">' + d.label + '</option>').join('');
+}
+
+function editShift(shiftId){
+  const s = DB.shifts.find(x => x.id === shiftId);
+  if(!s) return;
+  editingShiftId = shiftId;
+  fillNewShiftDays();
+  document.getElementById('addShiftTitle').textContent = 'Redigera pass';
+  document.getElementById('nsTitle').value = s.title || '';
+  document.getElementById('nsDay').value = s.date || '';
+  document.getElementById('nsSlots').value = s.slots || 1;
+  document.getElementById('nsStart').value = (s.time_start||'').slice(0,5);
+  document.getElementById('nsEnd').value = (s.time_end||'').slice(0,5);
+  document.getElementById('nsLocation').value = s.location || '';
+  document.getElementById('nsContactName').value = s.contact_name || '';
+  document.getElementById('nsContactPhone').value = s.contact_phone || '';
+  document.getElementById('nsNotes').value = s.notes || '';
+  document.getElementById('modalAddShift').classList.add('open');
 }
 
 async function createShift(){
@@ -1755,35 +1803,39 @@ async function createShift(){
   if(!date){ alert('Välj en dag. (Ange eventets datum i Inställningar om listan är tom.)'); return; }
   if(!start || !end){ alert('Ange start- och sluttid.'); return; }
 
+  const payload = {
+    event_id: EVENT_ID, title, date, time_start: start, time_end: end, slots,
+    location: location || null, contact_name: contactName || null,
+    contact_phone: contactPhone || null, notes: notes || null
+  };
+
   try {
-    const result = await sbInsert('shifts', {
-      event_id: EVENT_ID,
-      title: title,
-      date: date,
-      time_start: start,
-      time_end: end,
-      slots: slots,
-      location: location || null,
-      contact_name: contactName || null,
-      contact_phone: contactPhone || null,
-      notes: notes || null
-    });
-    // Lägg till i lokal DB
-    if(result && result.length) DB.shifts.push(result[0]);
+    if(editingShiftId){
+      // Uppdatera befintligt pass
+      const result = await sbUpdate('shifts', editingShiftId, payload);
+      const idx = DB.shifts.findIndex(s => s.id === editingShiftId);
+      if(idx !== -1 && result && result.length) DB.shifts[idx] = result[0];
+      showToast('Passet uppdaterat!');
+    } else {
+      // Nytt pass
+      const result = await sbInsert('shifts', payload);
+      if(result && result.length) DB.shifts.push(result[0]);
+      showToast('Passet skapat!');
+    }
     DB.shifts.sort((a,b) => (a.date + a.time_start).localeCompare(b.date + b.time_start));
     closeModal('modalAddShift');
     renderShiftTable();
     renderDashboard();
-    showToast('Passet skapat!');
-    // Rensa formuläret
-    document.getElementById('nsTitle').value = '';
-    document.getElementById('nsLocation').value = '';
-    document.getElementById('nsContactName').value = '';
-    document.getElementById('nsContactPhone').value = '';
-    document.getElementById('nsNotes').value = '';
+    if(typeof currentInstructionCat !== 'undefined' && currentInstructionCat){
+      renderShiftDetail(currentInstructionCat, 'Alla');
+    }
+    // Återställ
+    editingShiftId = null;
+    document.getElementById('addShiftTitle').textContent = 'Skapa nytt pass';
+    ['nsTitle','nsLocation','nsContactName','nsContactPhone','nsNotes'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
   } catch(e){
     console.error(e);
-    showToast('Kunde inte skapa passet', 'error');
+    showToast('Kunde inte spara passet', 'error');
   }
 }
 
@@ -2375,17 +2427,21 @@ function renderShiftDetail(cat, day) {
       const rowId = 'shift-db-' + s.id;
       const peopleRows = bookingsForShift.map(b => {
         const p = DB.participants.find(p => p.id === b.participant_id);
-        if(!p) return '';
-        const initials = p.name.split(' ').map(w=>w[0]).slice(0,2).join('');
+        const name = p ? p.name : (b.display_name || 'Okänd');
+        const team = p ? (p.team||'') : 'Pool';
+        const phone = p ? p.phone : '';
+        const email = p ? p.email : '';
+        const initials = name.split(' ').map(w=>w[0]).slice(0,2).join('');
         return `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .25rem;border-bottom:1px solid var(--border)">
           <div style="width:28px;height:28px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);flex-shrink:0">${initials}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-size:13px;color:var(--dark);font-weight:600">${p.name} <span style="font-size:11px;color:var(--muted);font-weight:500">${p.team||''}</span></div>
+            <div style="font-size:13px;color:var(--dark);font-weight:600">${name} <span style="font-size:11px;color:var(--muted);font-weight:500">${team}</span></div>
             <div style="display:flex;gap:.85rem;margin-top:1px;flex-wrap:wrap">
-              ${p.phone ? '<a href="tel:'+p.phone.replace(/\s/g,'')+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--green);text-decoration:none;font-weight:500">📞 '+p.phone+'</a>' : ''}
-              ${p.email ? '<a href="mailto:'+p.email+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ '+p.email+'</a>' : ''}
+              ${phone ? '<a href="tel:'+phone.replace(/\s/g,'')+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--green);text-decoration:none;font-weight:500">📞 '+phone+'</a>' : ''}
+              ${email ? '<a href="mailto:'+email+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ '+email+'</a>' : ''}
             </div>
           </div>
+          <button onclick="event.stopPropagation();removeBooking('${b.id}','${s.id}')" title="Avboka" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
         </div>`;
       }).join('');
       const emptyRows = Array.from({length:free}).map(()=>
@@ -2412,7 +2468,7 @@ function renderShiftDetail(cat, day) {
         </td>
         <td style="font-size:12px;color:var(--muted)">${s.contact_name||'–'}</td>
         <td><div style="display:flex;gap:.35rem">
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">✏️</button>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editShift('${s.id}')">✏️</button>
           <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();deleteShift('${s.id}')">🗑</button>
         </div></td>
       </tr>
