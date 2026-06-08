@@ -416,7 +416,7 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
 
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-          <thead><tr><th>Bemannare</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th></th></tr></thead>
+          <thead><tr><th>Bemannare</th><th>Jobbar för</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th></th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
       </div>
@@ -879,6 +879,11 @@ Hälsningar,
       <label class="form-label">Tilldela pass (valfritt)</label>
       <select id="newChildShift"><option value="">— Inget pass nu (personen väljer själv) —</option></select>
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Välj ett pass om du vill boka personen direkt. Annars väljer de själva via sin länk.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Jobbar för (valfritt)</label>
+      <input type="text" id="newChildKid" placeholder="Barnets namn – om personen jobbar för sitt barn">
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Lämna tomt om personen tar passet för egen del (t.ex. äldre ungdomar).</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
@@ -1809,6 +1814,7 @@ function renderChildTable(){
           </div>
         </div>
       </td>
+      <td class="td-muted">${(useDB && c.child_name) ? c.child_name : '<span style="color:var(--muted)">–</span>'}</td>
       <td class="td-muted">${c.team || '–'}</td>
       <td style="font-size:13px;color:var(--text)">${passText !== '–' ? passText : '<span style="color:var(--muted)">–</span>'}</td>
       <td>${booked ? '<span class="badge badge-green">Pass valt ✓</span>' : '<span class="badge badge-amber">Inget pass</span>'}</td>
@@ -2057,7 +2063,7 @@ function openModal(id){
     editingChildId = null;
     const t = document.getElementById('addChildTitle');
     if(t) t.textContent = 'Lägg till person';
-    ['newChildName','newChildTeam','newChildPhone','newChildEmail'].forEach(fid=>{ const e=document.getElementById(fid); if(e) e.value=''; });
+    ['newChildName','newChildTeam','newChildPhone','newChildEmail','newChildKid'].forEach(fid=>{ const e=document.getElementById(fid); if(e) e.value=''; });
     fillChildShiftOptions();
   }
   openModal._editingChild = false;
@@ -2398,6 +2404,7 @@ async function saveChild(){
   const team=document.getElementById('newChildTeam').value.trim();
   const phone=document.getElementById('newChildPhone').value.trim();
   const email=document.getElementById('newChildEmail').value.trim();
+  const kid=document.getElementById('newChildKid').value.trim();
   const shiftId=document.getElementById('newChildShift').value;
   if(!name){alert('Ange personens namn.');return;}
   if(!email){alert('Ange en e-postadress.');return;}
@@ -2405,14 +2412,14 @@ async function saveChild(){
     let participant;
     if(editingChildId){
       // Uppdatera befintlig person
-      await sbUpdate('participants', editingChildId, { name, email, phone: phone||null, team: team||null });
+      await sbUpdate('participants', editingChildId, { name, email, phone: phone||null, team: team||null, child_name: kid||null });
       participant = DB.participants.find(p => p.id === editingChildId);
-      if(participant) Object.assign(participant, { name, email, phone: phone||null, team: team||null });
+      if(participant) Object.assign(participant, { name, email, phone: phone||null, team: team||null, child_name: kid||null });
     } else {
       // Ny person
       const token = 'tok-' + Math.random().toString(36).slice(2,12);
       const result = await sbInsert('participants', {
-        event_id: EVENT_ID, name, email, phone: phone||null, team: team||null, token
+        event_id: EVENT_ID, name, email, phone: phone||null, team: team||null, child_name: kid||null, token
       });
       if(result && result.length){ participant = result[0]; DB.participants.push(participant); }
     }
@@ -2457,6 +2464,7 @@ function editChild(id){
   document.getElementById('newChildTeam').value = p.team || '';
   document.getElementById('newChildPhone').value = p.phone || '';
   document.getElementById('newChildEmail').value = p.email || '';
+  document.getElementById('newChildKid').value = p.child_name || '';
   const booking = DB.bookings.find(b => b.participant_id === id);
   fillChildShiftOptions(booking ? booking.shift_id : '');
 }
