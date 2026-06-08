@@ -412,6 +412,17 @@ setVH(); window.addEventListener('resize',setVH);
         <strong>Så funkar det:</strong> Lägg till ungdomar (t.ex. äldre lag) som kan hoppa in på tomma pass. Vid deadline tilldelar du dem de pass som inte fyllts. Eventuell ersättning hanteras av föreningen utanför systemet – ofta går den tillbaka till ungdomarnas eget lag.
       </div>
 
+      <!-- RESURSFÖRFRÅGNINGAR (från stationsansvariga) -->
+      <div class="card" id="resourceReqCard" style="margin-bottom:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
+          <span style="font-size:1.1rem">🙋</span>
+          <div class="card-title">Resursförfrågningar</div>
+          <span id="resourceReqCount" class="badge badge-amber" style="margin-left:.25rem;display:none"></span>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.9rem">Stationsansvariga kan be om en extra resurs när ett pass blir underbemannat. Bara du kan tilldela någon ur poolen – ansvariga ber, du beslutar.</p>
+        <div id="resourceReqList" style="display:flex;flex-direction:column;gap:.6rem"></div>
+      </div>
+
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
           <thead><tr><th>Namn</th><th>Tillhör lag</th><th>Kan ta</th><th>Kontakt</th><th>Tilldelade pass</th></tr></thead>
           <tbody id="poolTable"></tbody>
@@ -824,7 +835,7 @@ Hälsningar,
           <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddContact')">+ Lägg till</button>
         </div>
         <div class="table-wrap" style="margin-top:.5rem"><table>
-          <thead><tr><th>Ansvarsområde</th><th>Namn</th><th>Kontakt</th><th></th></tr></thead>
+          <thead><tr><th>Ansvarsområde</th><th>Namn</th><th>Kontakt</th><th>Stations-länk</th><th></th></tr></thead>
           <tbody id="contactsTable"></tbody>
         </table></div>
       </div>
@@ -1512,7 +1523,7 @@ function showSection(id){
   const titles={dashboard:'Översikt',children:'Bemanning',pool:'Bemanningspool',shifts:'Pass & beläggning',email:"Mejla bemanning",feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
-  if(id==='pool') renderPoolTable();
+  if(id==='pool'){ renderPoolTable(); renderResourceRequests(); }
   if(id==='settings'){ renderContactsTable(); renderFaqList(); }
   if(id==='shifts'){ renderStationRows(); }
   if(id==='dashboard') renderDashboard();
@@ -1716,6 +1727,18 @@ function sendReminderNow(){
 function renderAttention(){
   const stations = getStationStats();
   const items = [];
+  // Resursförfrågningar från stationsansvariga – mest akut, överst
+  if(typeof getOpenResourceRequests === 'function'){
+    getOpenResourceRequests().forEach(r => {
+      items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fffaf0;border:1.5px solid rgba(232,160,32,.4);border-radius:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <span style="font-size:1.1rem">🙋</span>
+          <span style="font-size:13.5px;color:var(--dark)"><strong>${r.station}</strong> har bett om en resurs (${r.pass_label}) – begärd av ${r.requested_by}</span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showSection('pool')">Hantera →</button>
+      </div>`);
+    });
+  }
   // (Sjuk-/förhinderanmälan visas här när funktionen finns kopplad till databasen)
   // Ej valt-varning
   const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
@@ -1917,6 +1940,7 @@ function renderContactsSettings(){
       <a href="mailto:${k.email||''}" style="color:var(--green);text-decoration:none">${k.email||'–'}</a><br>
       <span style="color:var(--muted)">${k.phone||'–'}</span>
     </td>
+    <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="copyAnsvarigLink('${k.id||''}')">🔗 Kopiera</button> <button class="btn btn-ghost btn-sm" onclick="mailAnsvarigLink('${k.id||''}')">✉️ Mejla</button></td>
     <td><button class="btn btn-ghost btn-sm">✏️</button></td>
   </tr>`).join('');
 }
@@ -2219,10 +2243,72 @@ async function createShift(){
 }
 
 // ── Fyll från pool ──
+// ── Resursförfrågningar (från stationsansvariga) ──
+// Ansvariga ber via sin stations-länk (token, ingen inloggning). Bara admin tilldelar ur poolen.
+const DEMO_RESOURCE_REQUESTS = [
+  { id:'rr1', station:'Servering', pass_label:'Söndag 12:00–16:00', requested_by:'Anna Svensson', role:'Serveringsansvarig', note:'Vi blir för få på eftermiddagspasset – en till hade hjälpt mycket.', created_at:'2026-05-03T10:15:00' },
+  { id:'rr2', station:'Parkering', pass_label:'Lördag 08:00–11:00', requested_by:'Peter Nilsson', role:'Parkeringsansvarig', note:'En av föräldrarna fick förhinder, behöver en ersättare.', created_at:'2026-05-03T08:40:00' }
+];
+const dismissedResourceReqs = new Set();
+
+function getOpenResourceRequests(){
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+  const all = isDemo ? DEMO_RESOURCE_REQUESTS : (DB.resourceRequests || []);
+  return all.filter(r => !dismissedResourceReqs.has(r.id));
+}
+
+function renderResourceRequests(){
+  const list = document.getElementById('resourceReqList');
+  const countEl = document.getElementById('resourceReqCount');
+  if(!list) return;
+  const reqs = getOpenResourceRequests();
+  if(countEl){ countEl.textContent = reqs.length; countEl.style.display = reqs.length ? '' : 'none'; }
+  if(reqs.length === 0){
+    list.innerHTML = '<div style="font-size:13px;color:var(--muted);font-style:italic">Inga öppna förfrågningar just nu.</div>';
+    return;
+  }
+  list.innerHTML = reqs.map(r => {
+    const d = new Date(r.created_at);
+    const stamp = d.toLocaleDateString('sv-SE') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    return '<div style="border:1.5px solid rgba(232,160,32,.35);border-radius:10px;padding:.85rem 1rem;background:#fffaf0">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap">' +
+        '<div style="font-size:14px;font-weight:700;color:var(--dark)">🙋 ' + r.station + ' · ' + r.pass_label + '</div>' +
+        '<div style="display:flex;gap:.4rem;flex-shrink:0">' +
+          '<button class="btn btn-primary btn-sm" onclick="requestFillPool(\'' + r.id + '\')">Fyll från pool</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="dismissResourceReq(\'' + r.id + '\')">Avfärda</button>' +
+        '</div>' +
+      '</div>' +
+      (r.note ? '<div style="font-size:13px;color:var(--text);margin-top:.45rem;line-height:1.5">"' + r.note + '"</div>' : '') +
+      '<div style="font-size:12px;color:var(--muted);margin-top:.4rem">Begärd av ' + r.requested_by + (r.role ? ' · ' + r.role : '') + ' · ' + stamp + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function requestFillPool(reqId){
+  const r = getOpenResourceRequests().find(x => x.id === reqId);
+  if(!r) return;
+  // Hitta ett pass i den efterfrågade stationen, helst ett med ledig plats
+  let shift = null;
+  if(DB.shifts && DB.shifts.length){
+    const cands = DB.shifts.filter(s => s.title.toLowerCase() === r.station.toLowerCase());
+    shift = cands.find(s => (s.slots - DB.bookings.filter(b => b.shift_id === s.id).length) > 0) || cands[0];
+  }
+  if(!shift){ alert('Hittade inget pass i kategorin "' + r.station + '" att fylla.'); return; }
+  openFillPool(shift.id);
+  window._pendingResourceReq = reqId;
+}
+
+function dismissResourceReq(reqId){
+  dismissedResourceReqs.add(reqId);
+  renderResourceRequests();
+  if(typeof renderAttention === 'function') renderAttention();
+}
+
 let fillPoolShiftId = null;
 let fillPoolSelected = null;
 
 function openFillPool(shiftId){
+  window._pendingResourceReq = null;
   fillPoolShiftId = shiftId;
   fillPoolSelected = null;
   const shift = DB.shifts.find(s => s.id === shiftId);
@@ -2273,6 +2359,13 @@ async function confirmFillPool(){
       renderShiftDetail(currentInstructionCat, 'Alla');
     }
     showToast(name + ' tilldelad passet');
+    // Stäng ev. resursförfrågan som detta löste
+    if(window._pendingResourceReq){
+      dismissedResourceReqs.add(window._pendingResourceReq);
+      window._pendingResourceReq = null;
+      if(typeof renderResourceRequests === 'function') renderResourceRequests();
+      if(typeof renderAttention === 'function') renderAttention();
+    }
   } catch(e){
     console.error(e);
     showToast('Kunde inte tilldela passet', 'error');
@@ -2307,6 +2400,76 @@ async function addPoolMember(){
 }
 
 // ── Lägg till kontaktperson ──
+// ── Stations-länk till ansvarig ──
+function ansvarigLinkUrl(token){
+  return new URL('ansvarig.html' + (token ? '?token=' + token : ''), location.href).href;
+}
+
+// Säkerställ att kontakten har en token (genererar + sparar vid behov)
+async function ensureContactToken(contactId){
+  const c = DB.contacts.find(x => x.id === contactId);
+  if(!c) return null;
+  if(c.token) return c.token;
+  const token = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('tok-' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+  const res = await sbUpdate('contacts', contactId, { token: token });
+  c.token = token;
+  if(res && res.length) DB.contacts[DB.contacts.indexOf(c)] = res[0];
+  return token;
+}
+
+async function copyAnsvarigLink(contactId){
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+  let url;
+  if(isDemo){
+    url = ansvarigLinkUrl(null); // demovy utan token
+  } else {
+    const token = await ensureContactToken(contactId);
+    if(!token){ showToast('Kunde inte skapa länk', 'error'); return; }
+    url = ansvarigLinkUrl(token);
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast(isDemo ? 'Demolänk kopierad' : 'Länk kopierad till urklipp');
+  } catch(e){
+    prompt('Kopiera länken:', url);
+  }
+}
+
+async function mailAnsvarigLink(contactId){
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+  if(isDemo){ if(typeof demoBlock === 'function') demoBlock(); return; }
+  const c = DB.contacts.find(x => x.id === contactId);
+  if(!c){ showToast('Kontakten hittades inte', 'error'); return; }
+  if(!c.email){ showToast('Kontakten saknar e-postadress', 'error'); return; }
+  try {
+    const token = await ensureContactToken(contactId);
+    const url = ansvarigLinkUrl(token);
+    const evName = (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet';
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-links', {
+      method:'POST',
+      headers:{ 'Authorization':'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        mode:'message',
+        includeButton:false,
+        subject: 'Din länk som ' + c.area + ' – ' + evName,
+        recipients: [{ name:c.name, email:c.email }],
+        message: 'Hej ' + c.name + '!\n\nHär är din personliga länk för att hantera ' + c.area + ' under ' + evName + '. Du ser din besättning, kan dela info till dem och be om en extra resurs om ni blir för få. Ingen inloggning behövs – spara länken.\n\n' + url,
+        eventName: evName
+      })
+    });
+    const data = await res.json();
+    if(res.ok){
+      showToast('Länk skickad till ' + c.name);
+      if(typeof logEmail === 'function') await logEmail('info', 'Stations-länk till ' + c.name + ' (' + c.area + ')', 1, data.sent || 1);
+    } else {
+      showToast('Fel: ' + (data.error || 'kunde inte skicka'), 'error');
+    }
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte skicka länken', 'error');
+  }
+}
+
 async function addContact(){
   const area = document.getElementById('contactArea').value.trim();
   const name = document.getElementById('contactPersonName').value.trim();
