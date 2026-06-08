@@ -528,44 +528,93 @@ setVH(); window.addEventListener('resize',setVH);
         </div>
       </div>
 
-            <div class="card">
-        <div class="card-title" style="margin-bottom:.75rem">Meddelande</div>
+      <!-- AUTOMATISKA MEJL -->
+      <div class="card" style="background:#f0f7ff;border:1.5px solid #bcd5f5">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
+          <span style="font-size:1.1rem">🤖</span>
+          <div class="card-title">Automatiska mejl</div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Dessa skickar systemet helt automatiskt – du behöver inte göra något. Du kan redigera texterna.</p>
+
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:flex-start;gap:.75rem;background:#fff;border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem">
+            <span style="font-size:1.2rem">⭐</span>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:var(--dark)">Tack för bokat pass</div>
+              <div style="font-size:12.5px;color:var(--muted);margin-top:2px">Skickas automatiskt direkt när en medlem bokat sitt pass. Innehåller passinfo, plats och kontaktperson.</div>
+            </div>
+            <span class="badge badge-green" style="flex-shrink:0">Aktiv</span>
+            <button class="btn btn-ghost btn-sm" onclick="editAutoTemplate('confirm')" style="flex-shrink:0">Redigera</button>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:.75rem;background:#fff;border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem">
+            <span style="font-size:1.2rem">🔔</span>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:var(--dark)">Påminnelse till de som inte valt pass</div>
+              <div style="font-size:12.5px;color:var(--muted);margin-top:2px">Skickas automatiskt <strong id="autoReminderDays">5</strong> dagar före sista anmälningsdag, bara till de som inte valt pass. Innehåller personlig passval-länk. <a href="#" onclick="showSection('settings');return false" style="color:var(--green)">Ändra antal dagar i Inställningar</a></div>
+            </div>
+            <span class="badge badge-green" style="flex-shrink:0">Aktiv</span>
+            <button class="btn btn-ghost btn-sm" onclick="editAutoTemplate('reminder')" style="flex-shrink:0">Redigera</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SKICKA MANUELLT -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
+          <span style="font-size:1.1rem">✍️</span>
+          <div class="card-title">Skicka ett mejl nu</div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Skriv fritt eller börja från en mall. Mejlet skickas till mottagarna du valt ovan.</p>
 
         <div style="margin-bottom:1rem">
-          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">ANVÄND MALL</div>
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">BÖRJA FRÅN EN MALL (valfritt)</div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-            <button class="btn btn-ghost btn-sm" onclick="useTemplate('confirm')" style="border-color:var(--green);color:var(--green)">⭐ Tack för bokat pass</button>
-            <button class="btn btn-ghost btn-sm" onclick="useTemplate('reminder')">⏰ Påminnelse</button>
+            <button class="btn btn-ghost btn-sm" onclick="useTemplate('invite')">📨 Inbjudan – välj pass</button>
+            <button class="btn btn-ghost btn-sm" onclick="useTemplate('reminderManual')">⏰ Påminnelse</button>
             <button class="btn btn-ghost btn-sm" onclick="useTemplate('info')">📋 Passinformation</button>
-            <button class="btn btn-ghost btn-sm" onclick="useTemplate('thanks')" style="border-color:var(--green);color:var(--green)">🙏 Tackmejl efter event</button>
+            <button class="btn btn-ghost btn-sm" onclick="useTemplate('thanks')">🙏 Tack efter event</button>
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Ämnesrad</label>
-          <input type="text" id="emailSubject" value="Åsacupen 2026 – ditt pass">
+          <input type="text" id="emailSubject" value="Åsacupen 2026">
         </div>
-        <div class="form-group" style="margin-bottom:1rem">
+        <div class="form-group" style="margin-bottom:.75rem">
           <label class="form-label">Meddelande</label>
-          <textarea id="emailBody" rows="7" placeholder="Skriv ditt meddelande här...">Hej!
-
-Tack för att ni hjälper till under Åsacupen 2026. Vi ser fram emot ett fantastiskt event tillsammans!
+          <textarea id="emailBody" rows="7" placeholder="Skriv ditt meddelande här...">Tack för att ni hjälper till under Åsacupen 2026. Vi ser fram emot ett fantastiskt event tillsammans!
 
 Har du frågor, kontakta oss på kansli@asaif.com.
 
 Hälsningar,
 Åsa IF</textarea>
         </div>
+
+        <label class="checkbox-row" style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;cursor:pointer">
+          <input type="checkbox" id="includeBookingLink">
+          <span style="font-size:13.5px;color:var(--text)">Inkludera personlig passval-knapp (för inbjudan/påminnelse)</span>
+        </label>
+
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-          <button class="btn btn-ghost" onclick="previewEmail()">👁 Förhandsgranska</button>
           <button class="btn btn-primary" onclick="sendEmail()">📧 Skicka mejl</button>
         </div>
-        <p style="font-size:12px;color:var(--muted);margin-top:.65rem">Mejl skickas via Resend. Varje mottagare ser bara sitt eget namn i utskicket.</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:.65rem">Mejl skickas via Resend. Varje mottagare ser bara sitt eget namn och sin egen länk.</p>
+
+        <div id="emailSentMsg" style="display:none;margin-top:.75rem" class="msg ok">Mejl skickat!</div>
       </div>
 
+      <!-- UTSKICKSLOGG -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleEmailLog()">
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:1.1rem">📋</span>
+            <div class="card-title">Utskickslogg</div>
+          </div>
+          <span id="emailLogArrow" style="color:var(--muted)">▸</span>
+        </div>
+        <div id="emailLogList" style="display:none;margin-top:1rem"></div>
       </div>
-
-      <div id="emailSentMsg" style="display:none" class="msg ok">Mejl skickat till 124 mottagare!</div>
     </div>
 
     <!-- ═══ FEEDBACK ═══ -->
@@ -1137,20 +1186,21 @@ async function saveEventSettings(){
   }
 }
 
-let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [] };
+let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [] };
 let editingShiftId = null;
 
 async function loadFromDB() {
   try {
     const allShifts = await sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&select=id');
     const shiftIds = allShifts.map(function(s){ return s.id; });
-    const [shifts, bookings, participants, pool, contacts, feedback] = await Promise.all([
+    const [shifts, bookings, participants, pool, contacts, feedback, arguments_emailLog] = await Promise.all([
       sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&order=date.asc,time_start.asc'),
       shiftIds.length ? sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')') : Promise.resolve([]),
       sbFetch('participants', '?event_id=eq.' + EVENT_ID + '&order=team.asc,name.asc'),
       sbFetch('pool_members', '?event_id=eq.' + EVENT_ID + '&order=name.asc'),
       sbFetch('contacts', '?event_id=eq.' + EVENT_ID + '&order=sort_order.asc'),
-      shiftIds.length ? sbFetch('feedback', '?shift_id=in.(' + shiftIds.join(',') + ')&order=submitted_at.desc') : Promise.resolve([])
+      shiftIds.length ? sbFetch('feedback', '?shift_id=in.(' + shiftIds.join(',') + ')&order=submitted_at.desc') : Promise.resolve([]),
+      sbFetch('email_log', '?event_id=eq.' + EVENT_ID + '&order=created_at.desc').catch(function(){ return []; })
     ]);
     DB.shifts = shifts;
     DB.bookings = bookings;
@@ -1158,6 +1208,7 @@ async function loadFromDB() {
     DB.pool = pool;
     DB.contacts = contacts;
     DB.feedback = feedback;
+    DB.emailLog = arguments_emailLog || [];
     console.log('DB laddat:', DB.shifts.length, 'pass,', DB.participants.length, 'deltagare,', DB.feedback.length, 'feedback');
   } catch(e) {
     console.error('DB-fel:', e);
@@ -2135,7 +2186,9 @@ async function sendTestEmail(){
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        mode: 'links',
+        mode: 'message',
+        includeButton: document.getElementById('includeBookingLink') && document.getElementById('includeBookingLink').checked,
+        subject: subject,
         recipients: [{ name: 'Test', email: addr, token: 'demo-test-token' }],
         message: body,
         baseUrl: window.location.origin + '/guest.html',
@@ -2145,6 +2198,7 @@ async function sendTestEmail(){
     const data = await res.json();
     if(res.ok && data.sent > 0){
       showToast('Testmejl skickat till ' + addr);
+      await logEmail('test', subject + ' (test → ' + addr + ')', 1, data.sent);
     } else {
       showToast('Kunde inte skicka: ' + (data.error || 'okänt fel'), 'error');
     }
@@ -2171,6 +2225,8 @@ async function sendEmail(){
   const body = document.getElementById('emailBody').value.trim();
   if(!subject || !body){ alert('Fyll i ämnesrad och meddelande.'); return; }
 
+  const includeLink = document.getElementById('includeBookingLink') && document.getElementById('includeBookingLink').checked;
+
   const recipients = getEmailRecipients()
     .filter(p => p.email && p.token)
     .map(p => ({ name: p.name, email: p.email, token: p.token }));
@@ -2184,7 +2240,9 @@ async function sendEmail(){
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        mode: 'links',
+        mode: 'message',
+        includeButton: includeLink,
+        subject: subject,
         recipients: recipients,
         message: body,
         baseUrl: baseUrl,
@@ -2196,6 +2254,7 @@ async function sendEmail(){
       const m = document.getElementById('emailSentMsg');
       if(m){ m.textContent = data.sent + ' av ' + data.total + ' mejl skickade ✓'; m.style.display='block'; setTimeout(()=>m.style.display='none',5000); }
       showToast(data.sent + ' mejl skickade');
+      await logEmail(includeLink ? 'invite' : 'message', subject, data.total, data.sent);
     } else {
       showToast('Fel: ' + (data.error || 'kunde inte skicka'), 'error');
     }
@@ -2205,6 +2264,49 @@ async function sendEmail(){
   }
 }
 function previewEmail(){ alert('Förhandsgranskning: mejlet öppnas i ett nytt fönster (i produktion).'); }
+
+// ── Utskickslogg ──
+async function logEmail(type, subject, recipientCount, sentCount){
+  try {
+    const result = await sbInsert('email_log', {
+      event_id: EVENT_ID,
+      type: type,
+      subject: subject,
+      recipient_count: recipientCount || 0,
+      sent_count: sentCount || 0
+    });
+    if(result && result.length) DB.emailLog.unshift(result[0]);
+    renderEmailLog();
+  } catch(e){ console.error('Loggfel:', e); }
+}
+
+function renderEmailLog(){
+  const el = document.getElementById('emailLogList');
+  if(!el) return;
+  if(!DB.emailLog || DB.emailLog.length === 0){
+    el.innerHTML = '<div style="font-size:13px;color:var(--muted);font-style:italic">Inga utskick ännu.</div>';
+    return;
+  }
+  const typeLabels = { invite:'📨 Inbjudan', message:'✉️ Meddelande', reminder:'🔔 Påminnelse', info:'📋 Information', thanks:'🙏 Tack', test:'🧪 Test', links:'📨 Länkar' };
+  el.innerHTML = DB.emailLog.map(e => {
+    const d = new Date(e.created_at);
+    const stamp = d.toLocaleDateString('sv-SE') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    return '<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .25rem;border-bottom:1px solid var(--border)">' +
+      '<span style="font-size:13px;min-width:130px">' + (typeLabels[e.type] || e.type) + '</span>' +
+      '<div style="flex:1;min-width:0"><div style="font-size:13.5px;color:var(--dark);font-weight:600">' + (e.subject||'(utan ämne)') + '</div>' +
+      '<div style="font-size:12px;color:var(--muted)">' + stamp + ' · ' + e.sent_count + ' av ' + e.recipient_count + ' skickade</div></div>' +
+      '</div>';
+  }).join('');
+}
+
+function toggleEmailLog(){
+  const list = document.getElementById('emailLogList');
+  const arrow = document.getElementById('emailLogArrow');
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : 'block';
+  if(arrow) arrow.textContent = open ? '▸' : '▾';
+  if(!open) renderEmailLog();
+}
 
 // ═══════════════════════════════════════
 // LINKS
@@ -2732,21 +2834,30 @@ function aiSummarizeFeedback() {
 function useTemplate(type) {
   const subj = document.getElementById('emailSubject');
   const body = document.getElementById('emailBody');
-  if(type === 'confirm') {
-    subj.value = 'Du är en stjärna! Tack för att du valt ditt pass ⭐';
-    body.value = `Hej [NAMN]!\n\nDu är en stjärna – tack för att du valt att hjälpa till på Åsacupen 2026! ⭐\n\nHär är ditt pass:\n\nPass: [PASSTYP]\nDag: [DAG]\nTid: [TID]\nPlats: [PLATS]\nKontaktperson vid passet: [KONTAKTNAMN], [KONTAKTTELEFON]\n\nKan du inte komma?\nOm du blir sjuk eller får förhinder, säg till så snart du kan så att vi hinner hitta en ersättare. Öppna din personliga länk och anmäl förhinder, eller hör av dig till [KONTAKTNAMN].\n\nVill du byta pass? Öppna din länk och välj ett annat – det går fram till sista anmälningsdag.\n\nStort tack för din insats – det betyder mycket för klubben!\n\nHälsningar,\nÅsa IF`;
-  } else if(type === 'reminder') {
-    subj.value = 'Påminnelse: välj ditt pass – Åsacupen 2026';
-    body.value = `Hej!\n\nVi påminner om att du ännu inte valt ett pass inför Åsacupen 2026. Sista dag är 18 juni.\n\nÖppna din personliga länk för att välja:\n[PERSONLIG LÄNK]\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF`;
+  const linkCheck = document.getElementById('includeBookingLink');
+  if(type === 'invite') {
+    subj.value = 'Välj ditt pass \u2013 Åsacupen 2026';
+    body.value = 'Hej!\n\nDet är dags att välja volontärpass inför Åsacupen 2026. Klicka på knappen nedan, välj ett pass som passar dig \u2013 det tar bara en minut.\n\nSista anmälningsdag är 18 juni.\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF';
+    if(linkCheck) linkCheck.checked = true;
+  } else if(type === 'reminderManual') {
+    subj.value = 'Påminnelse: välj ditt pass \u2013 Åsacupen 2026';
+    body.value = 'Hej!\n\nVi påminner om att du ännu inte valt ett pass inför Åsacupen 2026. Sista dag är 18 juni.\n\nKlicka på knappen nedan för att välja ditt pass.\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF';
+    if(linkCheck) linkCheck.checked = true;
   } else if(type === 'info') {
-    subj.value = 'Ditt pass – Åsacupen 2026';
-    body.value = `Hej!\n\nTack för att du hjälper till under Åsacupen 2026. Här är information om ditt pass:\n\nPass: [PASSTYP]\nDag: [DAG]\nTid: [TID]\nPlats: [PLATS]\nKontaktperson vid passet: [KONTAKTNAMN], [KONTAKTTELEFON]\n\nVi ses på cupen!\n\nHälsningar,\nÅsa IF`;
+    subj.value = 'Information inför Åsacupen 2026';
+    body.value = 'Hej!\n\nTack för att du hjälper till under Åsacupen 2026. Här kommer praktisk information inför helgen:\n\n\u2022 Anmäl dig vid infotältet minst 10 minuter före ditt pass\n\u2022 Klä dig efter väder \u2013 mycket utomhus\n\u2022 Föreningen bjuder på fika under passet\n\nVi ses på cupen!\n\nHälsningar,\nÅsa IF';
+    if(linkCheck) linkCheck.checked = false;
   } else if(type === 'thanks') {
-    subj.value = 'Tack för din insats – Åsacupen 2026! 🙏';
-    body.value = `Hej!\n\nÅsacupen 2026 är avslutad och vi vill ta tillfället att säga ett stort TACK!\n\nTack vare er hjälp kunde vi genomföra ett fantastiskt event. 105 volontärer lade ner sin tid – utan er hade det inte blivit möjligt.\n\nHur gick det?\n• 18 av er lämnade feedback – snittbetyg 4,2 av 5\n• Stämningen och organisationen fick extra beröm\n• Vi har noterat era förbättringsförslag till nästa år\n\nVi ses på Åsacupen 2027! ⚽\n\nHälsningar,\nÅsa IF & cupkommittén`;
+    subj.value = 'Tack för din insats \u2013 Åsacupen 2026! 🙏';
+    body.value = 'Hej!\n\nÅsacupen 2026 är avslutad och vi vill säga ett stort TACK!\n\nTack vare er hjälp kunde vi genomföra ett fantastiskt event. Utan er hade det inte varit möjligt.\n\nVi ses på Åsacupen 2027! \u26bd\n\nHälsningar,\nÅsa IF & cupkommittén';
+    if(linkCheck) linkCheck.checked = false;
   }
 }
 
+function editAutoTemplate(which){
+  const titles = { confirm: 'Tack för bokat pass (automatiskt)', reminder: 'Automatisk påminnelse' };
+  alert('Här kan du redigera mallen "' + titles[which] + '".\n\nMalltexten sparas i databasen (kommer i nästa steg). Tills vidare används en standardtext.');
+}
 function showToast(msg, type) {
   type = type || 'success';
   const t = document.createElement('div');
@@ -2799,6 +2910,7 @@ async function init() {
   renderFeedback();
   if(typeof renderLagChips === 'function') renderLagChips();
   if(typeof updateRecipientCount === 'function') updateRecipientCount();
+  if(typeof renderEmailLog === 'function') renderEmailLog();
   fillEventSettings();
   renderDashboard();
   renderShiftTable();
