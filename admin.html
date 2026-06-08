@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <link rel="icon" type="image/png" href="favicon.png">
-<title>Admin – Lagpasset</title>
+<title>Lagpasset – Admin</title>
+<meta name="description" content="Klicka runt i en demo av Lagpasset och se hur enkelt föreningen hanterar föräldrapass.">
+<meta property="og:title" content="Lagpasset – Se admindemon">
+<meta property="og:description" content="Se hur föreningen hanterar föräldrapass – klicka runt fritt, inget sparas.">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -182,12 +185,17 @@ textarea{resize:vertical;min-height:70px}
   .grid-2,.grid-3{grid-template-columns:1fr}
   .inline-2,.inline-3{grid-template-columns:1fr}
   .content{padding:1rem}
+  .demo-banner{gap:.4rem;padding:.4rem .75rem}
   .topbar-actions .btn{display:none}
   table{font-size:12px}
   .card{padding:1rem}
+  .resp-grid-2{grid-template-columns:1fr !important}
+  .demo-welcome-card{padding:1.25rem 1.25rem;max-width:100%}
+  .demo-step-list{margin:.5rem 0 1rem}
   .topbar{padding:.65rem 1rem}
 }
 @media(max-width:600px){
+  .demo-banner a:nth-child(3){display:none}
   .section h2{font-size:16px}
   .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
@@ -195,12 +203,16 @@ textarea{resize:vertical;min-height:70px}
 @media(max-width:600px){.hide-mobile{display:none}}
 @media(max-width:900px){input,select,textarea{font-size:16px !important}}
 
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1.5px solid var(--border);z-index:15}
+/* BOTTOM NAV – mobil */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1.5px solid var(--border);z-index:15;padding:0;safe-area-inset-bottom:env(safe-area-inset-bottom)}
 .bottom-nav-inner{display:flex;justify-content:space-around;padding:.5rem 0 calc(.5rem + env(safe-area-inset-bottom,0px))}
 .bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:.3rem .5rem;font-size:10px;color:var(--muted);cursor:pointer;border:none;background:none;font-family:"Outfit",sans-serif;font-weight:500;min-width:56px;border-radius:8px;transition:color .15s}
 .bn-item.active{color:var(--green)}
 .bn-icon{font-size:1.3rem;line-height:1}
-@media(max-width:900px){.bottom-nav{display:block}.content{padding-bottom:5rem}}
+@media(max-width:900px){
+  .bottom-nav{display:block}
+  .content{padding-bottom:5rem}
+}
 </style>
 <script>
 // iOS Safari 100vh fix
@@ -209,6 +221,15 @@ setVH(); window.addEventListener('resize',setVH);
 </script>
 </head>
 <body>
+
+<!-- SIDEBAR OVERLAY för mobil -->
+<div id="sidebarOverlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:19"></div>
+
+<!-- DEMO WELCOME OVERLAY -->
+
+
+<!-- DEMO TOAST -->
+<div class="demo-toast" id="demoToast">🔒 I demon kan du inte spara ändringar</div>
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
@@ -249,8 +270,6 @@ setVH(); window.addEventListener('resize',setVH);
   </div>
 </aside>
 
-<div id="sidebarOverlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:19"></div>
-
 <!-- MAIN -->
 <div class="main">
   <header class="topbar">
@@ -259,10 +278,12 @@ setVH(); window.addEventListener('resize',setVH);
       <div class="topbar-title" id="topbarTitle">Översikt</div>
     </div>
     <div class="topbar-actions">
-      <span style="font-size:13px;color:var(--muted);font-weight:500" id="topbarEvent">Åsacupen 2026</span>
-      <button class="btn btn-primary btn-sm" onclick="openModal('modalSendLinks')">📧 Skicka länkarna</button>
+      <span style="font-size:13px;color:var(--muted);font-weight:500;display:none" class="hide-mobile" id="topbarEvent">Åsacupen 2026</span>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modalSendLinks')" title="Skicka länkarna">📧 <span class="hide-mobile">Skicka länkarna</span></button>
     </div>
   </header>
+
+  
 
   <div class="content">
 
@@ -356,8 +377,8 @@ setVH(); window.addEventListener('resize',setVH);
           <input type="text" id="childSearch" placeholder="Sök på namn…" style="max-width:220px;margin-bottom:0" oninput="renderChildTable()">
           <select id="childTeamFilter" style="max-width:160px;margin-bottom:0" onchange="renderChildTable()">
             <option value="">Alla lag</option>
-            <option>FJ – Flickjuniorer</option><option>P13</option><option>P15</option>
-            <option>P18</option><option>F15</option><option>F16</option>
+            <option>FJ – Flickjuniorer</option><option>P09</option><option>P10</option>
+            <option>P11</option><option>P12</option><option>P13</option><option>F11</option><option>F13</option>
           </select>
           <select id="childStatusFilter" style="max-width:180px;margin-bottom:0" onchange="renderChildTable()">
             <option value="">Alla statusar</option>
@@ -396,8 +417,6 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
     </div>
 
-    
-
     <!-- ═══ PASSSCHEMA ═══ -->
     <div class="section" id="sec-shifts">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
@@ -416,65 +435,10 @@ setVH(); window.addEventListener('resize',setVH);
       <div id="shiftCategoryView">
         <div id="stationRows" style="display:flex;flex-direction:column;gap:.6rem"></div>
       </div>
-              <span style="font-size:11px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:2px 8px">77%</span>
-            </div>
-            <div style="height:5px;background:#e0ece0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:77%;background:#e8a020;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:var(--muted)">75 av 98 platser bokade</div>
-          </div>
-
-          <!-- Infotält -->
-          <div class="card" onclick="openCategory('infotalt')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--dark)">Infotält</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">2 tillfällen · Fre–Lör</div>
-              </div>
-              <span style="font-size:11px;font-weight:700;background:#fff3e0;color:#b85c00;border-radius:100px;padding:2px 8px">73%</span>
-            </div>
-            <div style="height:5px;background:#e0ece0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:73%;background:#e8a020;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:var(--muted)">44 av 60 platser bokade</div>
-          </div>
-
-          <!-- Bygg & Riv -->
-          <div class="card" onclick="openCategory('bygg')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#c0392b'" onmouseout="this.style.borderColor=''">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--dark)">Bygg &amp; Riv</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">2 tillfällen · Tor–Sön</div>
-              </div>
-              <span style="font-size:11px;font-weight:700;background:#fdf2f2;color:#c0392b;border-radius:100px;padding:2px 8px">⚠️ 26%</span>
-            </div>
-            <div style="height:5px;background:#f0d0d0;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:26%;background:#c0392b;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:#c0392b;font-weight:600">12 av 46 platser bokade</div>
-          </div>
-
-          <!-- Nattvakt -->
-          <div class="card" onclick="openCategory('nattvakt')" style="cursor:pointer;transition:all .15s;border:1.5px solid var(--border)" onmouseover="this.style.borderColor='#1a8c3a'" onmouseout="this.style.borderColor=''">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
-              <div>
-                <div style="font-size:15px;font-weight:700;color:var(--dark)">Nattvakt</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">2 tillfällen · Fre natt–Lör natt</div>
-              </div>
-              <span style="font-size:11px;font-weight:700;background:#e8f7ec;color:#1a8c3a;border-radius:100px;padding:2px 8px">✓ 100%</span>
-            </div>
-            <div style="height:5px;background:#c4dcc4;border-radius:3px;overflow:hidden;margin-bottom:.6rem">
-              <div style="height:5px;width:100%;background:#1a8c3a;border-radius:3px"></div>
-            </div>
-            <div style="font-size:12px;color:#1a8c3a;font-weight:600">14 av 14 platser bokade ✓</div>
-          </div>
-
-        </div>
-      </div>
 
       <!-- DRILL-DOWN VY (dold initialt) -->
       <div id="shiftDetailView" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
           <div style="display:flex;align-items:center;gap:.75rem">
             <button class="btn btn-ghost btn-sm" onclick="closeCategory()">← Tillbaka</button>
             <h3 style="font-size:16px;font-weight:700;color:var(--dark)" id="categoryTitle"></h3>
@@ -488,8 +452,7 @@ setVH(); window.addEventListener('resize',setVH);
         <!-- Pass-vy -->
         <div id="shiftPassView">
           <div class="tabs" id="dayTabs" style="margin-bottom:1rem"></div>
-          <div class="card" style="padding:0;overflow:hidden">
-            <table>
+          <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
               <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag &amp; kvoter</th><th></th></tr></thead>
               <tbody id="shiftDetailTable"></tbody>
             </table>
@@ -562,7 +525,7 @@ setVH(); window.addEventListener('resize',setVH);
             <div class="chip chip-off" onclick="toggleLagChip(this,'F16')">F16</div>
           </div>
         </div>
-        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Mottagare: 124 medlemmar</div>
+        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Mottagare: 105 bokade + 24 obokade</div>
       </div>
 
             <div class="card">
@@ -683,15 +646,23 @@ Hälsningar,
       <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:1.25rem">Inställningar</h2>
       <div class="card">
         <div class="card-title" style="margin-bottom:1rem">Event-inställningar</div>
+        <div class="form-group">
+          <label class="form-label">Eventnamn</label>
+          <input type="text" id="setEventName" value="Åsacupen 2026">
+        </div>
         <div class="inline-2">
           <div class="form-group">
-            <label class="form-label">Eventnamn</label>
-            <input type="text" value="Åsacupen 2026">
+            <label class="form-label">Första eventdag</label>
+            <input type="date" id="setEventStart" value="2026-06-13">
           </div>
           <div class="form-group">
-            <label class="form-label">Sista anmälningsdag</label>
-            <input type="text" value="2026-06-18">
+            <label class="form-label">Sista eventdag</label>
+            <input type="date" id="setEventEnd" value="2026-06-14">
           </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sista anmälningsdag</label>
+          <input type="date" id="setDeadline" value="2026-06-08">
         </div>
         <div class="form-group">
           <label class="form-label">Automatisk påminnelse</label>
@@ -715,12 +686,12 @@ Hälsningar,
           </select>
           <div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5">💡 <strong>Tips:</strong> Räknar ni i timmar kan ni erbjuda både långa och korta pass. Ett kort pass (1–2 tim) gör det lättare för fler att hjälpa till, och enklare att byta eller ta ett extra pass.</div>
         </div>
-        <button class="btn btn-primary" style="margin-top:.5rem">Spara inställningar</button>
+        <button class="btn btn-primary" style="margin-top:.5rem" onclick="saveEventSettings()">Spara inställningar</button>
       </div>
 
       <div class="card">
         <div class="card-title" style="margin-bottom:.5rem">Föreningsprofil</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Visas i föräldravyn och på utskrifter.</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Visas i medlemsvyn och på utskrifter.</p>
         <div class="inline-2">
           <div class="form-group">
             <label class="form-label">Föreningsnamn</label>
@@ -770,7 +741,6 @@ Hälsningar,
         <div id="faqList" style="margin-top:.5rem;display:flex;flex-direction:column;gap:.5rem"></div>
       </div>
 
-
       <div class="card">
         <div class="card-title" style="margin-bottom:.5rem">Integritet &amp; GDPR</div>
         <div class="msg info">Ni är personuppgiftsansvariga för den data ni lägger in. Lagpasset är personuppgiftsbiträde och lagrar data i EU (Frankfurt). Barnens förnamn, lag och förälderns e-post är det enda som lagras. Inga efternamn, personnummer eller adresser krävs.</div>
@@ -788,30 +758,35 @@ Hälsningar,
 <div class="modal-overlay" id="modalAddChild">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Lägg till barn</div>
+      <div class="modal-title">Lägg till deltagare</div>
       <button class="modal-close" onclick="closeModal('modalAddChild')">✕</button>
     </div>
     <div class="form-group">
-      <label class="form-label">Barnets visningsnamn</label>
+      <label class="form-label">Namn (förälder/deltagare)</label>
       <input type="text" id="newChildName" placeholder="Förnamn Efternamn">
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i laglistan. Kan vara påhittat om deltagaren behöver extra integritet.</div>
+    </div>
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Lag</label>
+        <input type="text" id="newChildTeam" placeholder="Ex. P12, F13">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefon</label>
+        <input type="tel" id="newChildPhone" placeholder="070-123 45 67">
+      </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Lag</label>
-      <select id="newChildTeam">
-        <option>FJ – Flickjuniorer</option><option>P13</option><option>P15</option>
-        <option>P18</option><option>F15</option><option>F16</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Förälderns e-postadress</label>
+      <label class="form-label">E-postadress</label>
       <input type="email" id="newChildEmail" placeholder="foralderns@email.se">
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Används för att skicka personlig länk. Visas aldrig för andra föräldrar.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Används för att skicka personlig länk. Visas aldrig för andra.</div>
     </div>
-    
+    <div class="form-group">
+      <label class="form-label">Barnets namn (valfritt)</label>
+      <input type="text" id="newChildKid" placeholder="Barnets förnamn">
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
-      <button class="btn btn-primary" onclick="addChild()">Spara barn</button>
+      <button class="btn btn-primary" onclick="addChild()">Spara</button>
     </div>
   </div>
 </div>
@@ -911,81 +886,52 @@ Hälsningar,
       <div class="modal-title">Skapa nytt pass</div>
       <button class="modal-close" onclick="closeModal('modalAddShift')">✕</button>
     </div>
-    <div class="inline-2">
-      <div class="form-group">
-        <label class="form-label">Passnamn</label>
-        <input type="text" placeholder="Ex. Servering, Infotält…">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Typ</label>
-        <select>
-          <option>Servering</option><option>Infotält</option>
-          <option>Bygg</option><option>Riv</option><option>Nattvakt</option><option>Annat</option>
-        </select>
-      </div>
+    <div class="form-group">
+      <label class="form-label">Passnamn / arbetsställe</label>
+      <input type="text" id="nsTitle" placeholder="Ex. Servering, Parkering, Kiosk…">
     </div>
     <div class="inline-2">
       <div class="form-group">
         <label class="form-label">Dag</label>
-        <select><option>Torsdag</option><option>Fredag</option><option>Lördag</option><option>Lördag natt</option><option>Söndag tidigt</option><option>Söndag</option></select>
+        <select id="nsDay"></select>
       </div>
       <div class="form-group">
-        <label class="form-label">Tid</label>
-        <input type="text" placeholder="09:00–13:00">
+        <label class="form-label">Antal platser</label>
+        <input type="number" id="nsSlots" value="2" min="1">
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Notering (visas för föräldrar)</label>
-      <input type="text" placeholder="Ex. Tag med arbetshandskar, Matsalen…">
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Starttid</label>
+        <input type="time" id="nsStart" value="09:00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sluttid</label>
+        <input type="time" id="nsEnd" value="12:00">
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Var ligger passet? (plats)</label>
-      <input type="text" placeholder="Ex. Kiosken vid plan 2, Infotältet vid entrén…">
+      <input type="text" id="nsLocation" placeholder="Ex. Kiosken vid plan 2, Infotältet vid entrén…">
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i bekräftelsen och tackmejlet så deltagaren vet vart de ska.</div>
     </div>
     <div class="inline-2">
       <div class="form-group">
         <label class="form-label">Kontaktperson vid passet</label>
-        <input type="text" placeholder="Ex. Maria Lindqvist">
+        <input type="text" id="nsContactName" placeholder="Ex. Maria Lindqvist">
       </div>
       <div class="form-group">
         <label class="form-label">Kontaktpersonens telefon</label>
-        <input type="tel" placeholder="070-123 45 67">
+        <input type="tel" id="nsContactPhone" placeholder="070-123 45 67">
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Lag &amp; kvoter</label>
-      <div style="font-size:12.5px;color:var(--muted);margin-bottom:.6rem">Auto = 1 plats per barn i laget. Justera manuellt om ni vill ha fler eller färre.</div>
-      <div id="shiftQuotaRows">
-        <div class="pass-quota-row">
-          <span class="pqr-name">FJ – Flickjuniorer</span>
-          <span class="pqr-auto">Auto: 23</span>
-          <input type="number" class="pqr-input" value="2" min="0" placeholder="0">
-          <span style="font-size:13px;color:var(--muted)">platser</span>
-        </div>
-        <div class="pass-quota-row">
-          <span class="pqr-name">P13</span>
-          <span class="pqr-auto">Auto: 8</span>
-          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
-          <span style="font-size:13px;color:var(--muted)">platser</span>
-        </div>
-        <div class="pass-quota-row">
-          <span class="pqr-name">P15</span>
-          <span class="pqr-auto">Auto: 6</span>
-          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
-          <span style="font-size:13px;color:var(--muted)">platser</span>
-        </div>
-        <div class="pass-quota-row">
-          <span class="pqr-name">F15</span>
-          <span class="pqr-auto">Auto: 9</span>
-          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
-          <span style="font-size:13px;color:var(--muted)">platser</span>
-        </div>
-      </div>
+      <label class="form-label">Notering (visas för deltagare)</label>
+      <input type="text" id="nsNotes" placeholder="Ex. Tag med arbetshandskar">
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddShift')">Avbryt</button>
-      <button class="btn btn-primary">Skapa pass</button>
+      <button class="btn btn-primary" onclick="createShift()">Skapa pass</button>
     </div>
   </div>
 </div>
@@ -1024,11 +970,11 @@ Hälsningar,
       <button class="modal-close" onclick="closeModal('modalSendLinks')">✕</button>
     </div>
     <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1rem">Varje förälder får en unik länk via e-post. Länken är kopplad till deras barn och visar bara deras lags pass.</p>
-    <div class="msg info">124 föräldrar i systemet · 67 har valt pass · <strong>57 har inte valt pass ännu</strong></div>
+    <div class="msg info">124 medlemmar i systemet · 67 har valt pass · <strong>57 har inte valt pass ännu</strong></div>
     <div class="form-group">
       <label class="form-label">Skicka till</label>
       <select>
-        <option>Alla föräldrar (124 st)</option>
+        <option>Alla medlemmar (124 st)</option>
         <option>Bara de som inte valt pass ännu (57 st)</option>
       </select>
     </div>
@@ -1050,31 +996,163 @@ Hälsningar,
       <div class="modal-title">🖨️ Skriv ut lista</div>
       <button class="modal-close" onclick="closeModal('modalPrint')">✕</button>
     </div>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:1rem">Välj vad du vill skriva ut. Varje arbetsställe får en egen sida med namn och telefon.</p>
-    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.1rem">
-      <label class="checkbox-row"><input type="checkbox" checked><label>Servering – alla pass</label></label>
-      <label class="checkbox-row"><input type="checkbox" checked><label>Infotält – alla pass</label></label>
-      <label class="checkbox-row"><input type="checkbox" checked><label>Bygg & Riv</label></label>
-      <label class="checkbox-row"><input type="checkbox" checked><label>Nattvakt</label></label>
-    </div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:1rem">Välj vilka arbetsställen du vill skriva ut. Varje arbetsställe får en egen sida med pass, namn och telefon.</p>
+    <div id="printOptions" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.1rem"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalPrint')">Avbryt</button>
-      <button class="btn btn-primary" onclick="window.print()">Skriv ut →</button>
+      <button class="btn btn-primary" onclick="doPrint()">Skriv ut →</button>
     </div>
   </div>
 </div>
 
 <script>
 // ═══════════════════════════════════════
-// DEMO DATA
+// SUPABASE – koppling
+// ═══════════════════════════════════════
+const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
+const EVENT_ID = '00000000-0000-0000-0000-000000000002';
+
+async function sbFetch(table, params) {
+  params = params || '';
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + params, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!res.ok) throw new Error('Supabase error: ' + res.status);
+  return res.json();
+}
+
+async function sbInsert(table, data) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Supabase insert error: ' + res.status);
+  return res.json();
+}
+
+async function sbDelete(table, id) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + id, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    }
+  });
+  if (!res.ok) throw new Error('Supabase delete error: ' + res.status);
+}
+
+async function sbUpdate(table, id, data) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + id, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Supabase update error: ' + res.status);
+  return res.json();
+}
+
+// Eventets data (datum etc)
+let EVENT = null;
+
+// Generera lista av dagar mellan två datum: [{value:'2026-06-13', label:'Lördag 13/6'}, ...]
+function getEventDays(){
+  if(!EVENT || !EVENT.date_start) return [];
+  const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  const start = new Date(EVENT.date_start);
+  const end = new Date(EVENT.date_end || EVENT.date_start);
+  const days = [];
+  let cur = new Date(start);
+  while(cur <= end){
+    const value = cur.toISOString().slice(0,10);
+    const label = dayNames[cur.getDay()] + ' ' + cur.getDate() + '/' + (cur.getMonth()+1);
+    days.push({value, label});
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+}
+
+async function loadEvent(){
+  try {
+    const events = await sbFetch('events', '?id=eq.' + EVENT_ID);
+    if(events.length) EVENT = events[0];
+  } catch(e){ console.error('Event-fel:', e); }
+}
+
+function fillEventSettings(){
+  if(!EVENT) return;
+  const setVal = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+  setVal('setEventName', EVENT.name);
+  setVal('setEventStart', EVENT.date_start);
+  setVal('setEventEnd', EVENT.date_end);
+}
+
+async function saveEventSettings(){
+  const name = document.getElementById('setEventName').value.trim();
+  const start = document.getElementById('setEventStart').value;
+  const end = document.getElementById('setEventEnd').value;
+  if(!name || !start){ alert('Fyll i eventnamn och första eventdag.'); return; }
+  if(end && end < start){ alert('Sista eventdagen kan inte vara före första.'); return; }
+  try {
+    await sbUpdate('events', EVENT_ID, { name, date_start: start, date_end: end || start });
+    EVENT.name = name; EVENT.date_start = start; EVENT.date_end = end || start;
+    showToast('Event-inställningar sparade');
+  } catch(e){
+    showToast('Kunde inte spara', 'error');
+  }
+}
+
+let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [] };
+
+async function loadFromDB() {
+  try {
+    const allShifts = await sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&select=id');
+    const shiftIds = allShifts.map(function(s){ return s.id; });
+    const [shifts, bookings, participants, pool, contacts] = await Promise.all([
+      sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&order=date.asc,time_start.asc'),
+      shiftIds.length ? sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')') : Promise.resolve([]),
+      sbFetch('participants', '?event_id=eq.' + EVENT_ID + '&order=team.asc,name.asc'),
+      sbFetch('pool_members', '?event_id=eq.' + EVENT_ID + '&order=name.asc'),
+      sbFetch('contacts', '?event_id=eq.' + EVENT_ID + '&order=sort_order.asc')
+    ]);
+    DB.shifts = shifts;
+    DB.bookings = bookings;
+    DB.participants = participants;
+    DB.pool = pool;
+    DB.contacts = contacts;
+    console.log('DB laddat:', DB.shifts.length, 'pass,', DB.participants.length, 'deltagare');
+  } catch(e) {
+    console.error('DB-fel:', e);
+  }
+}
+
+// ═══════════════════════════════════════
+// DEMO DATA – Åsacupen 2026 (28–29 juni)
 // ═══════════════════════════════════════
 const TEAMS = [
-  {id:"FJ",  name:"FJ – Flickjuniorer", children:23, quota:23, booked:6},
-  {id:"P13", name:"P13",                children:8,  quota:8,  booked:4},
-  {id:"P15", name:"P15",                children:6,  quota:6,  booked:2},
-  {id:"P18", name:"P18",                children:10, quota:10, booked:8},
-  {id:"F15", name:"F15",                children:9,  quota:9,  booked:5},
-  {id:"F16", name:"F16",                children:10, quota:10, booked:7},
+  {id:"FJ",  name:"FJ – Flickjuniorer",  children:23, quota:23, booked:19},
+  {id:"P09", name:"P09",                  children:16, quota:16, booked:14},
+  {id:"P10", name:"P10",                  children:14, quota:14, booked:11},
+  {id:"P11", name:"P11",                  children:18, quota:18, booked:15},
+  {id:"P12", name:"P12",                  children:15, quota:15, booked:12},
+  {id:"P13", name:"P13",                  children:12, quota:12, booked:10},
+  {id:"F11", name:"F11",                  children:14, quota:14, booked:11},
+  {id:"F13", name:"F13",                  children:16, quota:16, booked:13},
 ];
 
 const CHILDREN = [
@@ -1097,6 +1175,7 @@ const CHILDREN = [
   {id:"f03",name:"Saga Pettersson",    team:"F11", email:"petra.p@gmail.com",        protected:false, booked:true,  linkSent:true, pass:"Parkering · Sön 07–12"},
 ];
 
+// Åsacupen 2026 – passschema (28–29 juni)
 
 const CONTACTS = [
   {id:"k00", area:"Schemaansvarig (frågor om pass & schema)", name:"Lena Sandberg", email:"lena.sandberg@asaif.com", phone:"070-123 45 67", isScheduler:true},
@@ -1122,11 +1201,29 @@ const POOL = [
 ];
 
 const SHIFTS_DATA = [
-  {id:"s01",title:"Servering",       day:"Fredag",  time:"08:30–12:45", type:"servering", total:7,  taken:2, teams:["F15","F16","P18"]},
-  {id:"s06",title:"Servering",       day:"Lördag",  time:"09:00–13:00", type:"servering", total:17, taken:5, teams:["FJ","F15","F16","P18","P13"]},
-  {id:"i01",title:"Infotält",        day:"Fredag",  time:"09:00–13:00", type:"infotalt",  total:2,  taken:0, teams:["FJ","P15"]},
-  {id:"b01",title:"Bygg – tält",     day:"Torsdag", time:"18:00–klart", type:"bygg",      total:28, taken:3, teams:["FJ","F15","F16","P13","P15","P18"]},
-  {id:"n01",title:"Nattvakt",        day:"Lör natt",time:"21:00–02:00", type:"nattvakt",  total:4,  taken:1, teams:["FJ"]},
+  // BYGG & RIV
+  {id:"b01",title:"Bygg – rigga plan",  day:"Torsdag", time:"17:00–20:00", type:"bygg",      total:20, taken:18, teams:["FJ","P11","P12","F13"]},
+  {id:"b02",title:"Bygg – tält & bord", day:"Torsdag", time:"17:00–20:00", type:"bygg",      total:15, taken:14, teams:["P09","P10","P13","F11"]},
+  {id:"r01",title:"Riv & städa",        day:"Söndag",  time:"17:00–20:00", type:"bygg",      total:30, taken:21, teams:["FJ","P09","P10","P11","P12","P13","F11","F13"]},
+  // SERVERING
+  {id:"s01",title:"Servering – kiosk",  day:"Lördag",  time:"08:00–12:00", type:"servering", total:6,  taken:6,  teams:["F13","P12"]},
+  {id:"s02",title:"Servering – kiosk",  day:"Lördag",  time:"12:00–16:00", type:"servering", total:6,  taken:5,  teams:["F11","P11"]},
+  {id:"s03",title:"Servering – kiosk",  day:"Söndag",  time:"08:00–12:00", type:"servering", total:6,  taken:4,  teams:["FJ","P13"]},
+  {id:"s04",title:"Servering – kiosk",  day:"Söndag",  time:"12:00–16:00", type:"servering", total:6,  taken:3,  teams:["P09","P10"]},
+  {id:"s05",title:"Servering – grill",  day:"Lördag",  time:"11:00–15:00", type:"servering", total:4,  taken:4,  teams:["P12","F13"]},
+  {id:"s06",title:"Servering – grill",  day:"Söndag",  time:"11:00–15:00", type:"servering", total:4,  taken:3,  teams:["P11","F11"]},
+  // INFOTÄLT
+  {id:"i01",title:"Infotält",           day:"Lördag",  time:"08:00–13:00", type:"infotalt",  total:3,  taken:3,  teams:["FJ","P11"]},
+  {id:"i02",title:"Infotält",           day:"Lördag",  time:"13:00–18:00", type:"infotalt",  total:3,  taken:2,  teams:["P12","F13"]},
+  {id:"i03",title:"Infotält",           day:"Söndag",  time:"08:00–13:00", type:"infotalt",  total:3,  taken:3,  teams:["F11","P13"]},
+  {id:"i04",title:"Infotält",           day:"Söndag",  time:"13:00–17:00", type:"infotalt",  total:3,  taken:2,  teams:["P09","P10"]},
+  // PARKERING
+  {id:"pk1",title:"Parkering",          day:"Lördag",  time:"07:30–12:00", type:"annat",     total:4,  taken:4,  teams:["P09","P10"]},
+  {id:"pk2",title:"Parkering",          day:"Lördag",  time:"12:00–17:00", type:"annat",     total:4,  taken:3,  teams:["P13","FJ"]},
+  {id:"pk3",title:"Parkering",          day:"Söndag",  time:"07:30–12:00", type:"annat",     total:4,  taken:4,  teams:["F11","F13"]},
+  {id:"pk4",title:"Parkering",          day:"Söndag",  time:"12:00–17:00", type:"annat",     total:4,  taken:2,  teams:["P11","P12"]},
+  // NATTVAKT
+  {id:"n01",title:"Nattvakt",           day:"Lör natt",time:"22:00–06:00", type:"nattvakt",  total:4,  taken:4,  teams:["FJ"]},
 ];
 
 const TYPE_COLORS={servering:"badge-green",infotalt:"badge-gray",bygg:"badge-amber",riv:"badge-gray",nattvakt:"badge-red",annat:"badge-gray"};
@@ -1141,7 +1238,9 @@ function showSection(id){
   const sec = document.getElementById('sec-'+id);
   if(sec) sec.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  // Markera rätt nav-item om anropet kom från ett klick
   try { if(event && event.currentTarget) event.currentTarget.classList.add('active'); } catch(e){}
+  // Fallback: markera via onclick-attribut
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
@@ -1193,6 +1292,32 @@ function renderDashboard(){
 
 // Aggregera SHIFTS_DATA per station (type)
 function getStationStats(){
+  if(DB.shifts.length > 0){
+    // DB-driven
+    const iconMap = {'Servering':'🍽️','Parkering':'🅿️','Kiosk':'🛒','Resultatrapportering':'📋','Bygg':'🔨','Nattvakt':'🌙','Infotält':'ℹ️'};
+    const stations = {};
+    DB.shifts.forEach(s=>{
+      const key = s.title;
+      const taken = DB.bookings.filter(b=>b.shift_id===s.id).length;
+      const total = s.slots;
+      if(!stations[key]) stations[key] = {name:key, icon:iconMap[key]||'📌', cat:key.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').replace(/\s+/g,'-'), total:0, taken:0, shifts:0, weakest:null};
+      stations[key].total += total;
+      stations[key].taken += taken;
+      stations[key].shifts += 1;
+      const pct = total>0 ? taken/total : 0;
+      if(!stations[key].weakest || pct < stations[key].weakest.pct){
+        const d = new Date(s.date);
+        const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+        stations[key].weakest = {day:days[d.getDay()], time:s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5), pct, taken, total};
+      }
+    });
+    return Object.values(stations).map(st=>{
+      st.pct = st.total>0 ? Math.round(st.taken/st.total*100) : 0;
+      st.color = st.pct>=90 ? 'green' : st.pct>=60 ? 'amber' : 'red';
+      return st;
+    }).sort((a,b)=>a.pct-b.pct);
+  }
+  // Fallback hårdkodad
   const stationMeta = {
     servering: {name:'Servering', icon:'🍽️', cat:'servering'},
     infotalt:  {name:'Infotält',  icon:'ℹ️', cat:'infotalt'},
@@ -1216,7 +1341,7 @@ function getStationStats(){
     st.pct = Math.round(st.taken/st.total*100);
     st.color = st.pct>=90 ? 'green' : st.pct>=60 ? 'amber' : 'red';
     return st;
-  }).sort((a,b)=>a.pct-b.pct); // lägst (rött) överst
+  }).sort((a,b)=>a.pct-b.pct);
 }
 
 function renderStationOverview(){
@@ -1347,72 +1472,107 @@ function renderAttention(){
 // BARN-TABELL
 // ═══════════════════════════════════════
 function renderChildTable(){
-  const search = document.getElementById('childSearch').value.toLowerCase();
-  const teamFilter = document.getElementById('childTeamFilter').value;
-  const statusFilter = document.getElementById('childStatusFilter').value;
+  const search = (document.getElementById('childSearch')||{}).value ? document.getElementById('childSearch').value.toLowerCase() : '';
+  const teamFilter = (document.getElementById('childTeamFilter')||{}).value || '';
+  const statusFilter = (document.getElementById('childStatusFilter')||{}).value || '';
 
-  const filtered = CHILDREN.filter(c=>{
-    if(search && !c.name.toLowerCase().includes(search)) return false;
-    if(teamFilter && !c.team.includes(teamFilter.split(' ')[0])) return false;
-    if(statusFilter==='booked' && !c.booked) return false;
-    if(statusFilter==='pending' && c.booked) return false;
-    if(statusFilter==='admin' && !c.assignedByAdmin) return false;
+  const source = DB.participants.length ? DB.participants : CHILDREN;
+  const useDB = DB.participants.length > 0;
+
+  const filtered = source.filter(c=>{
+    const name = useDB ? c.name : c.name;
+    const team = useDB ? c.team : c.team;
+    const booked = useDB ? DB.bookings.some(b => b.participant_id === c.id) : c.booked;
+    if(search && !name.toLowerCase().includes(search)) return false;
+    if(teamFilter && !team.includes(teamFilter.split(' ')[0])) return false;
+    if(statusFilter==='booked' && !booked) return false;
+    if(statusFilter==='pending' && booked) return false;
     return true;
   });
 
-  document.getElementById('childTable').innerHTML = filtered.map(c=>`<tr>
-    <td>
-      <div style="display:flex;align-items:center;gap:.6rem">
-        <div style="width:30px;height:30px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">
-          ${c.name.split(' ').map(w=>w[0]).slice(0,2).join('')}
+  document.getElementById('childTable').innerHTML = filtered.map(c=>{
+    const booked = useDB ? DB.bookings.some(b => b.participant_id === c.id) : c.booked;
+    const booking = useDB ? DB.bookings.find(b => b.participant_id === c.id) : null;
+    const shift = booking ? DB.shifts.find(s => s.id === booking.shift_id) : null;
+    let passText = '–';
+    if(useDB && shift){
+      const d = new Date(shift.date);
+      const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+      passText = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5);
+    } else if(!useDB){
+      passText = c.pass || '–';
+    }
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">
+            ${c.name.split(' ').map(w=>w[0]).slice(0,2).join('')}
+          </div>
+          <div>
+            <div style="font-weight:600;color:var(--dark)">${c.name}</div>
+            ${useDB && c.email ? '<div style="font-size:11px;color:var(--muted)">' + c.email + '</div>' : ''}
+          </div>
         </div>
-        <div>
-          <div style="font-weight:600;color:var(--dark)">${c.name}</div>
-          ${c.assignedByAdmin?'<div class="badge badge-protected" style="margin-top:2px">Tilldelad av admin</div>':''}
-        </div>
-      </div>
-    </td>
-    <td class="td-muted">${c.team}</td>
-    <td style="font-size:13px;color:var(--text)">${c.pass||'<span style="color:var(--muted)">–</span>'}</td>
-    <td>${c.booked?'<span class="badge badge-green">Pass valt ✓</span>':'<span class="badge badge-amber">Inget pass</span>'}</td>
-    <td>${c.linkSent?'<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>':'<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>'}</td>
-  </tr>`).join('');
+      </td>
+      <td class="td-muted">${c.team || '–'}</td>
+      <td style="font-size:13px;color:var(--text)">${passText !== '–' ? passText : '<span style="color:var(--muted)">–</span>'}</td>
+      <td>${booked ? '<span class="badge badge-green">Pass valt ✓</span>' : '<span class="badge badge-amber">Inget pass</span>'}</td>
+      <td>${useDB ? (c.phone ? '<span style="font-size:12.5px;color:var(--green)">' + c.phone + '</span>' : '<span style="color:var(--muted)">–</span>') : (c.linkSent ? '<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>' : '<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>')}</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderPoolTable(){
   const el = document.getElementById('poolTable');
   if(!el) return;
-  el.innerHTML = POOL.map(p=>{
-    const assigned = p.assigned && p.assigned !== '–'
-      ? `<span class="badge badge-green">${p.assigned}</span>`
-      : `<button class="btn btn-ghost btn-sm" onclick="demoBlock&&demoBlock()">Tilldela pass +</button>`;
+  const source = DB.pool.length ? DB.pool : POOL;
+  const useDB = DB.pool.length > 0;
+  el.innerHTML = source.map(p=>{
+    const name = p.name;
+    const team = p.team || '–';
+    const phone = p.phone || '–';
+    const can = useDB ? (p.notes || 'Alla pass') : p.can;
+    const assignedBadge = useDB
+      ? '<button class="btn btn-ghost btn-sm">Tilldela pass +</button>'
+      : (p.assigned && p.assigned !== '–'
+          ? '<span class="badge badge-green">' + p.assigned + '</span>'
+          : '<button class="btn btn-ghost btn-sm">Tilldela pass +</button>');
     return `<tr>
       <td>
         <div style="display:flex;align-items:center;gap:.6rem">
-          <div style="width:30px;height:30px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
-          <div style="font-weight:600;color:var(--dark)">${p.name}</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">${name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+          <div style="font-weight:600;color:var(--dark)">${name}</div>
         </div>
       </td>
-      <td class="td-muted">${p.team}</td>
-      <td style="font-size:12.5px;color:var(--text)">${p.can}</td>
-      <td class="td-muted" style="font-size:13px">${p.phone}</td>
-      <td>${assigned}</td>
+      <td class="td-muted">${team}</td>
+      <td style="font-size:12.5px;color:var(--text)">${can}</td>
+      <td class="td-muted" style="font-size:13px">${phone}</td>
+      <td>${assignedBadge}</td>
     </tr>`;
   }).join('');
 }
 
-function renderContactsTable(){
+function renderContactsSettings(){
   const el = document.getElementById('contactsTable');
   if(!el) return;
-  el.innerHTML = CONTACTS.map(k=>
-    `<tr>
-      <td style="font-weight:600;color:var(--dark)">${k.area}</td>
-      <td class="td-muted">${k.name}</td>
-      <td style="font-size:12.5px"><a href="mailto:${k.email}" style="color:var(--green);text-decoration:none">${k.email}</a><br><span style="color:var(--muted)">${k.phone}</span></td>
-      <td><button class="btn btn-ghost btn-sm" onclick="demoBlock&&demoBlock()">✏️</button></td>
-    </tr>`
-  ).join('');
+  const source = DB.contacts.length ? DB.contacts : CONTACTS;
+  const useDB = DB.contacts.length > 0;
+  if(source.length === 0){
+    el.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:1rem">Inga kontaktpersoner tillagda ännu.</td></tr>';
+    return;
+  }
+  el.innerHTML = source.map(k=>`<tr>
+    <td style="font-weight:600;color:var(--dark)">${k.area}</td>
+    <td class="td-muted">${k.name}</td>
+    <td style="font-size:12.5px">
+      <a href="mailto:${k.email||''}" style="color:var(--green);text-decoration:none">${k.email||'–'}</a><br>
+      <span style="color:var(--muted)">${k.phone||'–'}</span>
+    </td>
+    <td><button class="btn btn-ghost btn-sm">✏️</button></td>
+  </tr>`).join('');
 }
+
+function renderContactsTable(){ renderContactsSettings(); }
 
 function renderFaqList(){
   const el = document.getElementById('faqList');
@@ -1431,53 +1591,300 @@ function renderFaqList(){
   ).join('');
 }
 
+
+
+
 // ═══════════════════════════════════════
 // PASS-TABELL
 // ═══════════════════════════════════════
 function renderShiftTable(){
-  document.getElementById('shiftTable').innerHTML = SHIFTS_DATA.map(s=>{
-    const free=s.total-s.taken, pct=Math.round(s.taken/s.total*100);
-    const tc=TYPE_COLORS[s.type]||'badge-gray';
-    return `<tr>
-      <td class="td-name">${s.title}</td>
-      <td class="td-muted">${s.day}</td>
-      <td class="td-muted">${s.time}</td>
-      <td><span class="badge ${tc}">${s.type}</span></td>
+  if(!document.getElementById('shiftTable')) return;
+  const shifts = DB.shifts.length ? DB.shifts : SHIFTS_DATA;
+  const useDB = DB.shifts.length > 0;
+
+  document.getElementById('shiftTable').innerHTML = shifts.map(s=>{
+    let taken, total, title, day, time, location;
+    if(useDB){
+      // Data från Supabase
+      const bookingsForShift = DB.bookings.filter(b => b.shift_id === s.id);
+      taken = bookingsForShift.length;
+      total = s.slots;
+      title = s.title;
+      location = s.location || '';
+      const d = new Date(s.date);
+      const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+      day = days[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+      time = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+    } else {
+      taken = s.taken; total = s.total; title = s.title;
+      day = s.day; time = s.time; location = '';
+    }
+    const free = total - taken;
+    const pct = total > 0 ? Math.round(taken/total*100) : 0;
+    return `<tr onclick="expandShiftRow(this, '${s.id}')" style="cursor:pointer">
+      <td class="td-name">${title}${location ? '<br><span style="font-size:11px;color:var(--muted)">' + location + '</span>' : ''}</td>
+      <td class="td-muted">${day}</td>
+      <td class="td-muted">${time}</td>
       <td>
         <div style="display:flex;align-items:center;gap:.4rem">
           <div class="progress-bar" style="width:70px"><div class="progress-fill${pct<30?' danger':pct<60?' warn':''}" style="width:${pct}%"></div></div>
-          <span style="font-size:12.5px;color:var(--muted)">${s.taken}/${s.total}</span>
+          <span style="font-size:12.5px;color:var(--muted)">${taken}/${total}</span>
         </div>
       </td>
-      <td style="font-size:12.5px;color:var(--muted)">${s.teams.join(', ')}</td>
       <td>
         <div style="display:flex;gap:4px">
-          <button class="btn btn-ghost btn-sm btn-icon" title="Redigera">✏️</button>
-          <button class="btn btn-danger btn-sm btn-icon" title="Ta bort">🗑</button>
+          <button class="btn btn-ghost btn-sm btn-icon" title="Redigera" onclick="event.stopPropagation()">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" title="Ta bort" onclick="event.stopPropagation();deleteShift('${s.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>
+    <tr class="shift-detail-row" id="detail-${s.id}" style="display:none">
+      <td colspan="5" style="padding:0">
+        <div id="detail-content-${s.id}" style="padding:.75rem 1rem;background:#f8fbf8;border-top:1px solid var(--border)">
+          Laddar...
         </div>
       </td>
     </tr>`;
   }).join('');
 }
 
+function expandShiftRow(row, shiftId){
+  const detailRow = document.getElementById('detail-' + shiftId);
+  const isOpen = detailRow.style.display !== 'none';
+  // Stäng alla öppna
+  document.querySelectorAll('.shift-detail-row').forEach(r => r.style.display = 'none');
+  if(isOpen) return;
+  detailRow.style.display = '';
+  renderShiftDetailInline(shiftId);
+}
 
+function renderShiftDetailInline(shiftId){
+  const content = document.getElementById('detail-content-' + shiftId);
+  const shift = DB.shifts.find(s => s.id === shiftId);
+  const bookings = DB.bookings.filter(b => b.shift_id === shiftId);
+  const participants = bookings.map(b => {
+    const p = DB.participants.find(p => p.id === b.participant_id);
+    return p ? {...p, ...b} : {name: b.display_name || 'Okänd', team:'–', phone:'', email:''};
+  });
+  const free = (shift ? shift.slots : 0) - bookings.length;
+  let html = '<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem">';
+  participants.forEach(p => {
+    html += `<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.4rem .75rem;font-size:13px">
+      <strong>${p.name}</strong> <span style="color:var(--muted)">${p.team || ''}</span><br>
+      ${p.phone ? '<a href="tel:' + p.phone + '" style="color:var(--green);text-decoration:none">📞 ' + p.phone + '</a> ' : ''}
+      ${p.email ? '<a href="mailto:' + p.email + '" style="color:var(--green);text-decoration:none">✉️ ' + p.email + '</a>' : ''}
+    </div>`;
+  });
+  for(let i=0; i<free; i++){
+    html += `<div style="background:#fff;border:1.5px dashed var(--border);border-radius:8px;padding:.4rem .75rem;font-size:13px;color:var(--muted)">
+      Ledig plats <button class="btn btn-ghost btn-sm" onclick="showSection('pool')" style="font-size:11px;margin-left:.5rem">Fyll från pool</button>
+    </div>`;
+  }
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+async function deleteShift(id){
+  if(!confirm('Ta bort passet?')) return;
+  try {
+    await sbDelete('shifts', id);
+    DB.shifts = DB.shifts.filter(s => s.id !== id);
+    DB.bookings = DB.bookings.filter(b => b.shift_id !== id);
+    renderShiftTable();
+    renderDashboard();
+    showToast('Passet borttaget');
+  } catch(e) {
+    showToast('Kunde inte ta bort passet', 'error');
+  }
+}
 
 // ═══════════════════════════════════════
 // MODALER
 // ═══════════════════════════════════════
-function openModal(id){ document.getElementById(id).classList.add('open'); }
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id === 'modalPrint') buildPrintOptions();
+  if(id === 'modalAddShift') fillNewShiftDays();
+}
+
+function fillNewShiftDays(){
+  const sel = document.getElementById('nsDay');
+  if(!sel) return;
+  const days = getEventDays();
+  if(days.length === 0){
+    sel.innerHTML = '<option value="">Ange eventdatum i Inställningar först</option>';
+    return;
+  }
+  sel.innerHTML = days.map(d => '<option value="' + d.value + '">' + d.label + '</option>').join('');
+}
+
+async function createShift(){
+  const title = document.getElementById('nsTitle').value.trim();
+  const date = document.getElementById('nsDay').value;
+  const slots = parseInt(document.getElementById('nsSlots').value) || 1;
+  const start = document.getElementById('nsStart').value;
+  const end = document.getElementById('nsEnd').value;
+  const location = document.getElementById('nsLocation').value.trim();
+  const contactName = document.getElementById('nsContactName').value.trim();
+  const contactPhone = document.getElementById('nsContactPhone').value.trim();
+  const notes = document.getElementById('nsNotes').value.trim();
+
+  if(!title){ alert('Ange ett passnamn.'); return; }
+  if(!date){ alert('Välj en dag. (Ange eventets datum i Inställningar om listan är tom.)'); return; }
+  if(!start || !end){ alert('Ange start- och sluttid.'); return; }
+
+  try {
+    const result = await sbInsert('shifts', {
+      event_id: EVENT_ID,
+      title: title,
+      date: date,
+      time_start: start,
+      time_end: end,
+      slots: slots,
+      location: location || null,
+      contact_name: contactName || null,
+      contact_phone: contactPhone || null,
+      notes: notes || null
+    });
+    // Lägg till i lokal DB
+    if(result && result.length) DB.shifts.push(result[0]);
+    DB.shifts.sort((a,b) => (a.date + a.time_start).localeCompare(b.date + b.time_start));
+    closeModal('modalAddShift');
+    renderShiftTable();
+    renderDashboard();
+    showToast('Passet skapat!');
+    // Rensa formuläret
+    document.getElementById('nsTitle').value = '';
+    document.getElementById('nsLocation').value = '';
+    document.getElementById('nsContactName').value = '';
+    document.getElementById('nsContactPhone').value = '';
+    document.getElementById('nsNotes').value = '';
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte skapa passet', 'error');
+  }
+}
+
+function buildPrintOptions(){
+  const el = document.getElementById('printOptions');
+  if(!el) return;
+  // Unika arbetsställen från DB
+  const stations = [...new Set(DB.shifts.map(s => s.title))];
+  if(stations.length === 0){
+    el.innerHTML = '<div style="color:var(--muted);font-style:italic">Inga pass att skriva ut.</div>';
+    return;
+  }
+  el.innerHTML = stations.map(st =>
+    '<label class="checkbox-row"><input type="checkbox" value="' + st + '" checked><label>' + st + ' – alla pass</label></label>'
+  ).join('');
+}
+
+function doPrint(){
+  const checked = Array.from(document.querySelectorAll('#printOptions input:checked')).map(c => c.value);
+  if(checked.length === 0){ alert('Välj minst ett arbetsställe.'); return; }
+
+  const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  let html = '<html><head><meta charset="utf-8"><title>Passlista – Åsacupen 2026</title>';
+  html += '<style>';
+  html += 'body{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;margin:0;padding:0}';
+  html += '.station-page{padding:2.5rem;page-break-after:always}';
+  html += '.station-page:last-child{page-break-after:auto}';
+  html += 'h1{font-size:24px;margin:0 0 4px}';
+  html += '.sub{color:#666;font-size:14px;margin-bottom:1.5rem}';
+  html += '.shift{margin-bottom:1.75rem;border:1px solid #ddd;border-radius:8px;overflow:hidden}';
+  html += '.shift-head{background:#1a8c3a;color:#fff;padding:.6rem 1rem;font-weight:bold;font-size:15px;display:flex;justify-content:space-between}';
+  html += '.shift-meta{font-weight:normal;font-size:13px}';
+  html += 'table{width:100%;border-collapse:collapse}';
+  html += 'td,th{text-align:left;padding:.5rem 1rem;border-bottom:1px solid #eee;font-size:14px}';
+  html += 'th{background:#f4f7f4;font-size:12px;text-transform:uppercase;color:#666}';
+  html += '.empty{color:#aaa;font-style:italic}';
+  html += '.contact{font-size:13px;color:#444;margin-top:.3rem}';
+  html += '@media print{.station-page{padding:1.5rem}}';
+  html += '</style></head><body>';
+
+  checked.forEach(station => {
+    const shifts = DB.shifts.filter(s => s.title === station)
+      .sort((a,b) => (a.date + a.time_start).localeCompare(b.date + b.time_start));
+    html += '<div class="station-page">';
+    html += '<h1>' + station + '</h1>';
+    html += '<div class="sub">Åsacupen 2026 · Åsa IF</div>';
+
+    shifts.forEach(s => {
+      const bookings = DB.bookings.filter(b => b.shift_id === s.id);
+      const d = new Date(s.date);
+      const dag = dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+      const tid = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+      html += '<div class="shift">';
+      html += '<div class="shift-head"><span>' + dag + ' · ' + tid + (s.location ? ' · ' + s.location : '') + '</span>';
+      html += '<span class="shift-meta">' + bookings.length + '/' + s.slots + ' platser</span></div>';
+      html += '<table><thead><tr><th>Namn</th><th>Lag</th><th>Telefon</th></tr></thead><tbody>';
+      bookings.forEach(b => {
+        const p = DB.participants.find(p => p.id === b.participant_id);
+        const name = p ? p.name : (b.display_name || 'Okänd');
+        html += '<tr><td>' + name + '</td><td>' + (p && p.team ? p.team : '–') + '</td><td>' + (p && p.phone ? p.phone : '–') + '</td></tr>';
+      });
+      const free = s.slots - bookings.length;
+      for(let i=0; i<free; i++){
+        html += '<tr><td class="empty">___________________</td><td class="empty">___</td><td class="empty">___________</td></tr>';
+      }
+      html += '</tbody></table>';
+      if(s.contact_name){
+        html += '<div class="contact" style="padding:.5rem 1rem">Ansvarig: <strong>' + s.contact_name + '</strong>' + (s.contact_phone ? ' · ' + s.contact_phone : '') + '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  html += '</body></html>';
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 300);
+  closeModal('modalPrint');
+}
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
 });
 
+// (skyddad identitet borttagen – ersatt av manuell tilldelning)
 
-
-function addChild(){
+async function addChild(){
   const name=document.getElementById('newChildName').value.trim();
-  if(!name){alert('Ange barnets namn.');return;}
-  closeModal('modalAddChild');
-  // I produktion: supabase insert
+  const team=document.getElementById('newChildTeam').value.trim();
+  const phone=document.getElementById('newChildPhone').value.trim();
+  const email=document.getElementById('newChildEmail').value.trim();
+  const kid=document.getElementById('newChildKid').value.trim();
+  if(!name){alert('Ange deltagarens namn.');return;}
+  if(!email){alert('Ange en e-postadress.');return;}
+  try {
+    const token = 'tok-' + Math.random().toString(36).slice(2,12);
+    const result = await sbInsert('participants', {
+      event_id: EVENT_ID,
+      name: name,
+      email: email,
+      phone: phone || null,
+      team: team || null,
+      child_name: kid || null,
+      token: token
+    });
+    if(result && result.length) DB.participants.push(result[0]);
+    DB.participants.sort((a,b)=>(a.team||'').localeCompare(b.team||'') || a.name.localeCompare(b.name));
+    closeModal('modalAddChild');
+    renderChildTable();
+    renderDashboard();
+    showToast('Deltagare tillagd');
+    document.getElementById('newChildName').value='';
+    document.getElementById('newChildTeam').value='';
+    document.getElementById('newChildPhone').value='';
+    document.getElementById('newChildEmail').value='';
+    document.getElementById('newChildKid').value='';
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte lägga till deltagaren', 'error');
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1494,7 +1901,7 @@ function toggleLagChip(el,val){
   updateRecipientCount();
 }
 function updateRecipientCount(){
-  document.getElementById('recipientCount').textContent='Mottagare: 124 medlemmar (demo)';
+  document.getElementById('recipientCount').textContent='Mottagare: 105 bokade + 24 obokade (demo)';
 }
 function sendEmail(){
   document.getElementById('emailSentMsg').style.display='block';
@@ -1523,11 +1930,11 @@ function demoBlock(){
 }
 
 function closeDemoWelcome(){
-  document.getElementById('demoWelcome').style.display = 'none';
+  const el = document.getElementById('demoWelcome');
+  if(el) el.style.display = 'none';
 }
 
 // Block all save/send actions in demo
-function addChild(){ demoBlock(); closeModal('modalAddChild'); }
 function sendLinks(){ demoBlock(); closeModal('modalSendLinks'); }
 function sendEmail(){ demoBlock(); }
 function previewEmail(){ demoBlock(); }
@@ -1684,48 +2091,82 @@ function mailInstructions() {
 const categoryData = {
   servering: {
     title: 'Servering',
-    days: ['Alla','Fredag','Lördag','Söndag'],
+    days: ['Alla','Lördag','Söndag'],
     shifts: [
-      {dag:'Fredag', tid:'08:30–12:45', platser:'2/7', lag:'F15, F16, P18', pct:29, color:'#c0392b'},
-      {dag:'Lördag', tid:'09:00–13:00', platser:'5/17', lag:'FJ, F15, F16, P18, P13', pct:29, color:'#c0392b'},
-      {dag:'Lördag', tid:'16:30–20:30', platser:'38/42', lag:'FJ, P13, P15', pct:90, color:'#1a8c3a'},
-      {dag:'Söndag', tid:'10:00–14:00', platser:'30/32', lag:'F15, F16', pct:94, color:'#1a8c3a'},
+      {dag:'Lördag', tid:'08:00–12:00', platser:'6/6',  lag:'F13, P12',  pct:100, color:'#1a8c3a'},
+      {dag:'Lördag', tid:'12:00–16:00', platser:'5/6',  lag:'F11, P11',  pct:83,  color:'#1a8c3a'},
+      {dag:'Lördag', tid:'11:00–15:00', platser:'4/4',  lag:'P12, F13',  pct:100, color:'#1a8c3a'},
+      {dag:'Söndag', tid:'08:00–12:00', platser:'4/6',  lag:'FJ, P13',   pct:67,  color:'#e8a020'},
+      {dag:'Söndag', tid:'12:00–16:00', platser:'3/6',  lag:'P09, P10',  pct:50,  color:'#e8a020'},
+      {dag:'Söndag', tid:'11:00–15:00', platser:'3/4',  lag:'P11, F11',  pct:75,  color:'#e8a020'},
     ]
   },
   infotalt: {
     title: 'Infotält',
-    days: ['Alla','Fredag','Lördag'],
+    days: ['Alla','Lördag','Söndag'],
     shifts: [
-      {dag:'Fredag', tid:'09:00–13:00', platser:'0/2', lag:'FJ, P15', pct:0, color:'#c0392b'},
-      {dag:'Lördag', tid:'09:00–17:00', platser:'44/58', lag:'P13, P15, P18', pct:76, color:'#e8a020'},
+      {dag:'Lördag', tid:'08:00–13:00', platser:'3/3', lag:'FJ, P11',   pct:100, color:'#1a8c3a'},
+      {dag:'Lördag', tid:'13:00–18:00', platser:'2/3', lag:'P12, F13',  pct:67,  color:'#e8a020'},
+      {dag:'Söndag', tid:'08:00–13:00', platser:'3/3', lag:'F11, P13',  pct:100, color:'#1a8c3a'},
+      {dag:'Söndag', tid:'13:00–17:00', platser:'2/3', lag:'P09, P10',  pct:67,  color:'#e8a020'},
     ]
   },
   bygg: {
     title: 'Bygg & Riv',
     days: ['Alla','Torsdag','Söndag'],
     shifts: [
-      {dag:'Torsdag', tid:'18:00–klart', platser:'3/28', lag:'FJ, F15, F16, P13, P15, P18', pct:11, color:'#c0392b'},
-      {dag:'Söndag', tid:'14:00–klart', platser:'9/18', lag:'FJ, P13, P18', pct:50, color:'#e8a020'},
+      {dag:'Torsdag', tid:'17:00–20:00', platser:'18/20', lag:'FJ, P11, P12, F13',           pct:90, color:'#1a8c3a'},
+      {dag:'Torsdag', tid:'17:00–20:00', platser:'14/15', lag:'P09, P10, P13, F11',           pct:93, color:'#1a8c3a'},
+      {dag:'Söndag',  tid:'17:00–20:00', platser:'21/30', lag:'FJ, P09, P10, P11, P12, P13, F11, F13', pct:70, color:'#e8a020'},
     ]
   },
   nattvakt: {
     title: 'Nattvakt',
-    days: ['Alla','Fre natt','Lör natt'],
+    days: ['Alla','Lör natt'],
     shifts: [
-      {dag:'Fre natt', tid:'21:00–02:00', platser:'7/7', lag:'FJ', pct:100, color:'#1a8c3a'},
-      {dag:'Lör natt', tid:'21:00–02:00', platser:'7/7', lag:'FJ', pct:100, color:'#1a8c3a'},
+      {dag:'Lör natt', tid:'22:00–06:00', platser:'4/4', lag:'FJ', pct:100, color:'#1a8c3a'},
+    ]
+  },
+  parkering: {
+    title: 'Parkering',
+    days: ['Alla','Lördag','Söndag'],
+    shifts: [
+      {dag:'Lördag', tid:'07:30–12:00', platser:'4/4', lag:'P09, P10',  pct:100, color:'#1a8c3a'},
+      {dag:'Lördag', tid:'12:00–17:00', platser:'3/4', lag:'P13, FJ',   pct:75,  color:'#e8a020'},
+      {dag:'Söndag', tid:'07:30–12:00', platser:'4/4', lag:'F11, F13',  pct:100, color:'#1a8c3a'},
+      {dag:'Söndag', tid:'12:00–17:00', platser:'2/4', lag:'P11, P12',  pct:50,  color:'#e8a020'},
     ]
   }
 };
 
 function openCategory(cat) {
-  const data = categoryData[cat];
   currentInstructionCat = cat;
   document.getElementById('shiftCategoryView').style.display = 'none';
   document.getElementById('shiftDetailView').style.display = 'block';
-  document.getElementById('categoryTitle').textContent = data.title;
-  document.getElementById('shiftsSubtitle').textContent = data.title + ' – enskilda pass';
-  // Återställ till pass-vy
+
+  // Hämta titel — DB eller hårdkodad
+  let title = cat;
+  let days = ['Alla'];
+  if(DB.shifts.length > 0){
+    // cat är nu title-baserat (t.ex. "servering" eller "Servering")
+    const dbShifts = DB.shifts.filter(s => s.title.toLowerCase() === cat.toLowerCase() || s.title.toLowerCase().replace(/\s+/g,'-') === cat);
+    if(dbShifts.length > 0){
+      title = dbShifts[0].title;
+      // Bygg dag-tabs från faktiska datum
+      const uniqueDays = [...new Set(dbShifts.map(s => {
+        const d = new Date(s.date);
+        const dayNames = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+        return dayNames[d.getDay()];
+      }))];
+      days = ['Alla', ...uniqueDays];
+    }
+  } else if(categoryData[cat]){
+    title = categoryData[cat].title;
+    days = categoryData[cat].days;
+  }
+
+  document.getElementById('categoryTitle').textContent = title;
+  document.getElementById('shiftsSubtitle').textContent = title + ' – enskilda pass';
   document.getElementById('shiftPassView').style.display = 'block';
   document.getElementById('shiftInstructionView').style.display = 'none';
   document.getElementById('btnShowPasses').style.borderColor = 'var(--green)';
@@ -1733,7 +2174,7 @@ function openCategory(cat) {
   document.getElementById('btnShowInstructions').style.borderColor = '';
   document.getElementById('btnShowInstructions').style.color = '';
   const tabs = document.getElementById('dayTabs');
-  tabs.innerHTML = data.days.map((d,i) =>
+  tabs.innerHTML = days.map((d,i) =>
     `<div class="tab ${i===0?'active':''}" onclick="filterShiftDay('${d}',this,'${cat}')">${d}</div>`
   ).join('');
   renderShiftDetail(cat, 'Alla');
@@ -1775,60 +2216,96 @@ function peopleForShift(s, taken){
 }
 
 function renderShiftDetail(cat, day) {
+  // Använd DB-data om tillgänglig, annars hårdkodad
+  if (DB.shifts.length > 0) {
+    const dbShifts = DB.shifts.filter(s => s.title.toLowerCase() === cat.toLowerCase() || s.title.toLowerCase().replace(/ /g,'-') === cat.toLowerCase());
+    const filtered = day === 'Alla' ? dbShifts : dbShifts.filter(s => {
+      const d = new Date(s.date);
+      const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+      return days[d.getDay()] === day;
+    });
+    document.getElementById('shiftDetailTable').innerHTML = filtered.map((s, idx) => {
+      const bookingsForShift = DB.bookings.filter(b => b.shift_id === s.id);
+      const taken = bookingsForShift.length;
+      const total = s.slots;
+      const free = total - taken;
+      const pct = total > 0 ? Math.round(taken/total*100) : 0;
+      const color = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
+      const d = new Date(s.date);
+      const dayNames = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+      const dag = dayNames[d.getDay()];
+      const tid = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+      const rowId = 'shift-db-' + s.id;
+      const peopleRows = bookingsForShift.map(b => {
+        const p = DB.participants.find(p => p.id === b.participant_id);
+        if(!p) return '';
+        const initials = p.name.split(' ').map(w=>w[0]).slice(0,2).join('');
+        return `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .25rem;border-bottom:1px solid var(--border)">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);flex-shrink:0">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;color:var(--dark);font-weight:600">${p.name} <span style="font-size:11px;color:var(--muted);font-weight:500">${p.team||''}</span></div>
+            <div style="display:flex;gap:.85rem;margin-top:1px;flex-wrap:wrap">
+              ${p.phone ? '<a href="tel:'+p.phone.replace(/\s/g,'')+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--green);text-decoration:none;font-weight:500">📞 '+p.phone+'</a>' : ''}
+              ${p.email ? '<a href="mailto:'+p.email+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ '+p.email+'</a>' : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      const emptyRows = Array.from({length:free}).map(()=>
+        `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
+            <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSection('pool')" style="font-size:11px">Fyll från pool</button>
+        </div>`
+      ).join('');
+      return `
+      <tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer">
+        <td><strong>${s.title}</strong>${s.location ? '<br><span style="font-size:11px;color:var(--muted)">'+s.location+'</span>' : ''} <span id="${rowId}-arrow" style="color:var(--muted);font-size:11px">▸</span></td>
+        <td>${dag}</td>
+        <td>${tid}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:80px;height:5px;background:#e0ece0;border-radius:3px;overflow:hidden">
+              <div style="height:5px;width:${pct}%;background:${color};border-radius:3px"></div>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:${color}">${taken}/${total}</span>
+          </div>
+        </td>
+        <td style="font-size:12px;color:var(--muted)">${s.contact_name||'–'}</td>
+        <td><div style="display:flex;gap:.35rem">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">✏️</button>
+          <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();deleteShift('${s.id}')">🗑</button>
+        </div></td>
+      </tr>
+      <tr id="${rowId}" style="display:none">
+        <td colspan="6" style="background:#fafbfa;padding:1rem 1.25rem">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Valt detta pass (${taken} av ${total})</div>
+          ${peopleRows}
+          ${emptyRows}
+        </td>
+      </tr>`;
+    }).join('');
+    return;
+  }
+
+  // Fallback: hårdkodad data
   const data = categoryData[cat];
   const rows = data.shifts.filter(s => day === 'Alla' || s.dag === day);
   document.getElementById('shiftDetailTable').innerHTML = rows.map((s, idx) => {
     const [taken, total] = s.platser.split('/').map(n=>parseInt(n));
     const free = total - taken;
-    const people = peopleForShift(s, taken);
-    const rowId = `shift-${cat}-${idx}`;
-    const peopleRows = people.map(p=>
-      `<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem .25rem;border-bottom:1px solid var(--border)">
-        <div style="width:28px;height:28px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--green);flex-shrink:0">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;color:var(--dark);font-weight:600">${p.name} <span style="font-size:11px;color:var(--muted);font-weight:500">${p.team}</span></div>
-          <div style="display:flex;gap:.85rem;margin-top:1px;flex-wrap:wrap">
-            <a href="tel:${p.phone.replace(/\s/g,'')}" onclick="event.stopPropagation()" style="font-size:12px;color:var(--green);text-decoration:none;font-weight:500">📞 ${p.phone}</a>
-            <a href="mailto:${p.email}" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ ${p.email}</a>
-          </div>
-        </div>
-      </div>`
-    ).join('');
-    const emptyRows = Array.from({length:free}).map(()=>
-      `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
-        <div style="display:flex;align-items:center;gap:.6rem">
-          <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
-          <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSection('pool')" style="font-size:11px">Fyll från pool</button>
-      </div>`
-    ).join('');
-    return `
-    <tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer">
+    const rowId = 'shift-'+cat+'-'+idx;
+    return `<tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer">
       <td><strong>${data.title}</strong> <span id="${rowId}-arrow" style="color:var(--muted);font-size:11px">▸</span></td>
-      <td>${s.dag}</td>
-      <td>${s.tid}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="width:80px;height:5px;background:#e0ece0;border-radius:3px;overflow:hidden">
-            <div style="height:5px;width:${s.pct}%;background:${s.color};border-radius:3px"></div>
-          </div>
-          <span style="font-size:12px;font-weight:600;color:${s.color}">${s.platser}</span>
-        </div>
-      </td>
+      <td>${s.dag}</td><td>${s.tid}</td>
+      <td><span style="font-size:12px;font-weight:600">${s.platser}</span></td>
       <td style="font-size:12px;color:var(--muted)">${s.lag}</td>
-      <td><div style="display:flex;gap:.35rem">
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">✏️</button>
-        <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation()">🗑</button>
-      </div></td>
-    </tr>
-    <tr id="${rowId}" style="display:none">
-      <td colspan="6" style="background:#fafbfa;padding:1rem 1.25rem">
-        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Valt detta pass (${taken} av ${total})</div>
-        ${peopleRows}
-        ${emptyRows}
-      </td>
-    </tr>`;
+      <td></td></tr>
+    <tr id="${rowId}" style="display:none"><td colspan="6" style="padding:1rem">
+      <div style="color:var(--muted);font-style:italic;font-size:13px">Demodata – anslut databasen för riktiga bokningar</div>
+    </td></tr>`;
   }).join('');
 }
 
@@ -1916,10 +2393,30 @@ function useTemplate(type) {
   }
 }
 
+function showToast(msg, type) {
+  type = type || 'success';
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:' + (type==='error'?'#c0392b':'#1a8c3a') + ';color:#fff;padding:.6rem 1.25rem;border-radius:100px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.18)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 3000);
+}
+
 // INIT
-renderDashboard();
+async function init() {
+  await loadEvent();
+  await loadFromDB();
+  fillEventSettings();
+  renderDashboard();
+  renderShiftTable();
+  renderPoolTable();
+  renderChildTable();
+  renderContactsSettings();
+}
+init();
 </script>
 
+<!-- BOTTOM NAV för mobil -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
     <button class="bn-item active" id="bn-dashboard" onclick="showSection('dashboard');setBottomNav('dashboard')">
