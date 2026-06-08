@@ -1104,10 +1104,9 @@ async function loadFromDB() {
   try {
     const allShifts = await sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&select=id');
     const shiftIds = allShifts.map(function(s){ return s.id; });
-    const bookingParam = shiftIds.length ? '?shift_id=in.(' + shiftIds.join(',') + ')' : '?shift_id=eq.none';
     const [shifts, bookings, participants, pool, contacts] = await Promise.all([
       sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&order=date.asc,time_start.asc'),
-      sbFetch('bookings', bookingParam),
+      shiftIds.length ? sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')') : Promise.resolve([]),
       sbFetch('participants', '?event_id=eq.' + EVENT_ID + '&order=team.asc,name.asc'),
       sbFetch('pool_members', '?event_id=eq.' + EVENT_ID + '&order=name.asc'),
       sbFetch('contacts', '?event_id=eq.' + EVENT_ID + '&order=sort_order.asc')
@@ -1554,6 +1553,7 @@ function renderFaqList(){
 // PASS-TABELL
 // ═══════════════════════════════════════
 function renderShiftTable(){
+  if(!document.getElementById('shiftTable')) return;
   const shifts = DB.shifts.length ? DB.shifts : SHIFTS_DATA;
   const useDB = DB.shifts.length > 0;
 
