@@ -402,6 +402,7 @@ setVH(); window.addEventListener('resize',setVH);
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till person</button>
           <button class="btn btn-ghost" onclick="openImportModal()" title="Importera från CSV-fil">📂 Importera</button>
+          <button class="btn btn-ghost" onclick="exportParticipants()" title="Exportera deltagarlistan som CSV">📤 Exportera</button>
         </div>
       </div>
 
@@ -675,7 +676,7 @@ Hälsningar,
           <p style="font-size:13px;color:var(--muted);margin-top:2px">Föräldrar lämnar feedback via sin bokningslänk efter sitt pass.</p>
         </div>
         <div style="display:flex;gap:.6rem">
-          <button class="btn btn-ghost">📥 Exportera</button>
+          <button class="btn btn-ghost" onclick="exportFeedback()">📥 Exportera</button>
         </div>
       </div>
 
@@ -3750,6 +3751,70 @@ function renderStaffingAnalysis(){
   card.style.display = 'block';
 }
 
+
+
+// ════════════════════════════════════════════════════════════
+// CSV-EXPORT
+// ════════════════════════════════════════════════════════════
+function _csvEscape(val){
+  if(val === null || val === undefined) return '';
+  const s = String(val);
+  return s.includes(',') || s.includes('"') || s.includes('\n')
+    ? '"' + s.replace(/"/g,'""') + '"'
+    : s;
+}
+function _downloadCSV(filename, rows){
+  const bom = '\uFEFF'; // BOM för korrekt ÅÄÖ i Excel
+  const csv = bom + rows.map(r => r.map(_csvEscape).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportParticipants(){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){ demoBlock(); return; }
+  const parts = DB.participants || [];
+  if(!parts.length){ showToast('Inga deltagare att exportera', 'error'); return; }
+
+  const header = ['Namn','E-post','Telefon','Lag','Barnets namn','Valt pass','Status'];
+  const rows = parts.map(p => {
+    const booking = DB.bookings.find(b => b.participant_id === p.id);
+    const shift = booking ? DB.shifts.find(s => s.id === booking.shift_id) : null;
+    const shiftLabel = shift
+      ? [shift.title, shift.date, shift.time_start ? shift.time_start.slice(0,5) + '–' + (shift.time_end||'').slice(0,5) : ''].filter(Boolean).join(' ')
+      : '';
+    const status = booking
+      ? (booking.booked_by_admin ? 'Tilldelad av admin' : 'Valt pass')
+      : 'Inget pass valt';
+    return [p.name, p.email, p.phone||'', p.team||'', p.child_name||'', shiftLabel, status];
+  });
+
+  const eventName = (EVENT && EVENT.name) ? EVENT.name.replace(/[^a-zA-Z0-9åäöÅÄÖ ]/g,'') : 'event';
+  _downloadCSV('lagpasset-deltagare-' + eventName + '.csv', [header, ...rows]);
+  showToast('CSV nedladdad – ' + parts.length + ' deltagare');
+}
+
+function exportFeedback(){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){ demoBlock(); return; }
+  const feedback = DB.feedback || [];
+  if(!feedback.length){ showToast('Ingen feedback att exportera', 'error'); return; }
+
+  const header = ['Datum','Pass','Betyg (1-5)','Bemanning','Kommentar'];
+  const rows = feedback.map(f => {
+    const shift = DB.shifts.find(s => s.id === f.shift_id);
+    const shiftLabel = shift ? shift.title + ' ' + (shift.date||'') : (f.shift_id||'');
+    const date = f.created_at ? f.created_at.slice(0,10) : '';
+    return [date, shiftLabel, f.rating||'', f.staffing||'', f.comment||''];
+  });
+
+  const eventName = (EVENT && EVENT.name) ? EVENT.name.replace(/[^a-zA-Z0-9åäöÅÄÖ ]/g,'') : 'event';
+  _downloadCSV('lagpasset-feedback-' + eventName + '.csv', [header, ...rows]);
+  showToast('Feedback exporterad – ' + feedback.length + ' svar');
+}
 
 // ════════════════════════════════════════════════════════════
 // IMPORTERA DELTAGARE (CSV)
