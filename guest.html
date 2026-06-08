@@ -735,6 +735,7 @@ function updateLagStats(){
   const booked = currentTeam.children.filter(c=>bookedMap[c.id]).length;
   const remaining = currentTeam.quota - booked;
   const pill = document.getElementById('lagStatsPill');
+  if(!pill) return; // elementet finns inte i enbarnsflödet
   pill.textContent = remaining>0 ? remaining+' pass kvar att välja' : 'Alla pass valda ✓';
   pill.className = 'lag-stats-pill '+(remaining>0?'lag-stats-warn':'lag-stats-ok');
 }
@@ -775,8 +776,10 @@ function pickChild(childId){
   renderChildList();
   goToStep2();
   renderPassList();
-  document.getElementById('step3ChildBadge').textContent = currentChild.name + ' · ' + currentTeam.name;
-  document.getElementById('step3Sub').textContent = 'Visar pass tillgängliga för '+currentTeam.name+'. Klicka för att välja.';
+  const badge = document.getElementById('step3ChildBadge');
+  const sub3  = document.getElementById('step3Sub');
+  if(badge) badge.textContent = currentChild.name + ' · ' + currentTeam.name;
+  if(sub3)  sub3.textContent  = 'Visar pass tillgängliga för '+currentTeam.name+'. Klicka för att välja.';
   const b = bookedMap[currentChild.id];
   const notice = document.getElementById('alreadyBooked');
   if(b){ notice.style.display='block'; notice.textContent='Du har redan valt: '+b.shift.title+' '+b.shift.day+' '+b.shift.time+'. Du kan byta pass nedan.'; currentShift=b.shift; }
@@ -1046,10 +1049,14 @@ function closeSickReport(){
   if(m) m.style.display = 'none';
 }
 function submitSickReport(){
-  // I produktion:
-  //  1. Markera bokningen som avanmäld → platsen blir ledig igen i passet
-  //  2. Mejla ansvarig för stationen via Resend (med namn, pass, ev. anledning)
-  //  3. Ev. notifiera bemanningspoolen
+  // I LIVE-läge: ta bort bokningen från databasen
+  if(LIVE){
+    const myBooking = LIVE.bookings.find(b => b.participant_id === LIVE.participant.id);
+    if(myBooking){
+      sbDelete('bookings', '?id=eq.' + myBooking.id).catch(e => console.error('Kunde inte ta bort bokning:', e));
+      LIVE.bookings = LIVE.bookings.filter(b => b.id !== myBooking.id);
+    }
+  }
   closeSickReport();
   const c = currentChild;
   if(c && bookedMap[c.id]) delete bookedMap[c.id];
@@ -1169,6 +1176,19 @@ function renderLiveView(){
   setT('urgencyHeadline', pct>=80?'⚠️ Nästan fullt – välj ditt pass nu!':pct>=40?'Passen fylls på – välj ditt pass':'Välj ditt pass och hjälp till!');
 
   renderLivePassList();
+  // Visa notis om personen redan har ett bokat pass
+  const myExisting = LIVE.bookings.find(b => b.participant_id === p.id);
+  if(myExisting){
+    const bookedShift = LIVE.shifts.find(s => s.id === myExisting.shift_id);
+    if(bookedShift){
+      const notice = document.getElementById('alreadyBooked');
+      if(notice){
+        const tid = bookedShift.time_start.slice(0,5)+'–'+bookedShift.time_end.slice(0,5);
+        notice.style.display = 'block';
+        notice.textContent = 'Du har redan valt: '+bookedShift.title+' · '+liveDayLabel(bookedShift.date)+' · '+tid+'. Du kan byta pass nedan om du vill ändra.';
+      }
+    }
+  }
   document.getElementById('loadingState').style.display='none';
   document.getElementById('mainContent').style.display='block';
   setStep(1);
