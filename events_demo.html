@@ -47,6 +47,8 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
 .demo-step-list{text-align:left;margin:.75rem 0 1.25rem;display:flex;flex-direction:column;gap:.55rem}
 .demo-step{display:flex;align-items:flex-start;gap:.65rem;font-size:13.5px;color:var(--text);line-height:1.5}
 .demo-step-num{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:10px;font-family:"Outfit",sans-serif;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--green);color:#fff}.btn-primary:hover{background:#15752e}
 
 /* ── Inputs: hindrar iOS-zoom ── */
 input,select,textarea{font-size:16px !important}
@@ -114,11 +116,24 @@ input,select,textarea{font-size:16px !important}
       <div class="date">3–4 oktober 2026</div>
       <div class="stats"><span><strong>24</strong> pass</span><span><strong>80</strong> bemannare</span></div>
     </a>
-    <div class="event-card new" onclick="alert('I demon är detta avstängt. När ni blivit kund skapar ni nya arrangemang här.')">
+    <div class="event-card new" onclick="showDemoToast()">
       <div class="plus">+</div>
       <div>Skapa nytt arrangemang</div>
     </div>
   </div>
 </div>
+
+<div id="demoToast" style="display:none;position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#111c13;color:#e0f0e0;padding:11px 22px;border-radius:100px;font-size:14px;font-weight:500;z-index:100;box-shadow:0 4px 24px rgba(0,0,0,.25);white-space:nowrap">
+  🔒 Upplåses när ni blir kund
+</div>
+
+<script>
+function showDemoToast(){
+  const t = document.getElementById('demoToast');
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function(){ t.style.display = 'none'; }, 2500);
+}
+</script>
 </body>
 </html>
