@@ -589,6 +589,37 @@ const DEMO = {
 };
 
 // ════════════════════════════════════════════════
+// SUPABASE
+// ════════════════════════════════════════════════
+const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
+
+async function sbFetch(table, params) {
+  params = params || '';
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + params, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  });
+  if (!res.ok) throw new Error('Supabase error: ' + res.status);
+  return res.json();
+}
+async function sbInsert(table, data) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Supabase insert error: ' + res.status);
+  return res.json();
+}
+async function sbDelete(table, filter) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + filter, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  });
+  if (!res.ok) throw new Error('Supabase delete error: ' + res.status);
+}
+
+// ════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════
 let currentTeam = null; // sätts via personlig länk
@@ -597,6 +628,9 @@ let currentShift = null;
 let isClosed = false;
 let starRating = 0;
 const bookedMap = {}; // childId → {shift, parentName, parentPhone}
+
+// Token-läge: riktig deltagare via personlig länk
+let LIVE = null; // { participant, event, shifts:[], bookings:[] }
 
 // Simulera lite förbokade barn för urgency-känsla
 bookedMap["c01"] = {shift:DEMO.shifts[5], parentName:"Anna Mellbin",   parentPhone:"070-111 22 33"};
@@ -832,6 +866,7 @@ function pickShift(shiftId){
 // STEG 4 — BOKA
 // ════════════════════════════════════════════════
 async function submitBooking(){
+  if(LIVE){ return submitLiveBooking(); }
   if(isClosed) return;
   const name=document.getElementById('parentName').value.trim();
   const phone=document.getElementById('parentPhone').value.trim();
@@ -1055,7 +1090,224 @@ function goToStep2(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-window.addEventListener('DOMContentLoaded',init);
+// ════════════════════════════════════════════════
+// TOKEN-LÄGE — riktig deltagare via personlig länk
+// ════════════════════════════════════════════════
+async function initLive(token){
+  try {
+    document.getElementById('loadingState').style.display='block';
+    // Hämta deltagaren via token
+    const parts = await sbFetch('participants', '?token=eq.' + encodeURIComponent(token) + '&select=*,events(*)');
+    if(!parts.length){
+      document.getElementById('loadingState').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--red)">Länken är ogiltig eller har gått ut. Kontakta din förening.</div>';
+      return;
+    }
+    const participant = parts[0];
+    const eventId = participant.event_id;
+    const event = participant.events || (await sbFetch('events', '?id=eq.' + eventId))[0];
+
+    // Hämta alla pass för eventet + bokningar
+    const shifts = await sbFetch('shifts', '?event_id=eq.' + eventId + '&order=date.asc,time_start.asc');
+    const shiftIds = shifts.map(s => s.id);
+    const bookings = shiftIds.length
+      ? await sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')')
+      : [];
+
+    LIVE = { participant, event, shifts, bookings };
+    renderLiveView();
+  } catch(e){
+    console.error('Live-fel:', e);
+    document.getElementById('loadingState').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--red)">Kunde inte ladda dina pass. Försök igen senare.</div>';
+  }
+}
+
+function liveDayLabel(dateStr){
+  const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  const d = new Date(dateStr);
+  return dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+}
+
+function renderLiveView(){
+  const p = LIVE.participant, ev = LIVE.event;
+  document.documentElement.style.setProperty('--green', '#1a8c3a');
+  document.getElementById('navClub').textContent = 'Åsa IF';
+  document.title = 'Åsa IF – ' + ev.name;
+
+  // Deadline
+  const today = new Date(); today.setHours(0,0,0,0);
+  const fullMo=['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+  document.getElementById('eventInfo').innerHTML = '<strong>' + ev.name + '</strong>';
+
+  // Hälsning
+  const sub = document.getElementById('step1Sub');
+  if(sub) sub.textContent = 'Hej ' + p.name + '! Välj ett pass nedan.';
+
+  // Min nuvarande bokning
+  const myBooking = LIVE.bookings.find(b => b.participant_id === p.id);
+
+  // Urgency
+  const totalSlots = LIVE.shifts.reduce((s,sh)=>s+sh.slots,0);
+  const totalTaken = LIVE.bookings.length;
+  const pct = totalSlots>0 ? Math.round(totalTaken/totalSlots*100) : 0;
+  const setT = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+  setT('urgencyPct', pct+'%');
+  const uf = document.getElementById('urgencyFill'); if(uf) uf.style.width = pct+'%';
+  setT('urgencyTaken', totalTaken+' av '+totalSlots+' pass bokade');
+  setT('urgencyRemain', (totalSlots-totalTaken)+' platser kvar totalt');
+  setT('urgencyHeadline', pct>=80?'⚠️ Nästan fullt – välj ditt pass nu!':pct>=40?'Passen fylls på – välj ditt pass':'Välj ditt pass och hjälp till!');
+
+  renderLivePassList();
+  document.getElementById('loadingState').style.display='none';
+  document.getElementById('mainContent').style.display='block';
+  setStep(1);
+}
+
+function renderLivePassList(){
+  const wrap = document.getElementById('passListWrap');
+  const myBooking = LIVE.bookings.find(b => b.participant_id === LIVE.participant.id);
+  const myShiftId = myBooking ? myBooking.shift_id : null;
+
+  // Gruppera per dag
+  const byDay = {};
+  LIVE.shifts.forEach(s=>{
+    const day = liveDayLabel(s.date);
+    if(!byDay[day]) byDay[day]=[];
+    byDay[day].push(s);
+  });
+
+  document.getElementById('noPassMsg').style.display='none';
+  let html = '';
+  Object.keys(byDay).forEach(day=>{
+    html += '<div class="day-header">' + day + '</div>';
+    byDay[day].forEach(s=>{
+      const taken = LIVE.bookings.filter(b => b.shift_id === s.id).length;
+      const free = s.slots - taken;
+      const full = free <= 0 && s.id !== myShiftId;
+      const low = !full && free <= 2;
+      const pct = s.slots>0 ? Math.round(taken/s.slots*100) : 0;
+      const sel = s.id === myShiftId;
+      const spotsLabel = sel ? 'Ditt pass ✓' : full ? 'Fullt' : free===1 ? '1 plats kvar!' : free+' platser kvar';
+      const spotsCls = sel ? 'spots-ok' : full ? 'spots-full' : low ? 'spots-low' : 'spots-ok';
+      const barColor = pct>=100?'#c0392b':pct>=67?'#e8a020':'#1a8c3a';
+      const tid = s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5);
+      html += '<div class="pass-item' + (sel?' selected':'') + (full?' full':'') + '" id="pi_'+s.id+'">' +
+        '<div class="pass-top" onclick="' + (full?'':'pickLiveShift(\''+s.id+'\')') + '">' +
+        '<div class="pass-radio"><div class="pass-dot"></div></div>' +
+        '<div class="pass-body">' +
+        '<div class="pass-title">' + s.title + '</div>' +
+        '<div class="pass-time">' + tid + '</div>' +
+        (s.location?'<div class="pass-note">📍 '+s.location+'</div>':'') +
+        (s.notes?'<div class="pass-note">'+s.notes+'</div>':'') +
+        '<div style="margin-top:8px;display:flex;align-items:center;gap:8px">' +
+        '<div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;max-width:100px">' +
+        '<div style="height:5px;width:'+pct+'%;background:'+barColor+';border-radius:3px"></div></div>' +
+        '<span style="font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap">'+taken+' av '+s.slots+' tagna</span>' +
+        '</div></div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;padding-left:8px">' +
+        '<span class="spots '+spotsCls+'">'+spotsLabel+'</span></div>' +
+        '</div></div>';
+    });
+  });
+  wrap.innerHTML = html;
+}
+
+function pickLiveShift(shiftId){
+  currentShift = LIVE.shifts.find(s=>s.id===shiftId);
+  document.querySelectorAll('.pass-item').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('pi_'+shiftId)?.classList.add('selected');
+  // Prefill
+  const myBooking = LIVE.bookings.find(b => b.participant_id === LIVE.participant.id);
+  document.getElementById('parentName').value = LIVE.participant.name || '';
+  document.getElementById('parentPhone').value = LIVE.participant.phone || '';
+  const s = currentShift;
+  document.getElementById('selSummary').innerHTML =
+    '<strong>'+s.title+'</strong> · '+liveDayLabel(s.date)+' · '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5) +
+    (s.location?'<br><span style="font-size:13px;color:var(--muted)">📍 '+s.location+'</span>':'') +
+    '<br><span style="font-size:13px;color:var(--muted)">'+LIVE.participant.name+' · '+(LIVE.participant.team||'')+'</span>';
+  setTimeout(()=>{goToStep2();window.scrollTo({top:0,behavior:'smooth'});},180);
+}
+
+async function submitLiveBooking(){
+  const name = document.getElementById('parentName').value.trim();
+  const phone = document.getElementById('parentPhone').value.trim();
+  const msgB = document.getElementById('msgBottom');
+  function showErr(t){ msgB.style.display='block'; msgB.textContent=t; }
+  if(!name){ showErr('Ange ditt namn.'); return; }
+  if(!phone){ showErr('Ange ditt telefonnummer.'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='Sparar...';
+
+  try {
+    // Ta bort ev. tidigare bokning för denna deltagare
+    const prev = LIVE.bookings.find(b => b.participant_id === LIVE.participant.id);
+    if(prev){
+      await sbDelete('bookings', '?id=eq.' + prev.id);
+      LIVE.bookings = LIVE.bookings.filter(b => b.id !== prev.id);
+    }
+    // Skapa ny bokning
+    const result = await sbInsert('bookings', {
+      shift_id: currentShift.id,
+      participant_id: LIVE.participant.id
+    });
+    if(result && result.length) LIVE.bookings.push(result[0]);
+    // Uppdatera deltagarens telefon om ändrad
+    if(phone !== LIVE.participant.phone){
+      await fetch(SUPABASE_URL + '/rest/v1/participants?id=eq.' + LIVE.participant.id, {
+        method:'PATCH',
+        headers:{ 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json' },
+        body: JSON.stringify({ phone: phone })
+      });
+      LIVE.participant.phone = phone;
+    }
+    msgB.style.display='none';
+    showLiveConfirmation(name, phone);
+  } catch(e){
+    console.error(e);
+    showErr('Kunde inte spara bokningen. Försök igen.');
+  }
+  btn.disabled=false; btn.textContent='Välj det här passet ✓';
+}
+
+function showLiveConfirmation(name, phone){
+  const s = currentShift, p = LIVE.participant;
+  const tid = s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5);
+  const locationRow = s.location ? '<div class="conf-row"><span class="conf-label">Plats</span><strong>'+s.location+'</strong></div>' : '';
+  const contactRow = s.contact_name ? '<div class="conf-row"><span class="conf-label">Kontakt vid passet</span><strong>'+s.contact_name+(s.contact_phone?' · <a href="tel:'+s.contact_phone.replace(/\s/g,'')+'" style="color:var(--green);text-decoration:none">'+s.contact_phone+'</a>':'')+'</strong></div>' : '';
+  document.getElementById('confirmSummary').innerHTML =
+    '<div class="conf-row"><span class="conf-label">Deltagare</span><strong>'+p.name+(p.team?' ('+p.team+')':'')+'</strong></div>' +
+    '<div class="conf-row"><span class="conf-label">Pass</span><strong>'+s.title+'</strong></div>' +
+    '<div class="conf-row"><span class="conf-label">Dag</span><strong>'+liveDayLabel(s.date)+'</strong></div>' +
+    '<div class="conf-row"><span class="conf-label">Tid</span><strong>'+tid+'</strong></div>' +
+    locationRow + contactRow +
+    '<div class="conf-row"><span class="conf-label">Namn</span><strong>'+name+'</strong></div>' +
+    '<div class="conf-row"><span class="conf-label">Telefon</span><strong>'+phone+'</strong></div>';
+  const now = new Date();
+  document.getElementById('doneTimestamp').textContent = 'Valt '+now.toLocaleDateString('sv-SE')+' kl '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('moreChildrenWrap').style.display='none';
+  document.getElementById('mainContent').style.display='none';
+  document.getElementById('stepIndicator').style.display='none';
+  document.getElementById('siLabels').style.display='none';
+  document.getElementById('doneWrap').style.display='block';
+  if(typeof fillQuestionAreas==='function') fillQuestionAreas();
+  if(typeof fillFaqAccordion==='function') fillFaqAccordion();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ════════════════════════════════════════════════
+// STARTPUNKT — token = riktig vy, annars demo
+// ════════════════════════════════════════════════
+function bootstrap(){
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  if(params.get('feedback')==='1'){ return; } // feedback hanteras separat
+  if(token){
+    initLive(token);
+  } else {
+    init(); // demo-läge
+  }
+}
+window.addEventListener('DOMContentLoaded', bootstrap);
 </script>
 
 <footer style="text-align:center;padding:1.75rem 1rem 1.5rem;margin-top:2rem;border-top:1px solid var(--border)">
