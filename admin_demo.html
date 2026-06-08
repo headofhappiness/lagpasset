@@ -784,25 +784,31 @@ Hälsningar,
 <div class="modal-overlay" id="modalAddChild">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Lägg till barn</div>
+      <div class="modal-title">Lägg till deltagare</div>
       <button class="modal-close" onclick="closeModal('modalAddChild')">✕</button>
     </div>
     <div class="form-group">
-      <label class="form-label">Barnets visningsnamn</label>
+      <label class="form-label">Namn (förälder/deltagare)</label>
       <input type="text" id="newChildName" placeholder="Förnamn Efternamn">
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i laglistan. Kan vara påhittat om deltagaren behöver extra integritet.</div>
+    </div>
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Lag</label>
+        <input type="text" id="newChildTeam" placeholder="Ex. P12, F13">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefon</label>
+        <input type="tel" id="newChildPhone" placeholder="070-123 45 67">
+      </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Lag</label>
-      <select id="newChildTeam">
-        <option>FJ – Flickjuniorer</option><option>P09</option><option>P10</option>
-        <option>P11</option><option>P12</option><option>P13</option><option>F11</option><option>F13</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Förälderns e-postadress</label>
+      <label class="form-label">E-postadress</label>
       <input type="email" id="newChildEmail" placeholder="foralderns@email.se">
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Används för att skicka personlig länk. Visas aldrig för andra.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Barnets namn (valfritt)</label>
+      <input type="text" id="newChildKid" placeholder="Barnets förnamn">
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
@@ -1871,11 +1877,40 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
 
 // (skyddad identitet borttagen – ersatt av manuell tilldelning)
 
-function addChild(){
+async function addChild(){
   const name=document.getElementById('newChildName').value.trim();
-  if(!name){alert('Ange barnets namn.');return;}
-  closeModal('modalAddChild');
-  // I produktion: supabase insert
+  const team=document.getElementById('newChildTeam').value.trim();
+  const phone=document.getElementById('newChildPhone').value.trim();
+  const email=document.getElementById('newChildEmail').value.trim();
+  const kid=document.getElementById('newChildKid').value.trim();
+  if(!name){alert('Ange deltagarens namn.');return;}
+  if(!email){alert('Ange en e-postadress.');return;}
+  try {
+    const token = 'tok-' + Math.random().toString(36).slice(2,12);
+    const result = await sbInsert('participants', {
+      event_id: EVENT_ID,
+      name: name,
+      email: email,
+      phone: phone || null,
+      team: team || null,
+      child_name: kid || null,
+      token: token
+    });
+    if(result && result.length) DB.participants.push(result[0]);
+    DB.participants.sort((a,b)=>(a.team||'').localeCompare(b.team||'') || a.name.localeCompare(b.name));
+    closeModal('modalAddChild');
+    renderChildTable();
+    renderDashboard();
+    showToast('Deltagare tillagd');
+    document.getElementById('newChildName').value='';
+    document.getElementById('newChildTeam').value='';
+    document.getElementById('newChildPhone').value='';
+    document.getElementById('newChildEmail').value='';
+    document.getElementById('newChildKid').value='';
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte lägga till deltagaren', 'error');
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1925,7 +1960,6 @@ function closeDemoWelcome(){
 }
 
 // Block all save/send actions in demo
-function addChild(){ demoBlock(); closeModal('modalAddChild'); }
 function sendLinks(){ demoBlock(); closeModal('modalSendLinks'); }
 function sendEmail(){ demoBlock(); }
 function previewEmail(){ demoBlock(); }
