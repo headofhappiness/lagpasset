@@ -235,7 +235,7 @@ setVH(); window.addEventListener('resize',setVH);
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <img src="logo-white.png" alt="LagPasset" style="height:24px;width:auto;flex-shrink:0">
+    <a id="logoLink" href="events.html" title="Byt arrangemang" style="display:flex;align-items:center;cursor:pointer;flex-shrink:0"><img src="logo-white.png" alt="LagPasset" style="height:24px;width:auto;display:block"></a>
     <div id="sidebarClubLogo" style="margin-left:auto;display:none;align-items:center"></div>
     <div class="club-name" id="sidebarClubName" style="margin-left:auto;text-align:right;line-height:1.2">Åsa IF</div>
   </div>
@@ -3332,6 +3332,9 @@ async function init() {
   fillEventSettings();
   if(typeof fillProfile === 'function') fillProfile();
   if(typeof applyClubBranding === 'function') applyClubBranding();
+  // Loggan tar tillbaka till arrangemangsväljaren
+  const _logo = document.getElementById('logoLink');
+  if(_logo) _logo.href = (typeof IS_DEMO !== 'undefined' && IS_DEMO) ? 'events_demo.html' : 'events.html';
   // Visa aktuellt eventnamn i toppbaren och sidofältet (demo-namn från URL har företräde)
   const _displayName = _demoName || (EVENT && EVENT.name);
   if(_displayName){
