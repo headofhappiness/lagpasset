@@ -2080,22 +2080,81 @@ async function addChild(){
 // ═══════════════════════════════════════
 // EMAIL
 // ═══════════════════════════════════════
+let emailFilterType = 'all';
+let emailFilterTeam = 'all';
+
 function toggleChip(el,val){
   document.querySelectorAll('#typeChips .chip').forEach(c=>{c.className='chip chip-off';});
   el.className='chip chip-on';
+  emailFilterType = val;
   updateRecipientCount();
 }
 function toggleLagChip(el,val){
   document.querySelectorAll('#lagChips .chip').forEach(c=>{c.className='chip chip-off';});
   el.className='chip chip-on';
+  emailFilterTeam = val;
   updateRecipientCount();
 }
-function updateRecipientCount(){
-  document.getElementById('recipientCount').textContent='Mottagare: 105 bokade + 24 obokade (demo)';
+
+function getEmailRecipients(){
+  const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
+  let list = DB.participants.slice();
+  // Filtrera på status
+  if(emailFilterType === 'unbooked') list = list.filter(p => !bookedIds.has(p.id));
+  // Filtrera på lag
+  if(emailFilterTeam && emailFilterTeam !== 'all') list = list.filter(p => (p.team||'') === emailFilterTeam);
+  return list;
 }
-function sendEmail(){
-  document.getElementById('emailSentMsg').style.display='block';
-  setTimeout(()=>document.getElementById('emailSentMsg').style.display='none',4000);
+
+function updateRecipientCount(){
+  const el = document.getElementById('recipientCount');
+  if(!el) return;
+  const recipients = getEmailRecipients();
+  const withEmail = recipients.filter(p => p.email).length;
+  el.textContent = 'Mottagare: ' + withEmail + ' deltagare';
+}
+
+async function sendEmail(){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){
+    demoBlock();
+    return;
+  }
+  const subject = document.getElementById('emailSubject').value.trim();
+  const body = document.getElementById('emailBody').value.trim();
+  if(!subject || !body){ alert('Fyll i ämnesrad och meddelande.'); return; }
+
+  const recipients = getEmailRecipients()
+    .filter(p => p.email && p.token)
+    .map(p => ({ name: p.name, email: p.email, token: p.token }));
+  if(recipients.length === 0){ alert('Inga mottagare med e-post hittades.'); return; }
+  if(!confirm('Skicka mejlet till ' + recipients.length + ' deltagare?')) return;
+
+  const baseUrl = window.location.origin + '/guest.html';
+  try {
+    showToast('Skickar ' + recipients.length + ' mejl...');
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-links', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'links',
+        recipients: recipients,
+        message: body,
+        baseUrl: baseUrl,
+        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet'
+      })
+    });
+    const data = await res.json();
+    if(res.ok){
+      const m = document.getElementById('emailSentMsg');
+      if(m){ m.textContent = data.sent + ' av ' + data.total + ' mejl skickade ✓'; m.style.display='block'; setTimeout(()=>m.style.display='none',5000); }
+      showToast(data.sent + ' mejl skickade');
+    } else {
+      showToast('Fel: ' + (data.error || 'kunde inte skicka'), 'error');
+    }
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte skicka mejlen', 'error');
+  }
 }
 function previewEmail(){ alert('Förhandsgranskning: mejlet öppnas i ett nytt fönster (i produktion).'); }
 
@@ -2180,11 +2239,10 @@ function closeDemoWelcome(){
 }
 
 // Block all save/send actions in demo
-function sendEmail(){ demoBlock(); }
 function previewEmail(){ demoBlock(); }
 
 // Sidebar club label
-document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
+document.getElementById('sidebarClubName').textContent = (EVENT && EVENT.name) ? 'Åsa IF' : 'Åsa IF';
 
 // ── Instruktioner per passtyp ──
 const defaultInstructions = {
@@ -2691,6 +2749,7 @@ async function init() {
   await loadEvent();
   await loadFromDB();
   renderFeedback();
+  if(typeof updateRecipientCount === 'function') updateRecipientCount();
   fillEventSettings();
   renderDashboard();
   renderShiftTable();
