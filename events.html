@@ -51,6 +51,24 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
 .btn-primary{background:var(--green);color:#fff}
 .btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}
 .modal-footer{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.25rem}
+
+/* ── Inputs: 16px hindrar iOS-zoom ── */
+input,select,textarea{font-size:16px !important}
+
+/* ── Mobil ── */
+@media(max-width:600px){
+  .wrap{padding:1.5rem 1rem}
+  h1{font-size:1.4rem}
+  .sub{font-size:14px;margin-bottom:1.5rem}
+  .topbar{padding:.7rem 1rem}
+  .topbar .club{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .event-grid{grid-template-columns:1fr}
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal{border-radius:18px 18px 0 0;max-width:100%;padding:1.5rem 1.25rem 2rem;max-height:90vh;overflow-y:auto}
+  .inline-2{grid-template-columns:1fr}
+  .modal-footer{flex-direction:column-reverse}
+  .modal-footer .btn{width:100%;text-align:center;border-radius:10px}
+}
 </style>
 </head>
 <body>
