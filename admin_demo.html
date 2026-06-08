@@ -529,29 +529,29 @@ setVH(); window.addEventListener('resize',setVH);
       <div class="card">
         <div class="card-title" style="margin-bottom:.9rem">Mottagare</div>
         <div style="margin-bottom:.65rem">
-          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ PASS-TYP</div>
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ STATUS</div>
           <div class="recipient-chips" id="typeChips">
-            <div class="chip chip-on" onclick="toggleChip(this,'all')">Alla medlemmar</div>
-            <div class="chip chip-off" onclick="toggleChip(this,'not_booked')">Ej valt pass</div>
-            <div class="chip chip-off" onclick="toggleChip(this,'servering')">Servering</div>
-            <div class="chip chip-off" onclick="toggleChip(this,'infotalt')">Infotält</div>
-            <div class="chip chip-off" onclick="toggleChip(this,'bygg')">Bygg & Riv</div>
-            <div class="chip chip-off" onclick="toggleChip(this,'nattvakt')">Nattvakt</div>
+            <div class="chip chip-on" onclick="toggleChip(this,'all')">Alla deltagare</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'unbooked')">Ej valt pass</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'booked')">Har valt pass</div>
           </div>
         </div>
         <div>
           <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ LAG</div>
           <div class="recipient-chips" id="lagChips">
             <div class="chip chip-on" onclick="toggleLagChip(this,'all')">Alla lag</div>
-            <div class="chip chip-off" onclick="toggleLagChip(this,'FJ')">FJ</div>
-            <div class="chip chip-off" onclick="toggleLagChip(this,'P13')">P13</div>
-            <div class="chip chip-off" onclick="toggleLagChip(this,'P15')">P15</div>
-            <div class="chip chip-off" onclick="toggleLagChip(this,'P18')">P18</div>
-            <div class="chip chip-off" onclick="toggleLagChip(this,'F15')">F15</div>
-            <div class="chip chip-off" onclick="toggleLagChip(this,'F16')">F16</div>
           </div>
         </div>
-        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Mottagare: 105 bokade + 24 obokade</div>
+        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Laddar...</div>
+
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">SKICKA TESTMEJL</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+            <input type="email" id="testEmailAddr" placeholder="din@email.se" style="flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px">
+            <button class="btn btn-ghost btn-sm" onclick="sendTestEmail()">Skicka test →</button>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Skickar ett exemplar av meddelandet nedan till adressen, med en demo-länk.</div>
+        </div>
       </div>
 
             <div class="card">
@@ -2127,9 +2127,57 @@ function getEmailRecipients(){
   let list = DB.participants.slice();
   // Filtrera på status
   if(emailFilterType === 'unbooked') list = list.filter(p => !bookedIds.has(p.id));
+  else if(emailFilterType === 'booked') list = list.filter(p => bookedIds.has(p.id));
   // Filtrera på lag
   if(emailFilterTeam && emailFilterTeam !== 'all') list = list.filter(p => (p.team||'') === emailFilterTeam);
   return list;
+}
+
+function renderLagChips(){
+  const wrap = document.getElementById('lagChips');
+  if(!wrap) return;
+  // Unika lag från databasen
+  const teams = [...new Set(DB.participants.map(p => p.team).filter(Boolean))].sort();
+  let html = '<div class="chip chip-on" onclick="toggleLagChip(this,\'all\')">Alla lag</div>';
+  teams.forEach(t => {
+    html += '<div class="chip chip-off" onclick="toggleLagChip(this,\'' + t + '\')">' + t + '</div>';
+  });
+  wrap.innerHTML = html;
+  emailFilterTeam = 'all';
+}
+
+async function sendTestEmail(){
+  const addr = document.getElementById('testEmailAddr').value.trim();
+  if(!addr || !addr.includes('@')){ alert('Ange en giltig e-postadress.'); return; }
+  const subject = document.getElementById('emailSubject').value.trim() || 'Testmejl från Lagpasset';
+  const body = document.getElementById('emailBody').value.trim() || 'Detta är ett testmejl.';
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){
+    demoBlock();
+    return;
+  }
+  try {
+    showToast('Skickar testmejl till ' + addr + '...');
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-links', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode: 'links',
+        recipients: [{ name: 'Test', email: addr, token: 'demo-test-token' }],
+        message: body,
+        baseUrl: window.location.origin + '/guest.html',
+        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet'
+      })
+    });
+    const data = await res.json();
+    if(res.ok && data.sent > 0){
+      showToast('Testmejl skickat till ' + addr);
+    } else {
+      showToast('Kunde inte skicka: ' + (data.error || 'okänt fel'), 'error');
+    }
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte skicka testmejl', 'error');
+  }
 }
 
 function updateRecipientCount(){
@@ -2774,6 +2822,7 @@ async function init() {
   await loadEvent();
   await loadFromDB();
   renderFeedback();
+  if(typeof renderLagChips === 'function') renderLagChips();
   if(typeof updateRecipientCount === 'function') updateRecipientCount();
   fillEventSettings();
   renderDashboard();
