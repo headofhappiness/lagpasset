@@ -302,6 +302,7 @@ setVH(); window.addEventListener('resize',setVH);
     </div>
     <div class="topbar-actions">
       <span style="font-size:13px;color:var(--green);font-weight:700;background:var(--green-light);padding:5px 13px;border-radius:100px;display:none;align-items:center;gap:.35rem" class="hide-mobile" id="topbarEvent">📅 <span id="topbarEventName"></span></span>
+      <button id="logoutBtn" onclick="adminLogout()" style="display:none;background:none;border:1.5px solid var(--border);border-radius:100px;padding:5px 14px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--muted);cursor:pointer" class="hide-mobile">Logga ut</button>
     </div>
   </header>
 
@@ -1188,6 +1189,8 @@ Hälsningar,
 // ═══════════════════════════════════════
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
+const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+async function adminLogout(){ await _sbAuth.auth.signOut(); window.location.href = 'login.html'; }
 const _eventParam = (new URLSearchParams(window.location.search)).get('event');
 const _demoName = (new URLSearchParams(window.location.search)).get('namn');
 const EVENT_ID = _eventParam || '00000000-0000-0000-0000-000000000002';
@@ -3686,7 +3689,6 @@ function renderStaffingAnalysis(){
 async function init() {
   // Session-check — kräver inloggning om inte demo
   if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
-    const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data:{ session } } = await _sbAuth.auth.getSession();
     if(!session){
       window.location.href = 'login.html';
@@ -3728,6 +3730,11 @@ async function init() {
     if(se) se.style.display = 'flex';
   }
   if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
+  // Visa Logga ut-knapp i riktig admin (ej demo)
+  if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
+    const lb = document.getElementById('logoutBtn');
+    if(lb) lb.style.display = 'inline-block';
+  }
   renderDashboard();
   renderShiftTable();
   renderPoolTable();
