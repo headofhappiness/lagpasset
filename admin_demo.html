@@ -1037,16 +1037,11 @@ Hälsningar,
       <div class="modal-title">🖨️ Skriv ut lista</div>
       <button class="modal-close" onclick="closeModal('modalPrint')">✕</button>
     </div>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:1rem">Välj vad du vill skriva ut. Varje arbetsställe får en egen sida med namn och telefon.</p>
-    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.1rem">
-      <label class="checkbox-row"><input type="checkbox" checked><label>Servering – alla pass</label></label>
-      <label class="checkbox-row"><input type="checkbox" checked><label>Infotält – alla pass</label></label>
-      <label class="checkbox-row"><input type="checkbox" checked><label>Bygg & Riv</label></label>
-      <label class="checkbox-row"><input type="checkbox" checked><label>Nattvakt</label></label>
-    </div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:1rem">Välj vilka arbetsställen du vill skriva ut. Varje arbetsställe får en egen sida med pass, namn och telefon.</p>
+    <div id="printOptions" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.1rem"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalPrint')">Avbryt</button>
-      <button class="btn btn-primary" onclick="window.print()">Skriv ut →</button>
+      <button class="btn btn-primary" onclick="doPrint()">Skriv ut →</button>
     </div>
   </div>
 </div>
@@ -1682,7 +1677,90 @@ async function deleteShift(id){
 // ═══════════════════════════════════════
 // MODALER
 // ═══════════════════════════════════════
-function openModal(id){ document.getElementById(id).classList.add('open'); }
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id === 'modalPrint') buildPrintOptions();
+}
+
+function buildPrintOptions(){
+  const el = document.getElementById('printOptions');
+  if(!el) return;
+  // Unika arbetsställen från DB
+  const stations = [...new Set(DB.shifts.map(s => s.title))];
+  if(stations.length === 0){
+    el.innerHTML = '<div style="color:var(--muted);font-style:italic">Inga pass att skriva ut.</div>';
+    return;
+  }
+  el.innerHTML = stations.map(st =>
+    '<label class="checkbox-row"><input type="checkbox" value="' + st + '" checked><label>' + st + ' – alla pass</label></label>'
+  ).join('');
+}
+
+function doPrint(){
+  const checked = Array.from(document.querySelectorAll('#printOptions input:checked')).map(c => c.value);
+  if(checked.length === 0){ alert('Välj minst ett arbetsställe.'); return; }
+
+  const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  let html = '<html><head><meta charset="utf-8"><title>Passlista – Åsacupen 2026</title>';
+  html += '<style>';
+  html += 'body{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;margin:0;padding:0}';
+  html += '.station-page{padding:2.5rem;page-break-after:always}';
+  html += '.station-page:last-child{page-break-after:auto}';
+  html += 'h1{font-size:24px;margin:0 0 4px}';
+  html += '.sub{color:#666;font-size:14px;margin-bottom:1.5rem}';
+  html += '.shift{margin-bottom:1.75rem;border:1px solid #ddd;border-radius:8px;overflow:hidden}';
+  html += '.shift-head{background:#1a8c3a;color:#fff;padding:.6rem 1rem;font-weight:bold;font-size:15px;display:flex;justify-content:space-between}';
+  html += '.shift-meta{font-weight:normal;font-size:13px}';
+  html += 'table{width:100%;border-collapse:collapse}';
+  html += 'td,th{text-align:left;padding:.5rem 1rem;border-bottom:1px solid #eee;font-size:14px}';
+  html += 'th{background:#f4f7f4;font-size:12px;text-transform:uppercase;color:#666}';
+  html += '.empty{color:#aaa;font-style:italic}';
+  html += '.contact{font-size:13px;color:#444;margin-top:.3rem}';
+  html += '@media print{.station-page{padding:1.5rem}}';
+  html += '</style></head><body>';
+
+  checked.forEach(station => {
+    const shifts = DB.shifts.filter(s => s.title === station)
+      .sort((a,b) => (a.date + a.time_start).localeCompare(b.date + b.time_start));
+    html += '<div class="station-page">';
+    html += '<h1>' + station + '</h1>';
+    html += '<div class="sub">Åsacupen 2026 · Åsa IF</div>';
+
+    shifts.forEach(s => {
+      const bookings = DB.bookings.filter(b => b.shift_id === s.id);
+      const d = new Date(s.date);
+      const dag = dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+      const tid = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+      html += '<div class="shift">';
+      html += '<div class="shift-head"><span>' + dag + ' · ' + tid + (s.location ? ' · ' + s.location : '') + '</span>';
+      html += '<span class="shift-meta">' + bookings.length + '/' + s.slots + ' platser</span></div>';
+      html += '<table><thead><tr><th>Namn</th><th>Lag</th><th>Telefon</th></tr></thead><tbody>';
+      bookings.forEach(b => {
+        const p = DB.participants.find(p => p.id === b.participant_id);
+        const name = p ? p.name : (b.display_name || 'Okänd');
+        html += '<tr><td>' + name + '</td><td>' + (p && p.team ? p.team : '–') + '</td><td>' + (p && p.phone ? p.phone : '–') + '</td></tr>';
+      });
+      const free = s.slots - bookings.length;
+      for(let i=0; i<free; i++){
+        html += '<tr><td class="empty">___________________</td><td class="empty">___</td><td class="empty">___________</td></tr>';
+      }
+      html += '</tbody></table>';
+      if(s.contact_name){
+        html += '<div class="contact" style="padding:.5rem 1rem">Ansvarig: <strong>' + s.contact_name + '</strong>' + (s.contact_phone ? ' · ' + s.contact_phone : '') + '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  html += '</body></html>';
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 300);
+  closeModal('modalPrint');
+}
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
