@@ -672,15 +672,23 @@ Hälsningar,
       <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:1.25rem">Inställningar</h2>
       <div class="card">
         <div class="card-title" style="margin-bottom:1rem">Event-inställningar</div>
+        <div class="form-group">
+          <label class="form-label">Eventnamn</label>
+          <input type="text" id="setEventName" value="Åsacupen 2026">
+        </div>
         <div class="inline-2">
           <div class="form-group">
-            <label class="form-label">Eventnamn</label>
-            <input type="text" value="Åsacupen 2026">
+            <label class="form-label">Första eventdag</label>
+            <input type="date" id="setEventStart" value="2026-06-13">
           </div>
           <div class="form-group">
-            <label class="form-label">Sista anmälningsdag</label>
-            <input type="text" value="2026-06-18">
+            <label class="form-label">Sista eventdag</label>
+            <input type="date" id="setEventEnd" value="2026-06-14">
           </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sista anmälningsdag</label>
+          <input type="date" id="setDeadline" value="2026-06-08">
         </div>
         <div class="form-group">
           <label class="form-label">Automatisk påminnelse</label>
@@ -704,7 +712,7 @@ Hälsningar,
           </select>
           <div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5">💡 <strong>Tips:</strong> Räknar ni i timmar kan ni erbjuda både långa och korta pass. Ett kort pass (1–2 tim) gör det lättare för fler att hjälpa till, och enklare att byta eller ta ett extra pass.</div>
         </div>
-        <button class="btn btn-primary" style="margin-top:.5rem">Spara inställningar</button>
+        <button class="btn btn-primary" style="margin-top:.5rem" onclick="saveEventSettings()">Spara inställningar</button>
       </div>
 
       <div class="card">
@@ -898,81 +906,52 @@ Hälsningar,
       <div class="modal-title">Skapa nytt pass</div>
       <button class="modal-close" onclick="closeModal('modalAddShift')">✕</button>
     </div>
-    <div class="inline-2">
-      <div class="form-group">
-        <label class="form-label">Passnamn</label>
-        <input type="text" placeholder="Ex. Servering, Infotält…">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Typ</label>
-        <select>
-          <option>Servering</option><option>Infotält</option>
-          <option>Bygg</option><option>Riv</option><option>Nattvakt</option><option>Annat</option>
-        </select>
-      </div>
+    <div class="form-group">
+      <label class="form-label">Passnamn / arbetsställe</label>
+      <input type="text" id="nsTitle" placeholder="Ex. Servering, Parkering, Kiosk…">
     </div>
     <div class="inline-2">
       <div class="form-group">
         <label class="form-label">Dag</label>
-        <select><option>Torsdag</option><option>Fredag</option><option>Lördag</option><option>Lördag natt</option><option>Söndag tidigt</option><option>Söndag</option></select>
+        <select id="nsDay"></select>
       </div>
       <div class="form-group">
-        <label class="form-label">Tid</label>
-        <input type="text" placeholder="09:00–13:00">
+        <label class="form-label">Antal platser</label>
+        <input type="number" id="nsSlots" value="2" min="1">
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Notering (visas för deltagare)</label>
-      <input type="text" placeholder="Ex. Tag med arbetshandskar, Matsalen…">
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Starttid</label>
+        <input type="time" id="nsStart" value="09:00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sluttid</label>
+        <input type="time" id="nsEnd" value="12:00">
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Var ligger passet? (plats)</label>
-      <input type="text" placeholder="Ex. Kiosken vid plan 2, Infotältet vid entrén…">
+      <input type="text" id="nsLocation" placeholder="Ex. Kiosken vid plan 2, Infotältet vid entrén…">
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i bekräftelsen och tackmejlet så deltagaren vet vart de ska.</div>
     </div>
     <div class="inline-2">
       <div class="form-group">
         <label class="form-label">Kontaktperson vid passet</label>
-        <input type="text" placeholder="Ex. Maria Lindqvist">
+        <input type="text" id="nsContactName" placeholder="Ex. Maria Lindqvist">
       </div>
       <div class="form-group">
         <label class="form-label">Kontaktpersonens telefon</label>
-        <input type="tel" placeholder="070-123 45 67">
+        <input type="tel" id="nsContactPhone" placeholder="070-123 45 67">
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Lag &amp; kvoter</label>
-      <div style="font-size:12.5px;color:var(--muted);margin-bottom:.6rem">Auto = 1 plats per barn i laget. Justera manuellt om ni vill ha fler eller färre.</div>
-      <div id="shiftQuotaRows">
-        <div class="pass-quota-row">
-          <span class="pqr-name">FJ – Flickjuniorer</span>
-          <span class="pqr-auto">Auto: 23</span>
-          <input type="number" class="pqr-input" value="2" min="0" placeholder="0">
-          <span style="font-size:13px;color:var(--muted)">platser</span>
-        </div>
-        <div class="pass-quota-row">
-          <span class="pqr-name">P13</span>
-          <span class="pqr-auto">Auto: 8</span>
-          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
-          <span style="font-size:13px;color:var(--muted)">platser</span>
-        </div>
-        <div class="pass-quota-row">
-          <span class="pqr-name">P15</span>
-          <span class="pqr-auto">Auto: 6</span>
-          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
-          <span style="font-size:13px;color:var(--muted)">platser</span>
-        </div>
-        <div class="pass-quota-row">
-          <span class="pqr-name">F15</span>
-          <span class="pqr-auto">Auto: 9</span>
-          <input type="number" class="pqr-input" value="0" min="0" placeholder="0">
-          <span style="font-size:13px;color:var(--muted)">platser</span>
-        </div>
-      </div>
+      <label class="form-label">Notering (visas för deltagare)</label>
+      <input type="text" id="nsNotes" placeholder="Ex. Tag med arbetshandskar">
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddShift')">Avbryt</button>
-      <button class="btn btn-primary">Skapa pass</button>
+      <button class="btn btn-primary" onclick="createShift()">Skapa pass</button>
     </div>
   </div>
 </div>
@@ -1091,6 +1070,71 @@ async function sbDelete(table, id) {
     }
   });
   if (!res.ok) throw new Error('Supabase delete error: ' + res.status);
+}
+
+async function sbUpdate(table, id, data) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + id, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Supabase update error: ' + res.status);
+  return res.json();
+}
+
+// Eventets data (datum etc)
+let EVENT = null;
+
+// Generera lista av dagar mellan två datum: [{value:'2026-06-13', label:'Lördag 13/6'}, ...]
+function getEventDays(){
+  if(!EVENT || !EVENT.date_start) return [];
+  const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  const start = new Date(EVENT.date_start);
+  const end = new Date(EVENT.date_end || EVENT.date_start);
+  const days = [];
+  let cur = new Date(start);
+  while(cur <= end){
+    const value = cur.toISOString().slice(0,10);
+    const label = dayNames[cur.getDay()] + ' ' + cur.getDate() + '/' + (cur.getMonth()+1);
+    days.push({value, label});
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+}
+
+async function loadEvent(){
+  try {
+    const events = await sbFetch('events', '?id=eq.' + EVENT_ID);
+    if(events.length) EVENT = events[0];
+  } catch(e){ console.error('Event-fel:', e); }
+}
+
+function fillEventSettings(){
+  if(!EVENT) return;
+  const setVal = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+  setVal('setEventName', EVENT.name);
+  setVal('setEventStart', EVENT.date_start);
+  setVal('setEventEnd', EVENT.date_end);
+}
+
+async function saveEventSettings(){
+  const name = document.getElementById('setEventName').value.trim();
+  const start = document.getElementById('setEventStart').value;
+  const end = document.getElementById('setEventEnd').value;
+  if(!name || !start){ alert('Fyll i eventnamn och första eventdag.'); return; }
+  if(end && end < start){ alert('Sista eventdagen kan inte vara före första.'); return; }
+  try {
+    await sbUpdate('events', EVENT_ID, { name, date_start: start, date_end: end || start });
+    EVENT.name = name; EVENT.date_start = start; EVENT.date_end = end || start;
+    showToast('Event-inställningar sparade');
+  } catch(e){
+    showToast('Kunde inte spara', 'error');
+  }
 }
 
 let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [] };
@@ -1680,6 +1724,65 @@ async function deleteShift(id){
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id === 'modalPrint') buildPrintOptions();
+  if(id === 'modalAddShift') fillNewShiftDays();
+}
+
+function fillNewShiftDays(){
+  const sel = document.getElementById('nsDay');
+  if(!sel) return;
+  const days = getEventDays();
+  if(days.length === 0){
+    sel.innerHTML = '<option value="">Ange eventdatum i Inställningar först</option>';
+    return;
+  }
+  sel.innerHTML = days.map(d => '<option value="' + d.value + '">' + d.label + '</option>').join('');
+}
+
+async function createShift(){
+  const title = document.getElementById('nsTitle').value.trim();
+  const date = document.getElementById('nsDay').value;
+  const slots = parseInt(document.getElementById('nsSlots').value) || 1;
+  const start = document.getElementById('nsStart').value;
+  const end = document.getElementById('nsEnd').value;
+  const location = document.getElementById('nsLocation').value.trim();
+  const contactName = document.getElementById('nsContactName').value.trim();
+  const contactPhone = document.getElementById('nsContactPhone').value.trim();
+  const notes = document.getElementById('nsNotes').value.trim();
+
+  if(!title){ alert('Ange ett passnamn.'); return; }
+  if(!date){ alert('Välj en dag. (Ange eventets datum i Inställningar om listan är tom.)'); return; }
+  if(!start || !end){ alert('Ange start- och sluttid.'); return; }
+
+  try {
+    const result = await sbInsert('shifts', {
+      event_id: EVENT_ID,
+      title: title,
+      date: date,
+      time_start: start,
+      time_end: end,
+      slots: slots,
+      location: location || null,
+      contact_name: contactName || null,
+      contact_phone: contactPhone || null,
+      notes: notes || null
+    });
+    // Lägg till i lokal DB
+    if(result && result.length) DB.shifts.push(result[0]);
+    DB.shifts.sort((a,b) => (a.date + a.time_start).localeCompare(b.date + b.time_start));
+    closeModal('modalAddShift');
+    renderShiftTable();
+    renderDashboard();
+    showToast('Passet skapat!');
+    // Rensa formuläret
+    document.getElementById('nsTitle').value = '';
+    document.getElementById('nsLocation').value = '';
+    document.getElementById('nsContactName').value = '';
+    document.getElementById('nsContactPhone').value = '';
+    document.getElementById('nsNotes').value = '';
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte skapa passet', 'error');
+  }
 }
 
 function buildPrintOptions(){
@@ -2292,7 +2395,9 @@ function showToast(msg, type) {
 
 // INIT
 async function init() {
+  await loadEvent();
   await loadFromDB();
+  fillEventSettings();
   renderDashboard();
   renderShiftTable();
   renderPoolTable();
