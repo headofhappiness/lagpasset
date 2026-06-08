@@ -517,15 +517,6 @@ setVH(); window.addEventListener('resize',setVH);
           </div>
         </div>
         <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Laddar...</div>
-
-        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
-          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">SKICKA TESTMEJL</div>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
-            <input type="email" id="testEmailAddr" placeholder="din@email.se" style="flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px">
-            <button class="btn btn-ghost btn-sm" onclick="sendTestEmail()">Skicka test →</button>
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Skickar ett exemplar av meddelandet nedan till adressen, med en demo-länk.</div>
-        </div>
       </div>
 
       <!-- AUTOMATISKA MEJL -->
@@ -602,6 +593,15 @@ Hälsningar,
         <p style="font-size:12px;color:var(--muted);margin-top:.65rem">Mejl skickas via Resend. Varje mottagare ser bara sitt eget namn och sin egen länk.</p>
 
         <div id="emailSentMsg" style="display:none;margin-top:.75rem" class="msg ok">Mejl skickat!</div>
+
+        <div style="margin-top:1.25rem;padding-top:1.1rem;border-top:1px dashed var(--border)">
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.35rem">🧪 TESTA FÖRST PÅ DIG SJÄLV</div>
+          <p style="font-size:12.5px;color:var(--muted);margin-bottom:.6rem">Skicka en kopia av meddelandet ovan (med ämnesrad, text och ev. passval-knapp precis som mottagarna får det) till en valfri adress – så ser du hur det blir innan du skickar till alla.</p>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+            <input type="email" id="testEmailAddr" placeholder="din@email.se" style="flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px">
+            <button class="btn btn-ghost btn-sm" onclick="sendTestEmail()">Skicka testmejl →</button>
+          </div>
+        </div>
       </div>
 
       <!-- UTSKICKSLOGG -->
