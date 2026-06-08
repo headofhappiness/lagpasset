@@ -800,26 +800,24 @@ Hälsningar,
     </div>
     <div class="form-group">
       <label class="form-label">Namn</label>
-      <input type="text" placeholder="Förnamn Efternamn">
+      <input type="text" id="poolName" placeholder="Förnamn Efternamn">
     </div>
     <div class="form-group">
       <label class="form-label">Tillhör lag</label>
-      <select>
-        <option>P16</option><option>P18</option><option>F16</option><option>F18</option><option>Annat</option>
-      </select>
+      <input type="text" id="poolTeam" placeholder="Ex. P16, U17">
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Ersättning för tagna pass kan gå tillbaka till detta lag (hanteras av föreningen).</div>
     </div>
     <div class="form-group">
       <label class="form-label">Kan ta vilka pass?</label>
-      <input type="text" placeholder="Ex. Servering, Parkering, Bygg">
+      <input type="text" id="poolCan" placeholder="Ex. Servering, Parkering, Bygg">
     </div>
     <div class="form-group">
       <label class="form-label">Kontakt (telefon)</label>
-      <input type="tel" placeholder="070-123 45 67">
+      <input type="tel" id="poolPhone" placeholder="070-123 45 67">
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddPool')">Avbryt</button>
-      <button class="btn btn-primary" onclick="demoBlock&&demoBlock();closeModal('modalAddPool')">Spara</button>
+      <button class="btn btn-primary" onclick="addPoolMember()">Spara</button>
     </div>
   </div>
 </div>
@@ -833,26 +831,26 @@ Hälsningar,
     </div>
     <div class="form-group">
       <label class="form-label">Ansvarsområde</label>
-      <input type="text" placeholder="Ex. Servering, Parkering, Allmänt om cupen">
+      <input type="text" id="contactArea" placeholder="Ex. Servering, Parkering, Allmänt om cupen">
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Detta visas för medlemmen när de väljer vem frågan ska gå till.</div>
     </div>
     <div class="form-group">
       <label class="form-label">Namn</label>
-      <input type="text" placeholder="Förnamn Efternamn">
+      <input type="text" id="contactPersonName" placeholder="Förnamn Efternamn">
     </div>
     <div class="inline-2">
       <div class="form-group">
         <label class="form-label">E-post</label>
-        <input type="email" placeholder="namn@forening.se">
+        <input type="email" id="contactPersonEmail" placeholder="namn@forening.se">
       </div>
       <div class="form-group">
         <label class="form-label">Telefon</label>
-        <input type="tel" placeholder="070-123 45 67">
+        <input type="tel" id="contactPersonPhone" placeholder="070-123 45 67">
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddContact')">Avbryt</button>
-      <button class="btn btn-primary" onclick="demoBlock&&demoBlock();closeModal('modalAddContact')">Spara</button>
+      <button class="btn btn-primary" onclick="addContact()">Spara</button>
     </div>
   </div>
 </div>
@@ -1847,6 +1845,60 @@ async function confirmFillPool(){
   } catch(e){
     console.error(e);
     showToast('Kunde inte tilldela passet', 'error');
+  }
+}
+
+// ── Lägg till i bemanningspool ──
+async function addPoolMember(){
+  const name = document.getElementById('poolName').value.trim();
+  const team = document.getElementById('poolTeam').value.trim();
+  const can = document.getElementById('poolCan').value.trim();
+  const phone = document.getElementById('poolPhone').value.trim();
+  if(!name){ alert('Ange ett namn.'); return; }
+  try {
+    const result = await sbInsert('pool_members', {
+      event_id: EVENT_ID,
+      name: name,
+      team: team || null,
+      phone: phone || null,
+      notes: can || null
+    });
+    if(result && result.length) DB.pool.push(result[0]);
+    DB.pool.sort((a,b)=>a.name.localeCompare(b.name));
+    closeModal('modalAddPool');
+    renderPoolTable();
+    showToast('Tillagd i poolen');
+    ['poolName','poolTeam','poolCan','poolPhone'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte lägga till', 'error');
+  }
+}
+
+// ── Lägg till kontaktperson ──
+async function addContact(){
+  const area = document.getElementById('contactArea').value.trim();
+  const name = document.getElementById('contactPersonName').value.trim();
+  const email = document.getElementById('contactPersonEmail').value.trim();
+  const phone = document.getElementById('contactPersonPhone').value.trim();
+  if(!area || !name){ alert('Ange ansvarsområde och namn.'); return; }
+  try {
+    const result = await sbInsert('contacts', {
+      event_id: EVENT_ID,
+      area: area,
+      name: name,
+      email: email || null,
+      phone: phone || null,
+      sort_order: (DB.contacts.length || 0) + 1
+    });
+    if(result && result.length) DB.contacts.push(result[0]);
+    closeModal('modalAddContact');
+    renderContactsSettings();
+    showToast('Kontaktperson tillagd');
+    ['contactArea','contactPersonName','contactPersonEmail','contactPersonPhone'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte lägga till', 'error');
   }
 }
 
