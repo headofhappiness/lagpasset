@@ -3,535 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="logo.png">
 <title>Superadmin – Lagpasset</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4f7f4;--surface:#fff;--surface2:#f2f9f3;--border:#dde8dd;
-  --green:#1a8c3a;--green-light:#e8f7ec;--green-pale:rgba(26,140,58,.07);
-  --dark:#111c13;--text:#1e2e20;--muted:#6a8a6e;
-  --red:#c0392b;--red-light:#fdf2f2;
-  --amber:#e8a020;--amber-light:#fff8e8;
-  --blue:#2563eb;--blue-light:#eff6ff;
-  --sidebar:230px;
+  --bg:#faf8f4; --surface:#fff; --border:#c4d8c4;
+  --green:#1a8c3a; --green-mid:#22a847; --green-light:#e8f7ec;
+  --dark:#111c13; --text:#1e2e20; --muted:#4a6a4e; --red:#c0392b; --amber:#e8a020;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:14px;font-weight:400;min-height:100vh;display:flex}
-
-.sidebar{width:var(--sidebar);background:#060e07;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:20;border-right:1px solid var(--border)}
-.sidebar-logo{padding:1.1rem 1.25rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.65rem}
-.sidebar-logo a{font-family:"Nunito",sans-serif;font-size:1.1rem;color:var(--text);text-decoration:none;font-weight:700}
-.sidebar-logo span{color:var(--green)}
-.super-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(34,197,94,.25);color:#22c55e;border:1px solid rgba(34,197,94,.35);border-radius:100px;padding:2px 8px;margin-top:5px}
-.nav-items{padding:.5rem 0;flex:1;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem 1.2rem;font-size:13.5px;font-weight:500;color:rgba(210,240,210,.82);cursor:pointer;transition:all .15s;border-left:3px solid transparent;text-decoration:none}
-.nav-item:hover{color:#fff;background:rgba(255,255,255,.07)}
-.nav-item.active{color:#fff;background:rgba(34,197,94,.2);border-left-color:#22c55e}
-.nav-icon{font-size:.95rem;width:18px;text-align:center}
-.nav-section{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(210,240,210,.45);padding:.75rem 1.2rem .25rem}
-.sidebar-footer{padding:.9rem 1.2rem;border-top:1px solid rgba(255,255,255,.1);font-size:11.5px;color:rgba(210,240,210,.5)}
-
-.main{margin-left:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:.8rem 1.6rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-.topbar-title{font-size:15px;font-weight:700;color:var(--text)}
-.topbar-right{display:flex;align-items:center;gap:.6rem}
-.content{padding:1.6rem;flex:1}
-
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.4rem;margin-bottom:1.1rem}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-.card-title{font-size:14px;font-weight:700;color:var(--text)}
-.card-sub{font-size:12px;color:var(--muted);margin-top:2px}
-
-/* GRID */
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-
-/* STAT */
-.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.1rem 1.3rem}
-.stat-num{font-family:"Nunito",sans-serif;font-size:1.9rem;font-weight:700;line-height:1}
-.stat-label{font-size:11.5px;color:var(--muted);margin-top:4px;font-weight:500}
-.stat-card.green{background:var(--green-light)}.stat-card.green .stat-num{color:var(--green)}
-.stat-card.amber{background:var(--amber-light)}.stat-card.amber .stat-num{color:var(--amber)}
-.stat-card.red{background:var(--red-light)}.stat-card.red .stat-num{color:var(--red)}
-.stat-card.blue{background:var(--blue-light)}.stat-card.blue .stat-num{color:var(--blue)}
-
-/* TABLES */
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;min-height:100vh}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.4rem;border-bottom:1px solid var(--border);background:#fff;position:sticky;top:0;z-index:10}
+.nav-logo{font-family:"Nunito",sans-serif;font-size:1.15rem;color:var(--dark);font-weight:800}
+.nav-logo span{color:var(--green)}
+.nav-right{display:flex;align-items:center;gap:.85rem;font-size:13px;color:var(--muted)}
+.badge-sa{background:#111c13;color:#fff;border-radius:100px;padding:3px 11px;font-size:11px;font-weight:700;letter-spacing:.03em}
+.linkbtn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:"Outfit",sans-serif;text-decoration:underline}
+.page{max-width:920px;margin:0 auto;padding:2rem 1.5rem 5rem}
+h1{font-family:"Nunito",sans-serif;font-size:1.8rem;color:var(--dark);font-weight:900}
+.green-line{width:46px;height:4px;background:var(--green);border-radius:3px;margin:.55rem 0 .4rem}
+.lead{font-size:14.5px;color:var(--muted);margin-bottom:1.75rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.4rem 1.5rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.card-title{font-family:"Nunito",sans-serif;font-size:1.15rem;font-weight:800;color:var(--dark);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:.35rem}
+input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.7rem .85rem;font-family:"Outfit",sans-serif;font-size:15px;color:var(--text)}
+input:focus{outline:none;border-color:var(--green)}
+.btn{border:none;border-radius:10px;padding:.75rem 1.3rem;font-family:"Outfit",sans-serif;font-size:14px;font-weight:700;cursor:pointer;background:var(--green);color:#fff;transition:background .15s}
+.btn:hover{background:var(--green-mid)}
+.btn:disabled{opacity:.6;cursor:default}
 table{width:100%;border-collapse:collapse}
-th{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:.55rem .85rem;text-align:left;border-bottom:1px solid var(--border)}
-td{padding:.7rem .85rem;font-size:13.5px;border-bottom:1px solid rgba(42,61,44,.5);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(34,197,94,.03)}
-.td-name{font-weight:600;color:var(--text)}
-.td-muted{color:var(--muted)}
-
-/* BADGES */
-.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px}
-.badge-green{background:rgba(34,197,94,.15);color:var(--green)}
-.badge-amber{background:var(--amber-light);color:var(--amber)}
-.badge-red{background:var(--red-light);color:var(--red)}
-.badge-blue{background:var(--blue-light);color:var(--blue)}
-.badge-gray{background:rgba(106,138,108,.15);color:var(--muted)}
-.badge-trial{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
-.badge-active{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.25)}
-.badge-inactive{background:rgba(106,138,108,.12);color:var(--muted);border:1px solid var(--border)}
-
-/* BTN */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 14px;border-radius:100px;font-family:"Outfit",sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;border:none;letter-spacing:.01em;min-height:32px;white-space:nowrap}
-.btn-primary{background:var(--green);color:#0a120b}.btn-primary:hover{background:#16a34a}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}.btn-ghost:hover{border-color:var(--green);color:var(--green)}
-.btn-danger{background:var(--red-light);color:var(--red);border:1px solid rgba(239,68,68,.2)}.btn-danger:hover{background:rgba(239,68,68,.2)}
-.btn-sm{padding:5px 11px;font-size:12px;min-height:28px}
-.btn-icon{width:28px;height:28px;padding:0;border-radius:7px;font-size:13px}
-
-/* FORM */
-.form-group{margin-bottom:.8rem}
-.form-label{font-size:11.5px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;letter-spacing:.03em;text-transform:uppercase}
-input[type=text],input[type=email],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-family:"Outfit",sans-serif;font-size:13.5px;color:var(--text);outline:none;transition:border-color .2s}
-input:focus,select:focus,textarea:focus{border-color:var(--green)}
-input::placeholder{color:rgba(106,138,108,.5)}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;align-items:center;justify-content:center;padding:1rem}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.6rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
-.modal-title{font-size:16px;font-weight:700;color:var(--text)}
-.modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)}
-.modal-close:hover{color:var(--text)}
-.modal-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
-
-/* MSG */
-.msg{padding:9px 13px;border-radius:8px;font-size:13px;margin-bottom:.8rem;border:1px solid;line-height:1.55}
-.msg.ok{background:var(--green-light);color:rgba(180,240,180,.9);border-color:rgba(34,197,94,.2)}
-.msg.err{background:var(--red-light);color:rgba(255,180,180,.9);border-color:rgba(239,68,68,.2)}
-.msg.info{background:var(--amber-light);color:rgba(255,220,140,.9);border-color:rgba(245,158,11,.2)}
-
-/* PLAN CARDS */
-.plan-select{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.9rem}
-.plan-opt{padding:.85rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:var(--surface)}
-.plan-opt:hover{border-color:var(--green)}
-.plan-opt.selected{border-color:var(--green);background:var(--green-light)}
-.plan-name{font-size:13.5px;font-weight:700;color:var(--dark)}
-.plan-price{font-size:11.5px;color:var(--muted);margin-top:2px}
-
-/* ACTIVITY LOG */
-.log-item{display:flex;align-items:flex-start;gap:.7rem;padding:.6rem 0;border-bottom:1px solid rgba(42,61,44,.4)}
-.log-item:last-child{border-bottom:none}
-.log-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
-.log-dot-green{background:var(--green)}
-.log-dot-amber{background:var(--amber)}
-.log-dot-blue{background:var(--blue)}
-.log-text{font-size:13px;color:var(--text);line-height:1.5}
-.log-time{font-size:11.5px;color:var(--muted);margin-top:1px}
-
-/* SECTION */
-.section{display:none}.section.active{display:block}
-
-/* REVENUE MINI */
-.rev-bar-wrap{display:flex;flex-direction:column;gap:6px;margin-top:.75rem}
-.rev-bar-row{display:flex;align-items:center;gap:.6rem}
-.rev-bar-label{font-size:12px;color:var(--muted);width:70px;flex-shrink:0}
-.rev-bar{flex:1;height:6px;background:#e0ece0;border-radius:3px;overflow:hidden}
-.rev-bar-fill{height:6px;background:#1a8c3a;border-radius:3px}
-.rev-bar-val{font-size:12px;color:var(--text);width:55px;text-align:right;flex-shrink:0}
-@media(max-width:900px){
-  .sidebar{transform:translateX(-100%);transition:transform .25s}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
-  .grid-4,.grid-2{grid-template-columns:1fr 1fr}
-  .content{padding:1.25rem}
-  #superHamburger{display:block !important}
-}
-@media(max-width:600px){
-  .grid-4,.grid-2{grid-template-columns:1fr}
-  .content{padding:1rem}
-  th,td{padding:.55rem .6rem;font-size:12.5px}
-  .stat-num{font-size:1.5rem}
-  .topbar-title{font-size:14px}
-  .topbar-right{display:none}
-  .btn{font-size:12px;padding:6px 12px}
-}
-.lp-green{color:#22c55e !important;letter-spacing:0;font-size:inherit;display:inline}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:.6rem .5rem;border-bottom:1.5px solid var(--border)}
+td{padding:.7rem .5rem;border-bottom:1px solid var(--border);font-size:14px;vertical-align:top}
+.pill{display:inline-block;border-radius:100px;padding:2px 10px;font-size:11.5px;font-weight:700}
+.pill-ok{background:var(--green-light);color:var(--green)}
+.pill-wait{background:#fff3e0;color:#b07000}
+.msg{border-radius:10px;padding:.8rem .9rem;font-size:13.5px;margin-top:1rem}
+.msg.ok{background:var(--green-light);color:var(--green)}
+.msg.err{background:#fdecea;color:var(--red)}
+.loading{text-align:center;padding:3rem;color:var(--muted)}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hidden{display:none}
+.muted{color:var(--muted);font-size:12.5px}
 </style>
 </head>
 <body>
+<div class="nav">
+  <div class="nav-logo">Lag<span>passet</span> <span class="badge-sa">SUPERADMIN</span></div>
+  <div class="nav-right"><span id="whoami"></span><button class="linkbtn" onclick="logout()">Logga ut</button></div>
+</div>
 
-<aside class="sidebar" id="superSidebar">
-  <div class="sidebar-logo" style="display:flex;align-items:center">
-    <img src="logo-white.png" style="height:24px;width:auto;flex-shrink:0" alt="LagPasset">
-    <div class="super-badge" style="margin-left:.6rem">Superadmin</div>
+<div id="gate" class="loading"><span class="spinner"></span> Kontrollerar behörighet...</div>
+
+<div id="page" class="page hidden">
+  <h1>Föreningar</h1>
+  <div class="green-line"></div>
+  <p class="lead">Lägg upp nya kundföreningar. När du sparat en förening kan deras admin logga in på <strong>login.html</strong> med e-postadressen nedan – kontot kopplas automatiskt till föreningen vid första inloggningen.</p>
+
+  <div class="card">
+    <div class="card-title">➕ Ny förening</div>
+    <div class="grid2">
+      <div><label>Föreningens namn</label><input id="cName" placeholder="Ex. Åsa IF"></div>
+      <div><label>Kontaktperson (admin)</label><input id="cContact" placeholder="Ex. Lisa Andersson"></div>
+      <div><label>Admin-e-post (inloggning)</label><input id="cEmail" type="email" placeholder="namn@asaif.se"></div>
+      <div><label>Telefon</label><input id="cPhone" placeholder="070-123 45 67"></div>
+    </div>
+    <div style="margin-top:1.1rem"><button class="btn" id="addBtn" onclick="addClub()">Spara förening</button></div>
+    <div id="addMsg" class="msg" style="display:none"></div>
   </div>
-  <nav class="nav-items">
-    <div class="nav-section">Översikt</div>
-    <a class="nav-item active" onclick="showSection('dashboard')" href="#">
-      <span class="nav-icon">📊</span> Dashboard
-    </a>
-    <a class="nav-item" onclick="showSection('revenue')" href="#">
-      <span class="nav-icon">💰</span> Intäkter
-    </a>
-    <div class="nav-section">Föreningar</div>
-    <a class="nav-item" onclick="showSection('clubs')" href="#">
-      <span class="nav-icon">🏟️</span> Alla föreningar
-    </a>
-    <a class="nav-item" onclick="showSection('newclub')" href="#">
-      <span class="nav-icon">➕</span> Lägg till förening
-    </a>
-    <div class="nav-section">System</div>
-    <a class="nav-item" onclick="showSection('logs')" href="#">
-      <span class="nav-icon">📋</span> Aktivitetslogg
-    </a>
-    <a class="nav-item" onclick="showSection('emails')" href="#">
-      <span class="nav-icon">📧</span> E-postloggar
-    </a>
-    <a class="nav-item" onclick="showSection('gdpr')" href="#">
-      <span class="nav-icon">🔒</span> GDPR & integritet
-    </a>
-    <div class="nav-section">Konto</div>
-    <a class="nav-item" onclick="showSection('account')" href="#">
-      <span class="nav-icon">⚙️</span> Mitt konto
-    </a>
-  </nav>
-  <div class="sidebar-footer">Inloggad: lisa@headofhappiness.se</div>
-</aside>
 
-<div class="main">
-  <header class="topbar">
-    <div style="display:flex;align-items:center;gap:.75rem">
-      <button onclick="document.getElementById('superSidebar').classList.toggle('open')" style="display:none;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--dark)" id="superHamburger">☰</button>
-      <div class="topbar-title" id="topbarTitle">Dashboard</div>
-    </div>
-    <div class="topbar-right">
-      <span style="font-size:12px;color:var(--muted)">Superadmin · Head of Happiness AB</span>
-      <button class="btn btn-primary btn-sm" onclick="showSection('newclub')">+ Ny förening</button>
-    </div>
-  </header>
-
-  <div class="content">
-
-    <!-- ═══ DASHBOARD ═══ -->
-    <div class="section active" id="sec-dashboard">
-      <div class="grid-4" style="margin-bottom:1.1rem">
-        <div class="stat-card green"><div class="stat-num">7</div><div class="stat-label">Aktiva föreningar</div></div>
-        <div class="stat-card blue"><div class="stat-num">14</div><div class="stat-label">Event i år</div></div>
-        <div class="stat-card amber"><div class="stat-num">2</div><div class="stat-label">Trial-konton</div></div>
-        <div class="stat-card"><div class="stat-num">39 860</div><div class="stat-label">kr MRR (årsab.)</div></div>
-      </div>
-
-      <div class="grid-2">
-        <!-- Föreningsöversikt -->
-        <div class="card">
-          <div class="card-header">
-            <div><div class="card-title">Föreningar – snabbvy</div></div>
-            <button class="btn btn-ghost btn-sm" onclick="showSection('clubs')">Visa alla →</button>
-          </div>
-          <table>
-            <thead><tr><th>Förening</th><th>Plan</th><th>Status</th><th>Event</th></tr></thead>
-            <tbody>
-              <tr><td class="td-name">Åsa IF</td><td><span class="badge badge-active">År</span></td><td><span class="badge badge-green">Aktiv</span></td><td class="td-muted">3</td></tr>
-              <tr><td class="td-name">IFK Kungsbacka</td><td><span class="badge badge-active">År</span></td><td><span class="badge badge-green">Aktiv</span></td><td class="td-muted">2</td></tr>
-              <tr><td class="td-name">Frillesås BK</td><td><span class="badge badge-trial">Trial</span></td><td><span class="badge badge-amber">Trial</span></td><td class="td-muted">1</td></tr>
-              <tr><td class="td-name">Varbergs FK</td><td><span class="badge badge-active">År</span></td><td><span class="badge badge-green">Aktiv</span></td><td class="td-muted">1</td></tr>
-              <tr><td class="td-name">Onsala BK</td><td><span class="badge badge-trial">Trial</span></td><td><span class="badge badge-amber">Trial</span></td><td class="td-muted">1</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Aktivitetslogg -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">Senaste aktivitet</div>
-          </div>
-          <div>
-            <div class="log-item"><div class="log-dot log-dot-green"></div><div><div class="log-text"><strong>Åsa IF</strong> – 12 nya föräldrar valde pass</div><div class="log-time">Idag 09:14</div></div></div>
-            <div class="log-item"><div class="log-dot log-dot-blue"></div><div><div class="log-text"><strong>Frillesås BK</strong> – skapade ett nytt event</div><div class="log-time">Igår 16:42</div></div></div>
-            <div class="log-item"><div class="log-dot log-dot-amber"></div><div><div class="log-text"><strong>Varbergs FK</strong> – skickade påminnelsemejl (43 mottagare)</div><div class="log-time">Igår 11:08</div></div></div>
-            <div class="log-item"><div class="log-dot log-dot-green"></div><div><div class="log-text"><strong>IFK Kungsbacka</strong> – ny förening skapad</div><div class="log-time">3 jun 14:20</div></div></div>
-            <div class="log-item"><div class="log-dot log-dot-blue"></div><div><div class="log-text"><strong>Onsala BK</strong> – påbörjat trial</div><div class="log-time">2 jun 09:55</div></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ INTÄKTER ═══ -->
-    <div class="section" id="sec-revenue">
-      <div class="grid-4" style="margin-bottom:1.1rem">
-        <div class="stat-card green"><div class="stat-num">39 860</div><div class="stat-label">kr MRR</div></div>
-        <div class="stat-card"><div class="stat-num">478 320</div><div class="stat-label">kr ARR (proj.)</div></div>
-        <div class="stat-card blue"><div class="stat-num">3 995</div><div class="stat-label">kr event-intäkt 2026</div></div>
-        <div class="stat-card amber"><div class="stat-num">2</div><div class="stat-label">Trial → konvertera</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title" style="margin-bottom:1rem">Intäkt per förening</div>
-        <table>
-          <thead><tr><th>Förening</th><th>Plan</th><th>Pris</th><th>Förnyelse</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td class="td-name">Åsa IF</td><td>Årsabonnemang</td><td>5 995 kr/år</td><td class="td-muted">Jan 2027</td><td><span class="badge badge-green">Betald</span></td></tr>
-            <tr><td class="td-name">IFK Kungsbacka</td><td>Årsabonnemang</td><td>5 995 kr/år</td><td class="td-muted">Feb 2027</td><td><span class="badge badge-green">Betald</span></td></tr>
-            <tr><td class="td-name">Varbergs FK</td><td>Årsabonnemang</td><td>5 995 kr/år</td><td class="td-muted">Mar 2027</td><td><span class="badge badge-green">Betald</span></td></tr>
-            <tr><td class="td-name">Frillesås BK</td><td>Trial → event?</td><td>0 kr</td><td class="td-muted">–</td><td><span class="badge badge-amber">Trial</span></td></tr>
-            <tr><td class="td-name">Onsala BK</td><td>Trial → event?</td><td>0 kr</td><td class="td-muted">–</td><td><span class="badge badge-amber">Trial</span></td></tr>
-            <tr><td class="td-name">Kungsbacka IF</td><td>Per event</td><td>3 995 kr</td><td class="td-muted">Engång</td><td><span class="badge badge-green">Betald</span></td></tr>
-          </tbody>
-        </table>
-        <div style="margin-top:1.1rem">
-          <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">Intäkt per månad 2026</div>
-          <div class="rev-bar-wrap">
-            <div class="rev-bar-row"><span class="rev-bar-label">Jan</span><div class="rev-bar"><div class="rev-bar-fill" style="width:65%"></div></div><span class="rev-bar-val">19 980 kr</span></div>
-            <div class="rev-bar-row"><span class="rev-bar-label">Feb</span><div class="rev-bar"><div class="rev-bar-fill" style="width:65%"></div></div><span class="rev-bar-val">19 980 kr</span></div>
-            <div class="rev-bar-row"><span class="rev-bar-label">Mar</span><div class="rev-bar"><div class="rev-bar-fill" style="width:100%"></div></div><span class="rev-bar-val">30 970 kr</span></div>
-            <div class="rev-bar-row"><span class="rev-bar-label">Apr</span><div class="rev-bar"><div class="rev-bar-fill" style="width:65%"></div></div><span class="rev-bar-val">19 980 kr</span></div>
-            <div class="rev-bar-row"><span class="rev-bar-label">Maj</span><div class="rev-bar"><div class="rev-bar-fill" style="width:65%"></div></div><span class="rev-bar-val">19 980 kr</span></div>
-            <div class="rev-bar-row"><span class="rev-bar-label">Jun</span><div class="rev-bar"><div class="rev-bar-fill" style="width:65%"></div></div><span class="rev-bar-val">19 980 kr</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ ALLA FÖRENINGAR ═══ -->
-    <div class="section" id="sec-clubs">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem">
-        <h2 style="font-size:17px;font-weight:700;color:var(--text)">Alla föreningar</h2>
-        <button class="btn btn-primary" onclick="showSection('newclub')">+ Lägg till förening</button>
-      </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <table>
-          <thead><tr><th>Förening</th><th>Admin-e-post</th><th>Plan</th><th>Event</th><th>Barn</th><th>Skapad</th><th></th></tr></thead>
-          <tbody>
-            <tr>
-              <td><div class="td-name">Åsa IF</div><div style="font-size:12px;color:var(--muted)">Åsa, Halland</div></td>
-              <td class="td-muted">kansli@asaif.com</td>
-              <td><span class="badge badge-active">Årsab. 5 995 kr</span></td>
-              <td class="td-muted">3 event</td>
-              <td class="td-muted">187 barn</td>
-              <td class="td-muted">Jan 2026</td>
-              <td><div style="display:flex;gap:4px">
-                <button class="btn btn-ghost btn-sm" onclick="openModal('modalImpersonate')">👁 Visa</button>
-                <button class="btn btn-ghost btn-sm btn-icon">✏️</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><div class="td-name">IFK Kungsbacka</div><div style="font-size:12px;color:var(--muted)">Kungsbacka</div></td>
-              <td class="td-muted">admin@ifkkungsbacka.se</td>
-              <td><span class="badge badge-active">Årsab. 5 995 kr</span></td>
-              <td class="td-muted">2 event</td>
-              <td class="td-muted">243 barn</td>
-              <td class="td-muted">Feb 2026</td>
-              <td><div style="display:flex;gap:4px">
-                <button class="btn btn-ghost btn-sm" onclick="openModal('modalImpersonate')">👁 Visa</button>
-                <button class="btn btn-ghost btn-sm btn-icon">✏️</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><div class="td-name">Frillesås BK</div><div style="font-size:12px;color:var(--muted)">Frillesås</div></td>
-              <td class="td-muted">info@frillesasbk.se</td>
-              <td><span class="badge badge-trial">Trial</span></td>
-              <td class="td-muted">1 event</td>
-              <td class="td-muted">54 barn</td>
-              <td class="td-muted">3 jun 2026</td>
-              <td><div style="display:flex;gap:4px">
-                <button class="btn btn-ghost btn-sm" onclick="openModal('modalImpersonate')">👁 Visa</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modalUpgrade')">Uppgradera</button>
-              </div></td>
-            </tr>
-            <tr>
-              <td><div class="td-name">Onsala BK</div><div style="font-size:12px;color:var(--muted)">Onsala</div></td>
-              <td class="td-muted">onsalabk@gmail.com</td>
-              <td><span class="badge badge-trial">Trial</span></td>
-              <td class="td-muted">1 event</td>
-              <td class="td-muted">38 barn</td>
-              <td class="td-muted">2 jun 2026</td>
-              <td><div style="display:flex;gap:4px">
-                <button class="btn btn-ghost btn-sm" onclick="openModal('modalImpersonate')">👁 Visa</button>
-                <button class="btn btn-primary btn-sm" onclick="openModal('modalUpgrade')">Uppgradera</button>
-              </div></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ═══ NY FÖRENING ═══ -->
-    <div class="section" id="sec-newclub">
-      <h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:1.1rem">Lägg till förening</h2>
-      <div class="card">
-        <div class="form-group">
-          <label class="form-label">Föreningsnamn</label>
-          <input type="text" placeholder="Ex. Åsa IF">
-        </div>
-        <div class="grid-2">
-          <div class="form-group">
-            <label class="form-label">Admin-e-post</label>
-            <input type="email" placeholder="kansli@foreningen.se">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Kontaktperson</label>
-            <input type="text" placeholder="Förnamn Efternamn">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Plan</label>
-          <div class="plan-select">
-            <div class="plan-opt" onclick="selectPlan(this)">
-              <div class="plan-name">Per event</div>
-              <div class="plan-price">3 995 kr / event</div>
-            </div>
-            <div class="plan-opt selected" onclick="selectPlan(this)">
-              <div class="plan-name">Årsabonnemang</div>
-              <div class="plan-price">5 995 kr / år · obegränsat</div>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Accentfärg</label>
-          <div style="display:flex;gap:.5rem;align-items:center">
-            <input type="color" value="#1a8c3a" style="width:40px;height:32px;padding:2px;border-radius:6px;cursor:pointer;border:1px solid var(--border)">
-            <input type="text" value="#1a8c3a" style="max-width:100px">
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom:.5rem">
-          <label class="form-label">Logotyp-URL (valfritt)</label>
-          <input type="text" placeholder="https://...">
-        </div>
-        <div class="msg info" style="margin-top:.75rem">Föreningen får ett välkomstmejl med inloggningslänk till sitt admin-konto.</div>
-        <div style="display:flex;gap:.6rem;margin-top:.75rem">
-          <button class="btn btn-ghost" onclick="showSection('clubs')">Avbryt</button>
-          <button class="btn btn-primary" onclick="createClub()">Skapa förening &amp; skicka välkomstmejl</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ GDPR ═══ -->
-    <div class="section" id="sec-gdpr">
-      <h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:1.1rem">GDPR &amp; integritet</h2>
-      <div class="card">
-        <div class="card-title" style="margin-bottom:.75rem">Datalagring</div>
-        <div class="msg ok" style="margin-bottom:.75rem">✓ All data lagras i EU (Supabase Frankfurt). Ingen data skickas utanför EU.</div>
-        <table>
-          <thead><tr><th>Datatyp</th><th>Vad lagras</th><th>Vad lagras INTE</th><th>Vem ser det</th></tr></thead>
-          <tbody>
-            <tr><td class="td-name">Barn</td><td>Visningsnamn, lag</td><td>Personnummer, adress, efternamn (ej obligatoriskt)</td><td>Föreningen + föräldrar i samma lag</td></tr>
-            <tr><td class="td-name">Föräldrar</td><td>E-post, namn (vid bokning), telefon (vid bokning)</td><td>Personnummer, adress</td><td>Endast föreningen + superadmin</td></tr>
-            <tr><td class="td-name">Skyddade barn</td><td>Fingerat visningsnamn, lag</td><td>Allt identifierbart</td><td>Anonymiserat för övriga föräldrar</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="card">
-        <div class="card-title" style="margin-bottom:.75rem">Föreningar &amp; biträdesavtal</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:.75rem">Varje förening accepterar biträdesavtalet vid onboarding. Head of Happiness AB är personuppgiftsbiträde. Föreningen är personuppgiftsansvarig för sin data.</p>
-        <table>
-          <thead><tr><th>Förening</th><th>Avtal accepterat</th><th>Datum</th></tr></thead>
-          <tbody>
-            <tr><td class="td-name">Åsa IF</td><td><span class="badge badge-green">✓ Accepterat</span></td><td class="td-muted">15 jan 2026</td></tr>
-            <tr><td class="td-name">IFK Kungsbacka</td><td><span class="badge badge-green">✓ Accepterat</span></td><td class="td-muted">3 feb 2026</td></tr>
-            <tr><td class="td-name">Frillesås BK</td><td><span class="badge badge-amber">⏳ Ej accepterat</span></td><td class="td-muted">–</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ═══ AKTIVITETSLOGG ═══ -->
-    <div class="section" id="sec-logs">
-      <h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:1.1rem">Aktivitetslogg</h2>
-      <div class="card">
-        <div id="fullLog">
-          <div class="log-item"><div class="log-dot log-dot-green"></div><div><div class="log-text"><strong>Åsa IF</strong> – Anna Mellbin valde Servering Lördag 09:00</div><div class="log-time">2026-06-06 09:14</div></div></div>
-          <div class="log-item"><div class="log-dot log-dot-green"></div><div><div class="log-text"><strong>Åsa IF</strong> – Karin Todelius valde Infotält Fredag 09:00</div><div class="log-time">2026-06-06 08:52</div></div></div>
-          <div class="log-item"><div class="log-dot log-dot-blue"></div><div><div class="log-text"><strong>Frillesås BK</strong> – Admin skapade event "Frillesåscupen 2026"</div><div class="log-time">2026-06-05 16:42</div></div></div>
-          <div class="log-item"><div class="log-dot log-dot-amber"></div><div><div class="log-text"><strong>Varbergs FK</strong> – Påminnelsemejl skickat till 43 föräldrar</div><div class="log-time">2026-06-05 11:08</div></div></div>
-          <div class="log-item"><div class="log-dot log-dot-green"></div><div><div class="log-text"><strong>IFK Kungsbacka</strong> – Förening skapad av superadmin</div><div class="log-time">2026-06-03 14:20</div></div></div>
-          <div class="log-item"><div class="log-dot log-dot-blue"></div><div><div class="log-text"><strong>Onsala BK</strong> – Trial påbörjat</div><div class="log-time">2026-06-02 09:55</div></div></div>
-          <div class="log-item"><div class="log-dot log-dot-amber"></div><div><div class="log-text"><strong>System</strong> – Automatisk påminnelse till Åsa IF (57 föräldrar) schemalagd 13 jun</div><div class="log-time">2026-06-01 00:00</div></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ E-POST LOGGAR ═══ -->
-    <div class="section" id="sec-emails">
-      <h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:1.1rem">E-postloggar (Resend)</h2>
-      <div class="card" style="padding:0;overflow:hidden">
-        <table>
-          <thead><tr><th>Tidpunkt</th><th>Förening</th><th>Typ</th><th>Mottagare</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td class="td-muted">06 jun 09:00</td><td>Åsa IF</td><td>Länkutskick</td><td class="td-muted">124 st</td><td><span class="badge badge-green">Levererat</span></td></tr>
-            <tr><td class="td-muted">05 jun 11:08</td><td>Varbergs FK</td><td>Påminnelse</td><td class="td-muted">43 st</td><td><span class="badge badge-green">Levererat</span></td></tr>
-            <tr><td class="td-muted">03 jun 14:22</td><td>IFK Kungsbacka</td><td>Välkomst</td><td class="td-muted">1 st</td><td><span class="badge badge-green">Levererat</span></td></tr>
-            <tr><td class="td-muted">02 jun 09:56</td><td>Onsala BK</td><td>Välkomst</td><td class="td-muted">1 st</td><td><span class="badge badge-green">Levererat</span></td></tr>
-            <tr><td class="td-muted">01 jun 08:00</td><td>Frillesås BK</td><td>Länkutskick</td><td class="td-muted">54 st</td><td><span class="badge badge-amber">2 studsade</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ═══ KONTO ═══ -->
-    <div class="section" id="sec-account">
-      <h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:1.1rem">Mitt konto</h2>
-      <div class="card">
-        <div class="form-group"><label class="form-label">Namn</label><input type="text" value="Lisa Jonsson"></div>
-        <div class="form-group"><label class="form-label">E-post</label><input type="email" value="lisa@headofhappiness.se"></div>
-        <div class="form-group" style="margin-bottom:.5rem"><label class="form-label">Företag</label><input type="text" value="Head of Happiness AB"></div>
-        <button class="btn btn-primary" style="margin-top:.5rem">Spara ändringar</button>
-      </div>
-    </div>
-
+  <div class="card">
+    <div class="card-title">🏟️ Alla föreningar</div>
+    <div id="clubTableWrap"><div class="muted">Laddar...</div></div>
   </div>
 </div>
 
-<!-- MODALER -->
-<div class="modal-overlay" id="modalImpersonate">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">👁 Visa som förening</div>
-      <button class="modal-close" onclick="closeModal('modalImpersonate')">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:.9rem">Du öppnar föreningens admin-vy i ett nytt fönster. Alla ändringar du gör påverkar deras konto.</p>
-    <div class="msg info">Du kommer att se Åsa IF:s admin-vy precis som deras admin gör.</div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modalImpersonate')">Avbryt</button>
-      <button class="btn btn-primary" onclick="window.open('admin.html','_blank');closeModal('modalImpersonate')">Öppna admin-vy →</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modalUpgrade">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Uppgradera förening</div>
-      <button class="modal-close" onclick="closeModal('modalUpgrade')">✕</button>
-    </div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:.9rem">Välj plan för föreningen. De får ett bekräftelsemejl.</p>
-    <div class="plan-select">
-      <div class="plan-opt" onclick="selectPlan(this)">
-        <div class="plan-name">Per event</div>
-        <div class="plan-price">3 995 kr / event</div>
-      </div>
-      <div class="plan-opt selected" onclick="selectPlan(this)">
-        <div class="plan-name">Årsabonnemang</div>
-        <div class="plan-price">5 995 kr / år</div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modalUpgrade')">Avbryt</button>
-      <button class="btn btn-primary" onclick="closeModal('modalUpgrade');alert('Uppgraderat! Bekräftelsemejl skickat.')">Uppgradera →</button>
-    </div>
-  </div>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-function showSection(id){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  event.currentTarget?.classList.add('active');
-  const titles={dashboard:'Dashboard',revenue:'Intäkter',clubs:'Alla föreningar',newclub:'Lägg till förening',logs:'Aktivitetslogg',emails:'E-postloggar',gdpr:'GDPR & integritet',account:'Mitt konto'};
-  document.getElementById('topbarTitle').textContent=titles[id]||id;
+const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let events = [];
+
+async function logout(){ await sb.auth.signOut(); location.href = 'login.html'; }
+
+async function init(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session || !session.user){ location.href = 'login.html'; return; }
+  const { data, error } = await sb.from('club_users').select('role').eq('user_id', session.user.id).maybeSingle();
+  if(error || !data || data.role !== 'superadmin'){
+    // Inte superadmin → tillbaka till login
+    location.href = 'login.html';
+    return;
+  }
+  document.getElementById('whoami').textContent = session.user.email;
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('page').classList.remove('hidden');
+  await loadClubs();
 }
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
-function selectPlan(el){el.parentElement.querySelectorAll('.plan-opt').forEach(p=>p.classList.remove('selected'));el.classList.add('selected');}
-function createClub(){alert('Förening skapad! Välkomstmejl skickat.');}
+
+async function loadClubs(){
+  const wrap = document.getElementById('clubTableWrap');
+  try {
+    const [{ data:clubs }, { data:evs }, { data:links }] = await Promise.all([
+      sb.from('clubs').select('*').order('name'),
+      sb.from('events').select('id, club_id, name'),
+      sb.from('club_users').select('club_id, role')
+    ]);
+    events = evs || [];
+    if(!clubs || !clubs.length){ wrap.innerHTML = '<div class="muted">Inga föreningar än. Lägg till din första ovan.</div>'; return; }
+    const linkedClubIds = new Set((links||[]).map(l => l.club_id).filter(Boolean));
+    wrap.innerHTML = '<table><thead><tr><th>Förening</th><th>Admin-inloggning</th><th>Event</th><th>Status</th></tr></thead><tbody>' +
+      clubs.map(c => {
+        const evCount = events.filter(e => e.club_id === c.id).length;
+        const hasLoggedIn = linkedClubIds.has(c.id);
+        return '<tr>' +
+          '<td><strong>' + (c.name || '(namnlös)') + '</strong>' + (c.contact_name ? '<br><span class="muted">' + c.contact_name + '</span>' : '') + '</td>' +
+          '<td>' + (c.contact_email || '<span class="muted">–</span>') + (c.contact_phone ? '<br><span class="muted">' + c.contact_phone + '</span>' : '') + '</td>' +
+          '<td>' + evCount + ' st</td>' +
+          '<td>' + (hasLoggedIn ? '<span class="pill pill-ok">Aktiv</span>' : '<span class="pill pill-wait">Inväntar inloggning</span>') + '</td>' +
+          '</tr>';
+      }).join('') + '</tbody></table>';
+  } catch(e){
+    wrap.innerHTML = '<div class="msg err">Kunde inte ladda föreningar: ' + (e.message||'') + '</div>';
+  }
+}
+
+async function addClub(){
+  const name = document.getElementById('cName').value.trim();
+  const contact = document.getElementById('cContact').value.trim();
+  const email = document.getElementById('cEmail').value.trim();
+  const phone = document.getElementById('cPhone').value.trim();
+  const msg = document.getElementById('addMsg');
+  if(!name || !email){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Fyll i minst föreningsnamn och admin-e-post.'; return; }
+  const btn = document.getElementById('addBtn'); btn.disabled = true; btn.textContent = 'Sparar...';
+  try {
+    const { error } = await sb.from('clubs').insert({ name: name, contact_name: contact || null, contact_email: email, contact_phone: phone || null });
+    if(error) throw error;
+    msg.className='msg ok'; msg.style.display='block';
+    msg.innerHTML = '✓ <strong>' + name + '</strong> tillagd. Be ' + (contact||'admin') + ' logga in på login.html med <strong>' + email + '</strong> – kontot kopplas då automatiskt.';
+    document.getElementById('cName').value=''; document.getElementById('cContact').value=''; document.getElementById('cEmail').value=''; document.getElementById('cPhone').value='';
+    await loadClubs();
+  } catch(e){
+    msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte spara: ' + (e.message||'okänt fel');
+  }
+  btn.disabled = false; btn.textContent = 'Spara förening';
+}
+
+init();
 </script>
 </body>
 </html>

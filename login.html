@@ -69,16 +69,23 @@ function setMsg(text, type){ const m=document.getElementById('msg'); m.className
 // Dirigera inloggad användare till rätt vy utifrån roll
 async function routeUser(user){
   try {
-    const { data, error } = await sb.from('club_users').select('club_id, role').eq('user_id', user.id).maybeSingle();
+    let { data, error } = await sb.from('club_users').select('club_id, role').eq('user_id', user.id).maybeSingle();
     if(error) throw error;
+    // Första inloggningen: koppla automatiskt via föreningens admin-e-post
+    if(!data){
+      const { data:club } = await sb.from('clubs').select('id').eq('contact_email', user.email).maybeSingle();
+      if(club){
+        await sb.from('club_users').insert({ user_id: user.id, club_id: club.id, role: 'admin' });
+        data = { club_id: club.id, role: 'admin' };
+      }
+    }
     if(!data){
       show('loginForm');
-      setMsg('Du är inloggad, men kontot är inte kopplat till någon förening än. Kontakta Lagpasset så hjälper vi dig.', 'err');
+      setMsg('Du är inloggad, men e-posten är inte kopplad till någon förening. Kontakta Lagpasset så hjälper vi dig.', 'err');
       await sb.auth.signOut();
       return;
     }
     if(data.role === 'superadmin'){ location.href = 'superadmin.html'; return; }
-    // Klubb-admin → till sitt event-val
     location.href = 'events.html' + (data.club_id ? ('?club=' + data.club_id) : '');
   } catch(e){
     show('loginForm');
