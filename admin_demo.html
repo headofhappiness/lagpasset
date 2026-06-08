@@ -482,7 +482,7 @@ setVH(); window.addEventListener('resize',setVH);
         <div id="shiftPassView">
           <div class="tabs" id="dayTabs" style="margin-bottom:1rem"></div>
           <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-              <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag &amp; kvoter</th><th></th></tr></thead>
+              <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Ansvarig</th><th></th></tr></thead>
               <tbody id="shiftDetailTable"></tbody>
             </table>
           </div>
@@ -3138,7 +3138,10 @@ function renderShiftDetail(cat, day) {
               ${email ? '<a href="mailto:'+email+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ '+email+'</a>' : ''}
             </div>
           </div>
-          <button onclick="event.stopPropagation();removeBooking('${b.id}','${s.id}')" title="Avboka" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
+          <div style="display:flex;gap:.3rem;flex-shrink:0">
+            ${p ? '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editChild(\'' + p.id + '\')" title="Ändra person">✏️</button>' : ''}
+            <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();removeBooking('${b.id}','${s.id}')" title="Ta bort från passet">🗑</button>
+          </div>
         </div>`;
       }).join('');
       const emptyRows = Array.from({length:free}).map(()=>
