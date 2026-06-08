@@ -249,7 +249,7 @@ setVH(); window.addEventListener('resize',setVH);
     </a>
     <div class="nav-section">Kommunikation</div>
     <a class="nav-item" onclick="showSection('email')" href="#">
-      <span class="nav-icon">📧</span> Mejla medlemmar
+      <span class="nav-icon">📧</span> Mejla bemanning
     </a>
     <a class="nav-item" onclick="showSection('feedback')" href="#">
       <span class="nav-icon">⭐</span> Feedback
@@ -498,7 +498,7 @@ setVH(); window.addEventListener('resize',setVH);
 
     <!-- ═══ MEJLA FÖRÄLDRAR ═══ -->
     <div class="section" id="sec-email">
-      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Mejla medlemmar</h2>
+      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Mejla bemanning</h2>
       <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Skicka info, tack eller påminnelser. Välj mottagare och skriv ditt meddelande.</p>
 
       <div class="card">
@@ -1471,7 +1471,7 @@ function showSection(id){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
-  const titles={dashboard:'Översikt',children:'Bemanning',pool:'Bemanningspool',shifts:'Pass & beläggning',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
+  const titles={dashboard:'Översikt',children:'Bemanning',pool:'Bemanningspool',shifts:'Pass & beläggning',email:"Mejla bemanning",feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='pool') renderPoolTable();

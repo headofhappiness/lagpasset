@@ -235,7 +235,7 @@ setVH(); window.addEventListener('resize',setVH);
     <div class="demo-step-list">
       <div class="demo-step"><div class="demo-step-num">1</div><span>Se <strong>Översikt</strong> – live-status per lag, station och pass</span></div>
       <div class="demo-step"><div class="demo-step-num">2</div><span>Öppna <strong>Passschema</strong> – se pass, beläggning och stationsinstruktioner</span></div>
-      <div class="demo-step"><div class="demo-step-num">3</div><span>Prova <strong>Mejla medlemmar</strong> – filtrera på passtyp och skicka riktat</span></div>
+      <div class="demo-step"><div class="demo-step-num">3</div><span>Prova <strong>Mejla bemanning</strong> – filtrera på passtyp och skicka riktat</span></div>
       <div class="demo-step"><div class="demo-step-num">4</div><span>Klicka <strong>Skriv ut lista</strong> i Pass &amp; beläggning – se utskriftsvyn</span></div>
       <div class="demo-step"><div class="demo-step-num">5</div><span>Gå till <strong>Bemanning</strong> – se hur man importerar lag och kontaktuppgifter</span></div>
     </div>
@@ -268,7 +268,7 @@ setVH(); window.addEventListener('resize',setVH);
     </a>
     <div class="nav-section">Kommunikation</div>
     <a class="nav-item" onclick="showSection('email')" href="#">
-      <span class="nav-icon">📧</span> Mejla medlemmar
+      <span class="nav-icon">📧</span> Mejla bemanning
     </a>
     <a class="nav-item" onclick="showSection('feedback')" href="#">
       <span class="nav-icon">⭐</span> Feedback
@@ -524,7 +524,7 @@ setVH(); window.addEventListener('resize',setVH);
 
     <!-- ═══ MEJLA FÖRÄLDRAR ═══ -->
     <div class="section" id="sec-email">
-      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Mejla medlemmar</h2>
+      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Mejla bemanning</h2>
       <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Skicka info, tack eller påminnelser. Välj mottagare och skriv ditt meddelande.</p>
 
       <div class="card">
@@ -1497,7 +1497,7 @@ function showSection(id){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
-  const titles={dashboard:'Översikt',children:'Bemanning',pool:'Bemanningspool',shifts:'Pass & beläggning',email:'Mejla medlemmar',feedback:'Feedback',settings:'Inställningar'};
+  const titles={dashboard:'Översikt',children:'Bemanning',pool:'Bemanningspool',shifts:'Pass & beläggning',email:"Mejla bemanning",feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='pool') renderPoolTable();
