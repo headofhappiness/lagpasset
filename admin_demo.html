@@ -3233,7 +3233,7 @@ function aiSummarizeFeedback() {
       <div style="margin-top:.75rem;padding:.75rem 1rem;background:#f0f7ff;border-radius:8px;border-left:3px solid #2563eb">
         <strong style="color:#1d4ed8">💡 Förslag inför nästa år</strong><br>
         <span style="font-size:13px;color:#1e3a5f;line-height:1.7">
-          1. <strong>Justera kvoter:</strong> +2 platser på Servering söndag eftermiddag, −2 på Servering lördag morgon.<br>
+          1. <strong>Justera bemanningen:</strong> fler på Servering söndag eftermiddag, färre på Servering lördag morgon.<br>
           2. Se över Bygg torsdag – färre personer räcker.<br>
           3. Ha vatten tillgängligt vid alla serveringspass — nämns av 3 av 18.<br>
           4. Lägg en 5-minuters briefing i schemat vid passstart för Infotält.
@@ -3378,8 +3378,8 @@ function renderStaffingAnalysis(){
 
   if(isDemo){
     rows.innerHTML =
-      row('FÖR LITE', '#c0392b', '#fdecea', 'Servering · söndag 12–16', '4 av 5 tyckte att det var underbemannat. <strong style="color:#1a8c3a">Höj antalet med 2 nästa år.</strong>') +
-      row('FÖR MYCKET', '#e8a020', '#fff8e8', 'Servering · lördag 08–12', '3 av 6 tyckte att det var överbemannat. <strong style="color:#1a8c3a">Sänk antalet med 2.</strong>') +
+      row('FÖR LITE', '#c0392b', '#fdecea', 'Servering · söndag 12–16', '4 av 5 tyckte att det var underbemannat. <strong style="color:#1a8c3a">Lägg till fler nästa år.</strong>') +
+      row('FÖR MYCKET', '#e8a020', '#fff8e8', 'Servering · lördag 08–12', '3 av 6 tyckte att det var överbemannat. <strong style="color:#1a8c3a">Här räcker det med färre.</strong>') +
       row('FÖR MYCKET', '#e8a020', '#fff8e8', 'Bygg &amp; Riv · torsdag 17–20', 'Flera nämnde att de stod sysslolösa. <strong style="color:#1a8c3a">Färre personer räcker.</strong>') +
       row('LAGOM', '#1a8c3a', '#e8f7ec', 'Övriga pass', 'Upplevdes välbemannade – behåll nuvarande nivå.');
     card.style.display = 'block';
@@ -3404,9 +3404,9 @@ function renderStaffingAnalysis(){
     let name = 'Okänt pass';
     if(shift){ const d = new Date(shift.date); name = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5); }
     if(avg <= 2.4){
-      html += row('FÖR LITE', '#c0392b', '#fdecea', name, scores.length + ' svar – upplevdes underbemannat. Höj antalet nästa år.');
+      html += row('FÖR LITE', '#c0392b', '#fdecea', name, scores.length + ' svar – upplevdes underbemannat. Fler behövs nästa år.');
     } else if(avg >= 3.6){
-      html += row('FÖR MYCKET', '#e8a020', '#fff8e8', name, scores.length + ' svar – upplevdes överbemannat. Sänk antalet nästa år.');
+      html += row('FÖR MYCKET', '#e8a020', '#fff8e8', name, scores.length + ' svar – upplevdes överbemannat. Här räcker det med färre.');
     } else {
       html += row('LAGOM', '#1a8c3a', '#e8f7ec', name, scores.length + ' svar – välbemannat. Behåll nivån.');
     }
