@@ -1005,6 +1005,28 @@ Hälsningar,
   </div>
 </div>
 
+<!-- Fyll från pool -->
+<div class="modal-overlay" id="modalFillPool">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Fyll från pool</div>
+      <button class="modal-close" onclick="closeModal('modalFillPool')">✕</button>
+    </div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:1rem" id="fillPoolSub">Välj en person ur bemanningspoolen att tilldela detta pass.</p>
+    <div id="fillPoolList" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem"></div>
+    <div style="border-top:1px solid var(--border);padding-top:1rem">
+      <div class="form-group" style="margin-bottom:.5rem">
+        <label class="form-label">…eller skriv in ett namn manuellt</label>
+        <input type="text" id="fillPoolManual" placeholder="Ex. Kalle Svensson">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalFillPool')">Avbryt</button>
+      <button class="btn btn-primary" onclick="confirmFillPool()">Tilldela</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════
 // SUPABASE – koppling
@@ -1677,7 +1699,7 @@ function renderShiftDetailInline(shiftId){
   });
   for(let i=0; i<free; i++){
     html += `<div style="background:#fff;border:1.5px dashed var(--border);border-radius:8px;padding:.4rem .75rem;font-size:13px;color:var(--muted)">
-      Ledig plats <button class="btn btn-ghost btn-sm" onclick="showSection('pool')" style="font-size:11px;margin-left:.5rem">Fyll från pool</button>
+      Ledig plats <button class="btn btn-ghost btn-sm" onclick="openFillPool('${shiftId}')" style="font-size:11px;margin-left:.5rem">Fyll från pool</button>
     </div>`;
   }
   html += '</div>';
@@ -1762,6 +1784,67 @@ async function createShift(){
   } catch(e){
     console.error(e);
     showToast('Kunde inte skapa passet', 'error');
+  }
+}
+
+// ── Fyll från pool ──
+let fillPoolShiftId = null;
+let fillPoolSelected = null;
+
+function openFillPool(shiftId){
+  fillPoolShiftId = shiftId;
+  fillPoolSelected = null;
+  const shift = DB.shifts.find(s => s.id === shiftId);
+  const sub = document.getElementById('fillPoolSub');
+  if(shift && sub){
+    const d = new Date(shift.date);
+    const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+    sub.textContent = 'Tilldela ' + shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5);
+  }
+  const list = document.getElementById('fillPoolList');
+  if(DB.pool.length === 0){
+    list.innerHTML = '<div style="color:var(--muted);font-style:italic;font-size:13px">Inga personer i poolen ännu. Skriv in ett namn nedan.</div>';
+  } else {
+    list.innerHTML = DB.pool.map(p =>
+      '<label class="checkbox-row" style="cursor:pointer;display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border:1.5px solid var(--border);border-radius:8px">' +
+      '<input type="radio" name="poolPick" value="' + p.name + '" onchange="fillPoolSelected=this.value;document.getElementById(\'fillPoolManual\').value=\'\'">' +
+      '<div><strong>' + p.name + '</strong> <span style="color:var(--muted);font-size:12px">' + (p.team||'') + '</span>' +
+      (p.phone ? '<br><span style="font-size:12px;color:var(--muted)">' + p.phone + '</span>' : '') + '</div>' +
+      '</label>'
+    ).join('');
+  }
+  document.getElementById('fillPoolManual').value = '';
+  openModal('modalFillPool');
+}
+
+async function confirmFillPool(){
+  const manual = document.getElementById('fillPoolManual').value.trim();
+  const name = manual || fillPoolSelected;
+  if(!name){ alert('Välj en person ur poolen eller skriv in ett namn.'); return; }
+  try {
+    const result = await sbInsert('bookings', {
+      shift_id: fillPoolShiftId,
+      participant_id: null,
+      booked_by_admin: true,
+      display_name: name
+    });
+    if(result && result.length) DB.bookings.push(result[0]);
+    closeModal('modalFillPool');
+    // Uppdatera vyer
+    renderShiftTable();
+    renderDashboard();
+    // Om drill-down är öppen, uppdatera den
+    const detailRow = document.getElementById('detail-' + fillPoolShiftId);
+    if(detailRow && detailRow.style.display !== 'none'){
+      renderShiftDetailInline(fillPoolShiftId);
+    }
+    if(typeof currentInstructionCat !== 'undefined' && currentInstructionCat){
+      renderShiftDetail(currentInstructionCat, 'Alla');
+    }
+    showToast(name + ' tilldelad passet');
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte tilldela passet', 'error');
   }
 }
 
@@ -2257,7 +2340,7 @@ function renderShiftDetail(cat, day) {
             <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
             <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSection('pool')" style="font-size:11px">Fyll från pool</button>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFillPool('${s.id}')" style="font-size:11px">Fyll från pool</button>
         </div>`
       ).join('');
       return `
