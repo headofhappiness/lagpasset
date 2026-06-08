@@ -37,9 +37,37 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
 .event-card.new{border-style:dashed;align-items:center;justify-content:center;text-align:center;color:var(--muted);min-height:150px}
 .event-card.new:hover{color:var(--green)}
 .event-card.new .plus{font-size:1.75rem;margin-bottom:.35rem}
+.demo-welcome-overlay{display:flex;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem}
+.demo-welcome-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;padding:2rem 2.25rem;width:100%;max-width:480px;text-align:center;max-height:92vh;overflow-y:auto}
+.demo-welcome-title{font-size:1.35rem;font-weight:700;color:var(--dark);margin:.75rem 0 .4rem}
+.demo-welcome-sub{font-size:14.5px;color:var(--muted);line-height:1.7;margin-bottom:1.5rem}
+.demo-cta-row{display:flex;flex-direction:column;gap:.6rem;align-items:center}
+.demo-step-list{text-align:left;margin:.75rem 0 1.25rem;display:flex;flex-direction:column;gap:.55rem}
+.demo-step{display:flex;align-items:flex-start;gap:.65rem;font-size:13.5px;color:var(--text);line-height:1.5}
+.demo-step-num{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 </style>
 </head>
 <body>
+<div class="demo-welcome-overlay" id="demoWelcome">
+  <div class="demo-welcome-card">
+    <div style="display:flex;align-items:center;justify-content:center;margin-bottom:.5rem"><img src="logo.png" alt="LagPasset" style="height:30px;width:auto"></div>
+    <div style="font-size:2rem;margin:.5rem 0">👋</div>
+    <div class="demo-welcome-title">Välkommen till demon!</div>
+    <div class="demo-welcome-sub">Klicka runt fritt – inget sparas. Välj ett arrangemang för att se föreningens vy, eller se medlemsvyn för att uppleva det ur medlemmens perspektiv.</div>
+    <div class="demo-step-list">
+      <div class="demo-step"><div class="demo-step-num">1</div><span>Välj ett <strong>arrangemang</strong> nedan för att öppna admin</span></div>
+      <div class="demo-step"><div class="demo-step-num">2</div><span>Se <strong>Översikt</strong> – live-status per lag, station och pass</span></div>
+      <div class="demo-step"><div class="demo-step-num">3</div><span>Öppna <strong>Pass &amp; beläggning</strong> – beläggning och stationer</span></div>
+      <div class="demo-step"><div class="demo-step-num">4</div><span>Prova <strong>Mejla bemanning</strong> och <strong>Skriv ut lista</strong></span></div>
+      <div class="demo-step"><div class="demo-step-num">5</div><span>Gå till <strong>Bemanning</strong> – se hur personer och pass hanteras</span></div>
+    </div>
+    <div class="demo-cta-row">
+      <button class="btn btn-primary" style="width:100%;font-size:15px;min-height:44px" onclick="document.getElementById('demoWelcome').style.display='none'">Välj arrangemang →</button>
+      <a href="guest.html" target="_blank" style="font-size:13.5px;color:var(--green);text-decoration:none;font-weight:600">👤 Se hur det ser ut för medlemmar →</a>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en personlig genomgång</a>
+    </div>
+  </div>
+</div>
 <div class="topbar">
   <img src="logo-white.png" alt="Lagpasset">
   <div class="right">
