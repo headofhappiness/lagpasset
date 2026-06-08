@@ -357,6 +357,11 @@ setVH(); window.addEventListener('resize',setVH);
           </button>
           <div id="reminderLog" style="display:none;margin-top:.6rem;display:none;flex-direction:column;gap:.4rem"></div>
         </div>
+        <!-- Skicka påminnelse nu -->
+        <div style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="sendReminderNow()" id="reminderNowBtn">⏰ Skicka påminnelse nu</button>
+          <div id="reminderNowMsg" style="font-size:13px;color:var(--muted)"></div>
+        </div>
       </div>
 
       <!-- ③ Stationsbeläggning -->
@@ -1312,13 +1317,14 @@ async function saveEventSettings(){
   if(!name || !start){ alert('Fyll i eventnamn och första eventdag.'); return; }
   if(end && end < start){ alert('Sista eventdagen kan inte vara före första.'); return; }
   const deadline = document.getElementById('setDeadline').value || null;
+  const reminderDays = parseInt(document.getElementById('setReminderDays').value) || 5;
   const participation = document.getElementById('setParticipation').value;
   const unit = document.getElementById('setUnit').value;
   const target = parseFloat(document.getElementById('setTarget').value) || 1;
   const data = {
     name, date_start: start, date_end: end || start,
-    signup_deadline: deadline, participation: participation,
-    shift_unit: unit, effort_target: target
+    signup_deadline: deadline, reminder_days: reminderDays,
+    participation: participation, shift_unit: unit, effort_target: target
   };
   try {
     await sbUpdate('events', EVENT_ID, data);
@@ -3683,6 +3689,54 @@ function renderStaffingAnalysis(){
   });
   rows.innerHTML = html;
   card.style.display = 'block';
+}
+
+// ── Skicka påminnelse nu ──────────────────────────────────────────────────
+async function sendReminderNow(){
+  const btn = document.getElementById('reminderNowBtn');
+  const msgEl = document.getElementById('reminderNowMsg');
+  if(!btn || !msgEl) return;
+
+  // Demo-läge: visa simulerat resultat
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){
+    btn.disabled = true; btn.textContent = 'Skickar...';
+    await new Promise(r => setTimeout(r, 900));
+    const unbooked = DB.participants ? DB.participants.filter(p => !DB.bookings.find(b => b.participant_id === p.id)).length : 18;
+    msgEl.style.color = 'var(--green)';
+    msgEl.textContent = '✓ ' + unbooked + ' påminnelser skulle ha skickats (demo – inget skickas på riktigt)';
+    btn.disabled = false; btn.textContent = '⏰ Skicka påminnelse nu';
+    return;
+  }
+
+  // Riktig admin
+  btn.disabled = true; btn.textContent = 'Skickar...';
+  msgEl.style.color = 'var(--muted)';
+  msgEl.textContent = 'Skickar till de som inte valt pass...';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-reminders', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId: EVENT_ID })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    const r = data.results && data.results[0];
+    if(r){
+      const sent = r.skickade || 0;
+      const skip = r.hoppad_over_bokat || 0;
+      msgEl.style.color = sent > 0 ? 'var(--green)' : 'var(--muted)';
+      msgEl.textContent = sent > 0
+        ? '✓ ' + sent + ' påminnelser skickade' + (skip ? ' · ' + skip + ' hade redan valt pass' : '')
+        : (r.status || 'Klart – inga påminnelser behövdes');
+    } else {
+      msgEl.style.color = 'var(--muted)';
+      msgEl.textContent = data.results ? JSON.stringify(data.results) : 'Klart';
+    }
+  } catch(e){
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = 'Fel: ' + (e.message || 'okänt');
+  }
+  btn.disabled = false; btn.textContent = '⏰ Skicka påminnelse nu';
 }
 
 // INIT

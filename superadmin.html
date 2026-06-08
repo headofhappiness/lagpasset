@@ -129,7 +129,7 @@ async function loadClubs(){
     events = evs || [];
     if(!clubs || !clubs.length){ wrap.innerHTML = '<div class="muted">Inga föreningar än. Lägg till din första ovan.</div>'; return; }
     const linkedClubIds = new Set((links||[]).map(l => l.club_id).filter(Boolean));
-    wrap.innerHTML = '<table><thead><tr><th>Förening</th><th>Admin-inloggning</th><th>Event</th><th>Status</th></tr></thead><tbody>' +
+    wrap.innerHTML = '<table><thead><tr><th>Förening</th><th>Admin-inloggning</th><th>Event</th><th>Status</th><th></th></tr></thead><tbody>' +
       clubs.map(c => {
         const evCount = events.filter(e => e.club_id === c.id).length;
         const hasLoggedIn = linkedClubIds.has(c.id);
@@ -138,10 +138,34 @@ async function loadClubs(){
           '<td>' + (c.contact_email || '<span class="muted">–</span>') + (c.contact_phone ? '<br><span class="muted">' + c.contact_phone + '</span>' : '') + '</td>' +
           '<td>' + evCount + ' st</td>' +
           '<td>' + (hasLoggedIn ? '<span class="pill pill-ok">Aktiv</span>' : '<span class="pill pill-wait">Inväntar inloggning</span>') + '</td>' +
+          '<td><button onclick="deleteClub(\''+c.id+'\',\''+c.name+'\',\'' + (linkedClubIds.has(c.id) ? [...(links||[]).filter(l=>l.club_id===c.id).map(l=>l.user_id)][0]||'' : '') + '\')" style="background:none;border:1px solid #e8c0c0;color:#c0392b;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">Radera</button></td>' +
           '</tr>';
       }).join('') + '</tbody></table>';
   } catch(e){
     wrap.innerHTML = '<div class="msg err">Kunde inte ladda föreningar: ' + (e.message||'') + '</div>';
+  }
+}
+
+async function deleteClub(clubId, clubName, userId){
+  if(!confirm('Radera "' + clubName + '"? Admin-kontot och kopplingen tas bort. Eventdata behålls.')) return;
+  try {
+    if(userId){
+      const { data, error } = await sb.functions.invoke('delete-admin-user', {
+        body: { userId, clubId, deleteClub: true }
+      });
+      if(error) throw error;
+      if(data && data.error) throw new Error(data.error);
+    } else {
+      // Ingen inloggad admin ännu – radera bara föreningen
+      await sb.from('clubs').delete().eq('id', clubId);
+    }
+    await loadClubs();
+    const msg = document.getElementById('addMsg');
+    msg.className = 'msg ok'; msg.style.display = 'block';
+    msg.textContent = '✓ ' + clubName + ' är raderad.';
+    setTimeout(() => msg.style.display = 'none', 4000);
+  } catch(e){
+    alert('Kunde inte radera: ' + (e.message || 'okänt fel'));
   }
 }
 

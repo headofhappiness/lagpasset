@@ -129,10 +129,10 @@ input,select,textarea{font-size:16px !important}
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
 
-// I en riktig inloggning kommer club_id från den inloggade användaren.
-// Tills auth är på plats använder vi föreningen kopplad till demo-eventet.
-const DEMO_EVENT_ID = '00000000-0000-0000-0000-000000000002';
-let CLUB_ID = null;
+// Club-id från URL (?club=<uuid>) som login.html skickar med,
+// eller från Supabase-sessionen som fallback.
+const _clubParam = new URLSearchParams(window.location.search).get('club');
+let CLUB_ID = _clubParam || null;
 
 async function sb(path, opts){
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({
@@ -154,20 +154,29 @@ function fmtRange(start, end){
 
 async function load(){
   try {
-    // Hitta föreningen via demo-eventet (tills auth finns)
-    const demoEvent = await sb('events?id=eq.' + DEMO_EVENT_ID + '&select=club_id');
-    if(demoEvent.length && demoEvent[0].club_id){
-      CLUB_ID = demoEvent[0].club_id;
+    // Hämta club_id från session om det inte finns i URL
+    if(!CLUB_ID){
+      const { data:{ session } } = await _sbAuth.auth.getSession();
+      if(session){
+        const r = await fetch(SUPABASE_URL + '/rest/v1/club_users?user_id=eq.' + session.user.id + '&select=club_id&limit=1', {
+          headers:{ 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY }
+        });
+        const rows = await r.json().catch(()=>[]);
+        if(rows.length && rows[0].club_id) CLUB_ID = rows[0].club_id;
+      }
+    }
+
+    if(CLUB_ID){
       const clubs = await sb('clubs?id=eq.' + CLUB_ID + '&select=name');
       if(clubs.length) document.getElementById('clubName').textContent = clubs[0].name;
     }
 
-    // Hämta alla event för föreningen (eller bara demo-eventet om club saknas)
+    // Hämta event för föreningen
     let events;
     if(CLUB_ID){
       events = await sb('events?club_id=eq.' + CLUB_ID + '&order=date_start.desc&select=*');
     } else {
-      events = await sb('events?id=eq.' + DEMO_EVENT_ID + '&select=*');
+      events = [];
     }
     render(events);
   } catch(e){
