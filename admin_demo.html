@@ -529,25 +529,6 @@ setVH(); window.addEventListener('resize',setVH);
       <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">Mejla bemanning</h2>
       <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Skicka info, tack eller påminnelser. Välj mottagare och skriv ditt meddelande.</p>
 
-      <div class="card">
-        <div class="card-title" style="margin-bottom:.9rem">Mottagare</div>
-        <div style="margin-bottom:.65rem">
-          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ STATUS</div>
-          <div class="recipient-chips" id="typeChips">
-            <div class="chip chip-on" onclick="toggleChip(this,'all')">Alla deltagare</div>
-            <div class="chip chip-off" onclick="toggleChip(this,'unbooked')">Ej valt pass</div>
-            <div class="chip chip-off" onclick="toggleChip(this,'booked')">Har valt pass</div>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ LAG</div>
-          <div class="recipient-chips" id="lagChips">
-            <div class="chip chip-on" onclick="toggleLagChip(this,'all')">Alla lag</div>
-          </div>
-        </div>
-        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Laddar...</div>
-      </div>
-
       <!-- AUTOMATISKA MEJL -->
       <div class="card" style="background:#f0f7ff;border:1.5px solid #bcd5f5">
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
@@ -577,6 +558,25 @@ setVH(); window.addEventListener('resize',setVH);
             <button class="btn btn-ghost btn-sm" onclick="editAutoTemplate('reminder')" style="flex-shrink:0">Redigera</button>
           </div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:.9rem">Mottagare</div>
+        <div style="margin-bottom:.65rem">
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ STATUS</div>
+          <div class="recipient-chips" id="typeChips">
+            <div class="chip chip-on" onclick="toggleChip(this,'all')">Alla deltagare</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'unbooked')">Ej valt pass</div>
+            <div class="chip chip-off" onclick="toggleChip(this,'booked')">Har valt pass</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ LAG</div>
+          <div class="recipient-chips" id="lagChips">
+            <div class="chip chip-on" onclick="toggleLagChip(this,'all')">Alla lag</div>
+          </div>
+        </div>
+        <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Laddar...</div>
       </div>
 
       <!-- SKICKA MANUELLT -->
@@ -2700,6 +2700,14 @@ async function sendEmail(){
 function previewEmail(){ alert('Förhandsgranskning: mejlet öppnas i ett nytt fönster (i produktion).'); }
 
 // ── Utskickslogg ──
+// Automatiska typer = systemet skickar själv; övriga = admin skickar manuellt
+const AUTO_EMAIL_TYPES = ['thanks','reminder'];
+const DEMO_EMAIL_LOG = [
+  { type:'message', subject:'Info inför cuphelgen',                   recipient_count:42, sent_count:42, created_at:'2026-05-02T09:10:00' },
+  { type:'reminder',subject:'Påminnelse: välj ditt pass',            recipient_count:12, sent_count:12, created_at:'2026-04-28T07:00:00' },
+  { type:'invite',  subject:'Välkommen – välj ditt pass till Vårcupen', recipient_count:42, sent_count:42, created_at:'2026-04-20T16:45:00' }
+];
+
 async function logEmail(type, subject, recipientCount, sentCount){
   try {
     const result = await sbInsert('email_log', {
@@ -2717,18 +2725,27 @@ async function logEmail(type, subject, recipientCount, sentCount){
 function renderEmailLog(){
   const el = document.getElementById('emailLogList');
   if(!el) return;
-  if(!DB.emailLog || DB.emailLog.length === 0){
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+  // I demo: visa seedade exempel (båda typer) plus ev. utskick gjorda i sessionen överst
+  let entries = (DB.emailLog || []).slice();
+  if(isDemo) entries = entries.concat(DEMO_EMAIL_LOG);
+  if(entries.length === 0){
     el.innerHTML = '<div style="font-size:13px;color:var(--muted);font-style:italic">Inga utskick ännu.</div>';
     return;
   }
   const typeLabels = { invite:'📨 Inbjudan', message:'✉️ Meddelande', reminder:'🔔 Påminnelse', info:'📋 Information', thanks:'🙏 Tack', test:'🧪 Test', links:'📨 Länkar' };
-  el.innerHTML = DB.emailLog.map(e => {
+  el.innerHTML = entries.map(e => {
     const d = new Date(e.created_at);
     const stamp = d.toLocaleDateString('sv-SE') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    const isAuto = AUTO_EMAIL_TYPES.includes(e.type);
+    const tag = isAuto
+      ? '<span style="background:#e8f0fe;color:#1d4ed8;border-radius:6px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap">🤖 Automatiskt</span>'
+      : '<span style="background:#eef3ee;color:var(--muted);border-radius:6px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap">✍️ Manuellt</span>';
     return '<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .25rem;border-bottom:1px solid var(--border)">' +
-      '<span style="font-size:13px;min-width:130px">' + (typeLabels[e.type] || e.type) + '</span>' +
+      '<span style="font-size:13px;min-width:120px">' + (typeLabels[e.type] || e.type) + '</span>' +
       '<div style="flex:1;min-width:0"><div style="font-size:13.5px;color:var(--dark);font-weight:600">' + (e.subject||'(utan ämne)') + '</div>' +
       '<div style="font-size:12px;color:var(--muted)">' + stamp + ' · ' + e.sent_count + ' av ' + e.recipient_count + ' skickade</div></div>' +
+      tag +
       '</div>';
   }).join('');
 }
