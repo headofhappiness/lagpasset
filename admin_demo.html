@@ -654,7 +654,6 @@ Hälsningar,
           <p style="font-size:13px;color:var(--muted);margin-top:2px">Föräldrar lämnar feedback via sin bokningslänk efter sitt pass.</p>
         </div>
         <div style="display:flex;gap:.6rem">
-          <button class="btn btn-ghost" onclick="aiSummarizeFeedback()">🤖 AI-sammanställning</button>
           <button class="btn btn-ghost">📥 Exportera</button>
         </div>
       </div>
@@ -675,25 +674,20 @@ Hälsningar,
         <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
       </div>
 
-      <!-- AI-sammanställning (dold initialt) -->
-      <div id="aiSummaryBox" style="display:none" class="card" style="background:#f0f7ff;border:1.5px solid #bcd5f5">
-        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
-          <span style="font-size:16px">🤖</span>
-          <div style="font-size:14px;font-weight:700;color:var(--dark)">AI-sammanställning</div>
-        </div>
-        <div id="aiSummaryText" style="font-size:13.5px;color:var(--text);line-height:1.7"></div>
-      </div>
-
-      <!-- Filter per passtyp -->
+      <!-- Filter per station -->
       <div class="tabs" style="margin-bottom:1rem">
         <div class="tab active" onclick="filterFeedback('all',this)">Alla</div>
         <div class="tab" onclick="filterFeedback('servering',this)">Servering</div>
-        <div class="tab" onclick="filterFeedback('infotalt',this)">Infotält</div>
-        <div class="tab" onclick="filterFeedback('bygg',this)">Bygg &amp; Riv</div>
-        <div class="tab" onclick="filterFeedback('nattvakt',this)">Nattvakt</div>
+        <div class="tab" onclick="filterFeedback('frukost',this)">Frukost</div>
+        <div class="tab" onclick="filterFeedback('parkering',this)">Parkering</div>
+        <div class="tab" onclick="filterFeedback('sekretariat',this)">Sekretariat</div>
       </div>
 
       <div class="card" style="padding:0">
+        <div id="feedbackSummary" style="padding:1rem 1.1rem;border-bottom:1px solid var(--border);background:#f0f7ff">
+          <div style="display:flex;align-items:center;gap:.45rem;margin-bottom:.4rem"><span style="font-size:15px">🤖</span><span style="font-size:13px;font-weight:700;color:#1d4ed8">AI-sammanfattning</span></div>
+          <div id="feedbackSummaryText" style="font-size:13.5px;color:var(--text);line-height:1.65"></div>
+        </div>
         <div id="feedbackList">
           <div class="feedback-row" data-type="servering">
             <div class="feedback-stars">⭐⭐⭐⭐⭐</div>
@@ -701,29 +695,53 @@ Hälsningar,
             <div class="feedback-text"><strong>Förbättring:</strong> Vatten till de som jobbade hade varit bra!</div>
             <div class="feedback-meta">Servering · Lördag 09:00–13:00 · FJ</div>
           </div>
-          <div class="feedback-row" data-type="infotalt">
-            <div class="feedback-stars">⭐⭐⭐⭐</div>
-            <div class="feedback-text"><strong>Bra:</strong> Lagom bemanning, ingen stress. Tydligt vem som var ansvarig.</div>
-            <div class="feedback-text"><strong>Förbättring:</strong> Lite oklart vad vi skulle göra i början – en kort briefing hade hjälpt.</div>
-            <div class="feedback-meta">Infotält · Fredag 09:00–13:00 · P15</div>
-          </div>
           <div class="feedback-row" data-type="servering">
             <div class="feedback-stars">⭐⭐⭐</div>
             <div class="feedback-text"><strong>Bra:</strong> Härlig stämning.</div>
-            <div class="feedback-text"><strong>Förbättring:</strong> Vi var för många – 3 hade räckt, vi var 7.</div>
-            <div class="feedback-meta">Servering · Fredag 12:30–17:00 · P18</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Vi var för många på morgonen – kändes lite sysslolöst.</div>
+            <div class="feedback-meta">Servering · Lördag 08:00–12:00 · P10</div>
           </div>
-          <div class="feedback-row" data-type="bygg">
+          <div class="feedback-row" data-type="servering">
             <div class="feedback-stars">⭐⭐⭐⭐</div>
-            <div class="feedback-text"><strong>Bra:</strong> Effektivt och roligt att se arenan ta form.</div>
-            <div class="feedback-text"><strong>Förbättring:</strong> Behövs fler verktyg – vi stod och väntade i 30 min.</div>
-            <div class="feedback-meta">Bygg &amp; Riv · Torsdag 18:00 · FJ</div>
+            <div class="feedback-text"><strong>Bra:</strong> Trevligt och bra flyt.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Stressigt söndag eftermiddag – vi var för få.</div>
+            <div class="feedback-meta">Servering · Söndag 12:00–16:00 · P12</div>
           </div>
-          <div class="feedback-row" data-type="nattvakt">
+          <div class="feedback-row" data-type="frukost">
+            <div class="feedback-stars">⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Lugnt och trevligt på morgonen.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Lite kort om folk vid det allra tidigaste passet.</div>
+            <div class="feedback-meta">Frukost · Lördag 06:00–09:00 · F11</div>
+          </div>
+          <div class="feedback-row" data-type="frukost">
             <div class="feedback-stars">⭐⭐⭐⭐⭐</div>
-            <div class="feedback-text"><strong>Bra:</strong> Lugnt och stämningsfullt. Bra att vara två.</div>
-            <div class="feedback-text"><strong>Förbättring:</strong> Ingen förbättring – suveränt organiserat!</div>
-            <div class="feedback-meta">Nattvakt · Lördag 21:00–02:00 · FJ</div>
+            <div class="feedback-text"><strong>Bra:</strong> Mysig start på dagen, bra gemenskap.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Inget att klaga på!</div>
+            <div class="feedback-meta">Frukost · Söndag 06:00–09:00 · P09</div>
+          </div>
+          <div class="feedback-row" data-type="parkering">
+            <div class="feedback-stars">⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Tydliga instruktioner, bra flyt på morgonen.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> Reflexvästar saknades – hade känts tryggare.</div>
+            <div class="feedback-meta">Parkering · Lördag 08:00–11:00 · P13</div>
+          </div>
+          <div class="feedback-row" data-type="parkering">
+            <div class="feedback-stars">⭐⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Bra placering, lätt att hjälpa till.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> –</div>
+            <div class="feedback-meta">Parkering · Söndag 08:00–11:00 · F13</div>
+          </div>
+          <div class="feedback-row" data-type="sekretariat">
+            <div class="feedback-stars">⭐⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Tydliga rutiner, kände mig trygg i rollen.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> –</div>
+            <div class="feedback-meta">Sekretariat · Lördag 09:00–16:00 · FJ</div>
+          </div>
+          <div class="feedback-row" data-type="sekretariat">
+            <div class="feedback-stars">⭐⭐⭐⭐</div>
+            <div class="feedback-text"><strong>Bra:</strong> Bra system för resultatrapportering.</div>
+            <div class="feedback-text"><strong>Förbättring:</strong> En kort genomgång i början vore bra.</div>
+            <div class="feedback-meta">Sekretariat · Söndag 09:00–16:00 · P11</div>
           </div>
         </div>
       </div>
@@ -3196,10 +3214,40 @@ function closeCategory() {
   document.getElementById('shiftsSubtitle').textContent = 'Klicka på en passtyp för att se och hantera enskilda pass.';
 }
 
-// ── Feedback filter ──
+// ── Feedback filter + AI-sammanfattning per filter ──
+const FEEDBACK_SUMMARIES = {
+  all: 'Snittbetyg <strong>4.2/5</strong> från <strong>18 svar</strong>. Stämningen och organisationen får genomgående beröm. De vanligaste önskemålen: dryck till de som jobbar och en kort genomgång vid passstart. Bemanningen var ojämn – se analysen ovan för vilka pass som behöver fler eller färre.',
+  servering: '<strong>Servering</strong> · snitt 4.3/5 (7 svar). God stämning och man kände sig behövd. Återkommande: vatten/dryck till de som jobbade saknades. Bemanningen varierade – för få söndag eftermiddag, för många lördag morgon.',
+  frukost: '<strong>Frukost</strong> · snitt 4.0/5 (4 svar). Lugnt och trevligt på morgonen, fin gemenskap. Det allra tidigaste passet upplevdes lite tunt bemannat.',
+  parkering: '<strong>Parkering</strong> · snitt 4.4/5 (4 svar). Tydliga instruktioner och bra flyt. Önskemål om reflexvästar vid passen.',
+  sekretariat: '<strong>Sekretariat</strong> · snitt 4.6/5 (3 svar). Mycket nöjda med tydliga rutiner. Ett önskemål om en kort genomgång i början.'
+};
+
+function setFeedbackSummary(type){
+  const el = document.getElementById('feedbackSummaryText');
+  if(!el) return;
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+  if(isDemo){
+    el.innerHTML = FEEDBACK_SUMMARIES[type] || FEEDBACK_SUMMARIES.all;
+    return;
+  }
+  // Riktig admin: faktisk räkning, ingen fejkad text
+  if(!DB.feedback || DB.feedback.length === 0){
+    el.innerHTML = 'Ingen feedback har kommit in än. Sammanfattningen skapas automatiskt när svar kommit in.';
+    return;
+  }
+  const rel = DB.feedback.filter(f => {
+    if(type === 'all') return true;
+    const s = DB.shifts.find(x => x.id === f.shift_id);
+    return s && s.title.toLowerCase() === type;
+  });
+  el.innerHTML = rel.length + ' svar' + (type==='all' ? ' totalt' : ' för ' + type) + '. En sammanfattande analys skapas automatiskt utifrån svaren.';
+}
+
 function filterFeedback(type, el) {
   document.querySelectorAll('#sec-feedback .tabs .tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
+  setFeedbackSummary(type);
   document.querySelectorAll('#feedbackList .feedback-row').forEach(row => {
     row.style.display = (type === 'all' || row.dataset.type === type) ? '' : 'none';
   });
@@ -3327,6 +3375,7 @@ function renderFeedback(){
   const list = document.getElementById('feedbackList');
   if(!list) return;
   renderStaffingAnalysis();
+  if(typeof setFeedbackSummary === 'function') setFeedbackSummary('all');
   const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
   if(!DB.feedback || DB.feedback.length === 0){
     if(isDemo){
