@@ -280,7 +280,6 @@ setVH(); window.addEventListener('resize',setVH);
     </div>
     <div class="topbar-actions">
       <span style="font-size:13px;color:var(--muted);font-weight:500;display:none" class="hide-mobile" id="topbarEvent">Åsacupen 2026</span>
-      <button class="btn btn-primary btn-sm" onclick="openModal('modalSendLinks')" title="Skicka länkarna">📧 <span class="hide-mobile">Skicka länkarna</span></button>
     </div>
   </header>
 
@@ -447,6 +446,7 @@ setVH(); window.addEventListener('resize',setVH);
           <div style="display:flex;gap:.5rem">
             <button class="btn btn-ghost btn-sm" id="btnShowPasses" onclick="switchShiftTab('passes',this)" style="border-color:var(--green);color:var(--green)">📋 Pass &amp; beläggning</button>
             <button class="btn btn-ghost btn-sm" id="btnShowInstructions" onclick="switchShiftTab('instructions',this)">📌 Instruktioner</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteStation()" style="color:#c0392b" title="Ta bort hela kategorin">🗑 Ta bort kategorin</button>
           </div>
         </div>
 
@@ -946,7 +946,20 @@ Hälsningar,
     </div>
     <div class="form-group">
       <label class="form-label">Passnamn / arbetsställe</label>
-      <input type="text" id="nsTitle" placeholder="Ex. Servering, Parkering, Kiosk…">
+      <input type="text" id="nsTitle" list="stationSuggestions" placeholder="Ex. Servering, Parkering, Frukost…" autocomplete="off">
+      <datalist id="stationSuggestions">
+        <option value="Servering"></option>
+        <option value="Frukost"></option>
+        <option value="Parkering"></option>
+        <option value="Sekretariat"></option>
+        <option value="Infotält"></option>
+        <option value="Kiosk"></option>
+        <option value="Nattvakt"></option>
+        <option value="Städ"></option>
+        <option value="Bygg & Riv"></option>
+        <option value="Matsal"></option>
+      </datalist>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Välj en standardkategori eller skriv ett eget namn. Skriver du ett nytt namn skapas en ny kategori.</div>
     </div>
     <div class="inline-2">
       <div class="form-group">
@@ -1499,7 +1512,7 @@ function renderDashboard(){
 function getStationStats(){
   if(DB.shifts.length > 0){
     // DB-driven
-    const iconMap = {'Servering':'🍽️','Parkering':'🅿️','Kiosk':'🌭','Resultatrapportering':'📋','Bygg':'🔨','Nattvakt':'🌙','Infotält':'ℹ️'};
+    const iconMap = {'Servering':'🌭','Frukost':'🥐','Parkering':'🅿️','Kiosk':'🛒','Sekretariat':'📋','Resultatrapportering':'📋','Bygg':'🔨','Bygg & Riv':'🔨','Nattvakt':'🌙','Infotält':'ℹ️','Städ':'🧹','Matsal':'🍽️'};
     const stations = {};
     DB.shifts.forEach(s=>{
       const key = s.title;
@@ -1918,6 +1931,32 @@ async function deleteShift(id){
     showToast('Passet borttaget');
   } catch(e) {
     showToast('Kunde inte ta bort passet', 'error');
+  }
+}
+
+// Ta bort en hel kategori (alla pass med samma titel)
+async function deleteStation(){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){ demoBlock(); return; }
+  const title = currentStationTitle;
+  if(!title){ return; }
+  const stationShifts = DB.shifts.filter(s => s.title === title);
+  const ids = stationShifts.map(s => s.id);
+  const bookingCount = DB.bookings.filter(b => ids.includes(b.shift_id)).length;
+  let msg = 'Ta bort hela kategorin "' + title + '"?\n\nDetta tar bort ' + stationShifts.length + ' pass';
+  if(bookingCount > 0) msg += ' och ' + bookingCount + ' bokningar';
+  msg += '. Det går inte att ångra.';
+  if(!confirm(msg)) return;
+  try {
+    for(const id of ids){ await sbDelete('shifts', id); }
+    DB.shifts = DB.shifts.filter(s => s.title !== title);
+    DB.bookings = DB.bookings.filter(b => !ids.includes(b.shift_id));
+    closeCategory();
+    renderShiftTable();
+    renderDashboard();
+    showToast('Kategorin "' + title + '" borttagen');
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte ta bort kategorin', 'error');
   }
 }
 
