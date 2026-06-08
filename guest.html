@@ -962,8 +962,30 @@ function setStaffing(val, el){
 async function submitFeedback(){
   const good=document.getElementById('feedbackGood').value.trim();
   const improve=document.getElementById('feedbackImprove').value.trim();
-  if(!starRating&&!good&&!improve){ alert('Fyll i minst betyget eller ett textfält.'); return; }
-  // I produktion: supabase insert feedback
+  if(!starRating&&!good&&!improve&&!window._staffing){ alert('Fyll i minst betyget eller ett textfält.'); return; }
+
+  // Bygg kommentar av de två textfälten
+  let comment = '';
+  if(good) comment += 'Bra: ' + good;
+  if(improve) comment += (comment ? '\n' : '') + 'Förbättring: ' + improve;
+  if(starRating) comment += (comment ? '\n' : '') + 'Betyg: ' + starRating + '/5';
+
+  // Spara till databasen om vi har token + bokning
+  if(LIVE){
+    try {
+      const myBooking = LIVE.bookings.find(b => b.participant_id === LIVE.participant.id);
+      await sbInsert('feedback', {
+        shift_id: myBooking ? myBooking.shift_id : null,
+        participant_id: LIVE.participant.id,
+        staffing_score: window._staffing || null,
+        comment: comment || null
+      });
+    } catch(e){
+      console.error('Feedback-fel:', e);
+      // Visa ändå tack — feedback ska aldrig kännas trasig för användaren
+    }
+  }
+
   document.getElementById('feedbackForm').style.display='none';
   document.getElementById('feedbackDone').style.display='block';
 }
@@ -1297,10 +1319,27 @@ function showLiveConfirmation(name, phone){
 // ════════════════════════════════════════════════
 // STARTPUNKT — token = riktig vy, annars demo
 // ════════════════════════════════════════════════
-function bootstrap(){
+async function bootstrap(){
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
-  if(params.get('feedback')==='1'){ return; } // feedback hanteras separat
+  const isFeedback = params.get('feedback')==='1';
+
+  if(isFeedback){
+    // Feedback-vyn visas redan av separat script.
+    // Om token finns: ladda deltagaren så feedbacken kan sparas mot rätt pass.
+    if(token){
+      try {
+        const parts = await sbFetch('participants', '?token=eq.' + encodeURIComponent(token) + '&select=*');
+        if(parts.length){
+          const participant = parts[0];
+          const bookings = await sbFetch('bookings', '?participant_id=eq.' + participant.id);
+          LIVE = { participant, bookings, shifts:[], event:null };
+        }
+      } catch(e){ console.error('Feedback-laddning fel:', e); }
+    }
+    return;
+  }
+
   if(token){
     initLive(token);
   } else {

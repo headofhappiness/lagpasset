@@ -1139,25 +1139,27 @@ async function saveEventSettings(){
   }
 }
 
-let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [] };
+let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [] };
 
 async function loadFromDB() {
   try {
     const allShifts = await sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&select=id');
     const shiftIds = allShifts.map(function(s){ return s.id; });
-    const [shifts, bookings, participants, pool, contacts] = await Promise.all([
+    const [shifts, bookings, participants, pool, contacts, feedback] = await Promise.all([
       sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&order=date.asc,time_start.asc'),
       shiftIds.length ? sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')') : Promise.resolve([]),
       sbFetch('participants', '?event_id=eq.' + EVENT_ID + '&order=team.asc,name.asc'),
       sbFetch('pool_members', '?event_id=eq.' + EVENT_ID + '&order=name.asc'),
-      sbFetch('contacts', '?event_id=eq.' + EVENT_ID + '&order=sort_order.asc')
+      sbFetch('contacts', '?event_id=eq.' + EVENT_ID + '&order=sort_order.asc'),
+      shiftIds.length ? sbFetch('feedback', '?shift_id=in.(' + shiftIds.join(',') + ')&order=submitted_at.desc') : Promise.resolve([])
     ]);
     DB.shifts = shifts;
     DB.bookings = bookings;
     DB.participants = participants;
     DB.pool = pool;
     DB.contacts = contacts;
-    console.log('DB laddat:', DB.shifts.length, 'pass,', DB.participants.length, 'deltagare');
+    DB.feedback = feedback;
+    console.log('DB laddat:', DB.shifts.length, 'pass,', DB.participants.length, 'deltagare,', DB.feedback.length, 'feedback');
   } catch(e) {
     console.error('DB-fel:', e);
   }
@@ -2485,10 +2487,47 @@ function showToast(msg, type) {
   setTimeout(function(){ t.remove(); }, 3000);
 }
 
+function renderFeedback(){
+  const list = document.getElementById('feedbackList');
+  if(!list) return;
+  if(!DB.feedback || DB.feedback.length === 0){
+    // Behåll hårdkodad demodata (redan i HTML) tills riktig feedback finns
+    return;
+  }
+  list.innerHTML = DB.feedback.map(f => {
+    const shift = DB.shifts.find(s => s.id === f.shift_id);
+    const participant = DB.participants.find(p => p.id === f.participant_id);
+    let meta = '';
+    if(shift){
+      const d = new Date(shift.date);
+      const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+      meta = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5);
+      if(participant && participant.team) meta += ' · ' + participant.team;
+    }
+    // Parsa kommentar (Bra:/Förbättring:/Betyg:)
+    const comment = f.comment || '';
+    const stars = '⭐'.repeat(f.staffing_score ? 0 : 0); // staffing är inte stjärnor
+    let bodyHtml = comment.split('\n').map(line => {
+      const m = line.match(/^(Bra|Förbättring|Betyg):\s*(.*)$/);
+      if(m) return '<div class="feedback-text"><strong>' + m[1] + ':</strong> ' + m[2] + '</div>';
+      return line ? '<div class="feedback-text">' + line + '</div>' : '';
+    }).join('');
+    const staffingBadge = f.staffing_score
+      ? '<div style="font-size:12px;color:var(--muted);margin-top:2px">Bemanning: ' + f.staffing_score + '/5 (1=för få, 5=för många)</div>'
+      : '';
+    const dataType = shift ? shift.title.toLowerCase() : 'annat';
+    return '<div class="feedback-row" data-type="' + dataType + '">' +
+      bodyHtml + staffingBadge +
+      '<div class="feedback-meta">' + (meta || 'Okänt pass') + '</div>' +
+      '</div>';
+  }).join('');
+}
+
 // INIT
 async function init() {
   await loadEvent();
   await loadFromDB();
+  renderFeedback();
   fillEventSettings();
   renderDashboard();
   renderShiftTable();
