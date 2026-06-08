@@ -737,30 +737,39 @@ Hälsningar,
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Sista anmälningsdag</label>
+          <label class="form-label">Sista dag att välja pass</label>
           <input type="date" id="setDeadline" value="2026-06-08">
+          <div style="font-size:12.5px;color:var(--muted);margin-top:4px">Sista dagen då medlemmar kan välja sitt pass. (Inte att förväxla med lagens anmälan till cupen.)</div>
         </div>
         <div class="form-group">
           <label class="form-label">Automatisk påminnelse</label>
           <div class="deadline-row">
             <input type="number" id="setReminderDays" value="5" min="1" max="30" style="width:70px">
-            <span>dagar före sista anmälningsdag till medlemmar som inte valt pass</span>
+            <span>dagar före sista dag att välja pass, till medlemmar som inte valt</span>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Typ av deltagande</label>
-          <select>
-            <option>Obligatoriskt – alla måste välja ett pass</option>
-            <option>Frivilligt – medlemmar uppmanas men måste inte</option>
+          <select id="setParticipation">
+            <option value="obligatoriskt">Obligatoriskt – alla måste välja ett pass</option>
+            <option value="frivilligt">Frivilligt – medlemmar uppmanas men måste inte</option>
           </select>
         </div>
         <div class="form-group">
           <label class="form-label">Hur räknas insatsen?</label>
-          <select>
-            <option>Antal pass – varje familj tar ett visst antal pass</option>
-            <option>Antal timmar – varje familj bidrar med ett visst antal timmar</option>
+          <select id="setUnit" onchange="updateTargetUnit()">
+            <option value="pass">Antal pass – varje familj tar ett visst antal pass</option>
+            <option value="timmar">Antal timmar – varje familj bidrar med ett visst antal timmar</option>
           </select>
           <div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5">💡 <strong>Tips:</strong> Räknar ni i timmar kan ni erbjuda både långa och korta pass. Ett kort pass (1–2 tim) gör det lättare för fler att hjälpa till, och enklare att byta eller ta ett extra pass.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hur mycket ska varje medlem bidra med?</label>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <input type="number" id="setTarget" value="1" min="1" step="1" style="width:90px">
+            <span id="targetUnit" style="font-size:14px;color:var(--muted)">pass per medlem</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:4px">Används för att visa hur långt varje medlem kommit mot sitt mål.</div>
         </div>
         <button class="btn btn-primary" style="margin-top:.5rem" onclick="saveEventSettings()">Spara inställningar</button>
       </div>
@@ -1224,10 +1233,22 @@ async function loadEvent(){
 
 function fillEventSettings(){
   if(!EVENT) return;
-  const setVal = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+  const setVal = (id, val) => { const el = document.getElementById(id); if(el && val !== undefined && val !== null) el.value = val; };
   setVal('setEventName', EVENT.name);
   setVal('setEventStart', EVENT.date_start);
   setVal('setEventEnd', EVENT.date_end);
+  setVal('setDeadline', EVENT.signup_deadline);
+  setVal('setParticipation', EVENT.participation || 'obligatoriskt');
+  setVal('setUnit', EVENT.shift_unit || 'pass');
+  setVal('setTarget', EVENT.effort_target || 1);
+  if(typeof updateTargetUnit === 'function') updateTargetUnit();
+}
+
+function updateTargetUnit(){
+  const unitEl = document.getElementById('setUnit');
+  const label = document.getElementById('targetUnit');
+  if(!unitEl || !label) return;
+  label.textContent = unitEl.value === 'timmar' ? 'timmar per medlem' : 'pass per medlem';
 }
 
 async function saveEventSettings(){
@@ -1236,12 +1257,23 @@ async function saveEventSettings(){
   const end = document.getElementById('setEventEnd').value;
   if(!name || !start){ alert('Fyll i eventnamn och första eventdag.'); return; }
   if(end && end < start){ alert('Sista eventdagen kan inte vara före första.'); return; }
+  const deadline = document.getElementById('setDeadline').value || null;
+  const participation = document.getElementById('setParticipation').value;
+  const unit = document.getElementById('setUnit').value;
+  const target = parseFloat(document.getElementById('setTarget').value) || 1;
+  const data = {
+    name, date_start: start, date_end: end || start,
+    signup_deadline: deadline, participation: participation,
+    shift_unit: unit, effort_target: target
+  };
   try {
-    await sbUpdate('events', EVENT_ID, { name, date_start: start, date_end: end || start });
-    EVENT.name = name; EVENT.date_start = start; EVENT.date_end = end || start;
-    showToast('Event-inställningar sparade');
+    await sbUpdate('events', EVENT_ID, data);
+    Object.assign(EVENT, data);
+    showToast('Inställningar sparade');
+    if(typeof renderAttention === 'function') renderAttention();
   } catch(e){
-    showToast('Kunde inte spara', 'error');
+    console.error(e);
+    showToast('Kunde inte spara (kolla att kolumnerna finns i events)', 'error');
   }
 }
 
