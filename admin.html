@@ -634,9 +634,19 @@ Hälsningar,
       </div>
 
       <div class="grid-3" style="margin:1.25rem 0">
-        <div class="stat-card green"><div class="stat-num">4.2</div><div class="stat-label">Snittbetyg (av 5)</div></div>
-        <div class="stat-card"><div class="stat-num">18</div><div class="stat-label">Svar inkomna</div></div>
-        <div class="stat-card amber"><div class="stat-num">3</div><div class="stat-label">Med förbättringsförslag</div></div>
+        <div class="stat-card green"><div class="stat-num" id="statAvg">4.2</div><div class="stat-label">Snittbetyg (av 5)</div></div>
+        <div class="stat-card"><div class="stat-num" id="statCount">18</div><div class="stat-label">Svar inkomna</div></div>
+        <div class="stat-card amber"><div class="stat-num" id="statImprove">3</div><div class="stat-label">Med förbättringsförslag</div></div>
+      </div>
+
+      <!-- Bemanningsanalys – AI:s viktigaste output -->
+      <div class="card" id="staffingCard" style="margin-bottom:1.25rem;display:none">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
+          <span style="font-size:1.15rem">⚖️</span>
+          <div style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Bemanningsanalys – AI:s tips inför nästa gång</div>
+        </div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Sammanställt från vad volontärerna svarat om bemanningen på sina pass. Använd för att sätta rätt antal personer nästa år.</div>
+        <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
       </div>
 
       <!-- AI-sammanställning (dold initialt) -->
@@ -3278,10 +3288,26 @@ function showToast(msg, type) {
 function renderFeedback(){
   const list = document.getElementById('feedbackList');
   if(!list) return;
+  renderStaffingAnalysis();
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
   if(!DB.feedback || DB.feedback.length === 0){
-    // Behåll hårdkodad demodata (redan i HTML) tills riktig feedback finns
+    if(isDemo){
+      // Demon behåller den hårdkodade exempel-feedbacken i HTML
+      return;
+    }
+    // Riktig admin utan feedback → tomt läge, ingen fejkad feedback
+    list.innerHTML = '<div style="padding:2rem 1.5rem;text-align:center;color:var(--muted)">' +
+      '<div style="font-size:1.8rem;margin-bottom:.5rem">📭</div>' +
+      '<div style="font-weight:600;color:var(--dark);margin-bottom:.25rem">Ingen feedback har kommit in än</div>' +
+      '<div style="font-size:13px">Feedback dyker upp här automatiskt när pass avslutats och volontärerna svarat på sin feedback-länk.</div>' +
+      '</div>';
+    const sa = document.getElementById('statAvg'); if(sa) sa.textContent = '–';
+    const sc = document.getElementById('statCount'); if(sc) sc.textContent = '0';
+    const si = document.getElementById('statImprove'); if(si) si.textContent = '0';
     return;
   }
+  // Riktig data → räkna statistik
+  const sc = document.getElementById('statCount'); if(sc) sc.textContent = DB.feedback.length;
   list.innerHTML = DB.feedback.map(f => {
     const shift = DB.shifts.find(s => s.id === f.shift_id);
     const participant = DB.participants.find(p => p.id === f.participant_id);
@@ -3292,9 +3318,7 @@ function renderFeedback(){
       meta = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5);
       if(participant && participant.team) meta += ' · ' + participant.team;
     }
-    // Parsa kommentar (Bra:/Förbättring:/Betyg:)
     const comment = f.comment || '';
-    const stars = '⭐'.repeat(f.staffing_score ? 0 : 0); // staffing är inte stjärnor
     let bodyHtml = comment.split('\n').map(line => {
       const m = line.match(/^(Bra|Förbättring|Betyg):\s*(.*)$/);
       if(m) return '<div class="feedback-text"><strong>' + m[1] + ':</strong> ' + m[2] + '</div>';
@@ -3309,6 +3333,61 @@ function renderFeedback(){
       '<div class="feedback-meta">' + (meta || 'Okänt pass') + '</div>' +
       '</div>';
   }).join('');
+}
+
+// Bemanningsanalys: grönt (lagom) / gult (för mycket) / rött (för lite)
+function renderStaffingAnalysis(){
+  const card = document.getElementById('staffingCard');
+  const rows = document.getElementById('staffingRows');
+  if(!card || !rows) return;
+  const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
+
+  const row = (status, color, tint, shiftName, detail) =>
+    '<div style="display:flex;align-items:center;gap:.85rem;padding:.7rem .9rem;border-radius:10px;background:' + tint + ';border-left:4px solid ' + color + '">' +
+      '<span style="background:' + color + ';color:#fff;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:800;letter-spacing:.02em;min-width:92px;text-align:center;flex-shrink:0">' + status + '</span>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:700;color:var(--dark);font-size:13.5px">' + shiftName + '</div>' +
+        '<div style="font-size:12.5px;color:var(--muted);line-height:1.45">' + detail + '</div>' +
+      '</div>' +
+    '</div>';
+
+  if(isDemo){
+    rows.innerHTML =
+      row('FÖR LITE', '#c0392b', '#fdecea', 'Servering · söndag 12–16', '4 av 5 tyckte att det var underbemannat. <strong style="color:#1a8c3a">Höj antalet med 2 nästa år.</strong>') +
+      row('FÖR MYCKET', '#e8a020', '#fff8e8', 'Servering · lördag 08–12', '3 av 6 tyckte att det var överbemannat. <strong style="color:#1a8c3a">Sänk antalet med 2.</strong>') +
+      row('FÖR MYCKET', '#e8a020', '#fff8e8', 'Bygg &amp; Riv · torsdag 17–20', 'Flera nämnde att de stod sysslolösa. <strong style="color:#1a8c3a">Färre personer räcker.</strong>') +
+      row('LAGOM', '#1a8c3a', '#e8f7ec', 'Övriga pass', 'Upplevdes välbemannade – behåll nuvarande nivå.');
+    card.style.display = 'block';
+    return;
+  }
+
+  // Riktig admin: räkna per pass från feedbackens bemanningsbetyg (1=för få … 5=för många)
+  const byShift = {};
+  (DB.feedback || []).forEach(f => {
+    if(!f.staffing_score || !f.shift_id) return;
+    if(!byShift[f.shift_id]) byShift[f.shift_id] = [];
+    byShift[f.shift_id].push(Number(f.staffing_score));
+  });
+  const keys = Object.keys(byShift);
+  if(keys.length === 0){ card.style.display = 'none'; return; }
+  const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+  let html = '';
+  keys.forEach(sid => {
+    const scores = byShift[sid];
+    const avg = scores.reduce((a,b)=>a+b,0) / scores.length;
+    const shift = DB.shifts.find(s => s.id === sid);
+    let name = 'Okänt pass';
+    if(shift){ const d = new Date(shift.date); name = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5); }
+    if(avg <= 2.4){
+      html += row('FÖR LITE', '#c0392b', '#fdecea', name, scores.length + ' svar – upplevdes underbemannat. Höj antalet nästa år.');
+    } else if(avg >= 3.6){
+      html += row('FÖR MYCKET', '#e8a020', '#fff8e8', name, scores.length + ' svar – upplevdes överbemannat. Sänk antalet nästa år.');
+    } else {
+      html += row('LAGOM', '#1a8c3a', '#e8f7ec', name, scores.length + ' svar – välbemannat. Behåll nivån.');
+    }
+  });
+  rows.innerHTML = html;
+  card.style.display = 'block';
 }
 
 // INIT
