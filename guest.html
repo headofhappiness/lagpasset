@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Välj ditt pass – Åsacupen 2026</title>
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="favicon.png">
 <meta name="description" content="Välj ditt pass. Hjälp laget.">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -333,10 +333,10 @@ setVH(); window.addEventListener('resize',setVH);
   <!-- BEKRÄFTELSE -->
   <div id="doneWrap" style="display:none" class="slide-down">
     <div style="text-align:center;padding:1.75rem 0 1.5rem">
-      <div class="done-icon">✓</div>
-      <h1>Tack!</h1>
+      <div style="font-size:3rem;margin-bottom:.3rem">⭐</div>
+      <h1>Du är en stjärna!</h1>
       <div class="green-line" style="margin:.4rem auto .9rem"></div>
-      <p style="color:var(--muted);font-size:15px;margin-bottom:.3rem">Ditt pass är valt.</p>
+      <p style="color:var(--muted);font-size:15px;margin-bottom:.3rem;line-height:1.55">Tack för att du hjälper till. Ditt pass är valt – det betyder mycket för cupen.</p>
       <div id="doneTimestamp" style="font-size:13px;color:var(--muted);margin-bottom:1.4rem;font-weight:500"></div>
     </div>
 
@@ -556,14 +556,14 @@ const DEMO = {
 
   shifts:[
     // FJ – 6 pass att välja på
-    {id:"i01",title:"Infotält",            day:"Fredag",       time:"09:00–13:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:2, note:"Tag gärna cykel"},
-    {id:"i04",title:"Infotält",            day:"Lördag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:3},
-    {id:"i08",title:"Infotält",            day:"Söndag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:1},
-    {id:"s06",title:"Servering",           day:"Lördag",       time:"09:00–13:00",  type:"servering",teams:["FJ","P18","P13"],total:5,taken:4},
-    {id:"s08",title:"Servering – matsal", day:"Lördag",       time:"16:30–20:30",  type:"servering",teams:["FJ","P18"],total:4,taken:2,note:"Matsalen"},
-    {id:"b01",title:"Bygg – tält & bord", day:"Torsdag",      time:"18:00 – klart",type:"bygg",     teams:["FJ","F15","F16","P13","P15","P18"],total:6,taken:2,note:"Ta med arbetshandskar"},
-    {id:"b02",title:"Riv – tält & bord",  day:"Söndag",       time:"17:00 – klart",type:"riv",      teams:["FJ","F15","F16","P13","P15","P18"],total:6,taken:0,note:"Kan du ta med släp? Skriv i kommentar."},
-    {id:"n01",title:"Nattvakt Frillesås", day:"Lördag natt",  time:"21:00 – 02:00",type:"nattvakt", teams:["FJ"],      total:4, taken:3,note:"Kaffe & mackor finns"},
+    {id:"i01",title:"Infotält",            day:"Fredag",       time:"09:00–13:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:2, note:"Tag gärna cykel", location:"Infotältet vid huvudentrén", contactName:"Lena Sandberg", contactPhone:"070-123 45 67"},
+    {id:"i04",title:"Infotält",            day:"Lördag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:3, location:"Infotältet vid huvudentrén", contactName:"Lena Sandberg", contactPhone:"070-123 45 67"},
+    {id:"i08",title:"Infotält",            day:"Söndag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:1, location:"Infotältet vid huvudentrén", contactName:"Lena Sandberg", contactPhone:"070-123 45 67"},
+    {id:"s06",title:"Servering",           day:"Lördag",       time:"09:00–13:00",  type:"servering",teams:["FJ","P18","P13"],total:5,taken:4, location:"Kiosken vid plan 2", contactName:"Maria Lindqvist", contactPhone:"073-234 56 78"},
+    {id:"s08",title:"Servering – matsal", day:"Lördag",       time:"16:30–20:30",  type:"servering",teams:["FJ","P18"],total:4,taken:2,note:"Matsalen", location:"Matsalen, Frillesåsskolan", contactName:"Maria Lindqvist", contactPhone:"073-234 56 78"},
+    {id:"b01",title:"Bygg – tält & bord", day:"Torsdag",      time:"18:00 – klart",type:"bygg",     teams:["FJ","F15","F16","P13","P15","P18"],total:6,taken:2,note:"Ta med arbetshandskar", location:"Samling vid materialboden", contactName:"Anders Holm", contactPhone:"070-456 78 90"},
+    {id:"b02",title:"Riv – tält & bord",  day:"Söndag",       time:"17:00 – klart",type:"riv",      teams:["FJ","F15","F16","P13","P15","P18"],total:6,taken:0,note:"Kan du ta med släp? Skriv i kommentar.", location:"Samling vid materialboden", contactName:"Anders Holm", contactPhone:"070-456 78 90"},
+    {id:"n01",title:"Nattvakt Frillesås", day:"Lördag natt",  time:"21:00 – 02:00",type:"nattvakt", teams:["FJ"],      total:4, taken:3,note:"Kaffe & mackor finns", location:"Klubbstugan", contactName:"Johan Berg", contactPhone:"076-345 67 89"},
     {id:"n02",title:"Nattvakt Frillesås", day:"Söndag tidigt",time:"02:00 – 07:00",type:"nattvakt", teams:["FJ"],      total:4, taken:1,note:"Kaffe & mackor finns"},
     // P13
     {id:"p13s1",title:"Servering",        day:"Fredag",       time:"12:30–17:00",  type:"servering",teams:["P13"],    total:4, taken:3},
@@ -859,11 +859,15 @@ async function submitBooking(){
 
 function showConfirmation(name,phone){
   const s=currentShift, c=currentChild, t=currentTeam;
+  const locationRow = s.location ? `<div class="conf-row"><span class="conf-label">Plats</span><strong>${s.location}</strong></div>` : '';
+  const contactRow = s.contactName ? `<div class="conf-row"><span class="conf-label">Kontakt vid passet</span><strong>${s.contactName}${s.contactPhone?` · <a href="tel:${s.contactPhone.replace(/\s/g,'')}" style="color:var(--green);text-decoration:none">${s.contactPhone}</a>`:''}</strong></div>` : '';
   document.getElementById('confirmSummary').innerHTML=`
     <div class="conf-row"><span class="conf-label">Barn</span><strong>${c.name} (${t.name})</strong></div>
     <div class="conf-row"><span class="conf-label">Pass</span><strong>${s.title}</strong></div>
     <div class="conf-row"><span class="conf-label">Dag</span><strong>${s.day}</strong></div>
     <div class="conf-row"><span class="conf-label">Tid</span><strong>${s.time}</strong></div>
+    ${locationRow}
+    ${contactRow}
     <div class="conf-row"><span class="conf-label">Förälder</span><strong>${name}</strong></div>
     <div class="conf-row"><span class="conf-label">Telefon</span><strong>${phone}</strong></div>
   `;
@@ -1057,7 +1061,7 @@ window.addEventListener('DOMContentLoaded',init);
 <footer style="text-align:center;padding:1.75rem 1rem 1.5rem;margin-top:2rem;border-top:1px solid var(--border)">
   <a href="https://lagpasset.se" target="_blank" style="display:inline-flex;flex-direction:column;align-items:center;gap:.4rem;text-decoration:none">
     <span style="font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Powered by</span>
-    <img src="logo.png" alt="LagPasset" style="height:22px;width:auto;opacity:.7">
+    <img src="logo.png" alt="LagPasset" style="height:24px;width:auto">
   </a>
 </footer>
 </body>

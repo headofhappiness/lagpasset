@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<link rel="icon" type="image/png" href="logo.png">
+<link rel="icon" type="image/png" href="favicon.png">
 <title>Demo – Lagpasset admin</title>
 <meta name="description" content="Klicka runt i en demo av Lagpasset och se hur enkelt föreningen hanterar föräldrapass.">
 <meta property="og:title" content="Lagpasset – Se admindemon">
@@ -283,7 +283,10 @@ setVH(); window.addEventListener('resize',setVH);
       <span class="nav-icon">⚙️</span> Inställningar
     </a>
   </nav>
-  <div class="sidebar-footer">Lagpasset.se · v1.0</div>
+  <div class="sidebar-footer" style="display:flex;flex-direction:column;align-items:flex-start;gap:.4rem">
+    <img src="logo-white.png" alt="LagPasset" style="height:15px;width:auto;opacity:.6">
+    <span>Lagpasset.se · v1.0</span>
+  </div>
 </aside>
 
 <!-- MAIN -->
@@ -391,7 +394,7 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
 
       <div class="msg info">
-        <strong>Integritet:</strong> Lägg in ett <em>påhittat visningsnamn</em> för deltagare med skyddad identitet. Bocka i "Skyddad identitet" — namnet anonymiseras för övriga i listan.
+        <strong>Tips:</strong> Om en deltagare inte väljer själv kan du tilldela ett pass manuellt – då visas "Tilldelad av admin". Du kan också skriva in ett påhittat visningsnamn om du behöver.
       </div>
 
       <!-- Filter/sök -->
@@ -400,14 +403,14 @@ setVH(); window.addEventListener('resize',setVH);
           <input type="text" id="childSearch" placeholder="Sök på namn…" style="max-width:220px;margin-bottom:0" oninput="renderChildTable()">
           <select id="childTeamFilter" style="max-width:160px;margin-bottom:0" onchange="renderChildTable()">
             <option value="">Alla lag</option>
-            <option>FJ – Flickjuniorer</option><option>P13</option><option>P15</option>
-            <option>P18</option><option>F15</option><option>F16</option>
+            <option>FJ – Flickjuniorer</option><option>P09</option><option>P10</option>
+            <option>P11</option><option>P12</option><option>P13</option><option>F11</option><option>F13</option>
           </select>
           <select id="childStatusFilter" style="max-width:180px;margin-bottom:0" onchange="renderChildTable()">
             <option value="">Alla statusar</option>
             <option value="booked">Pass valt</option>
             <option value="pending">Inget pass valt</option>
-            <option value="protected">Skyddad identitet</option>
+            <option value="admin">Tilldelad av admin</option>
           </select>
         </div>
       </div>
@@ -557,6 +560,7 @@ setVH(); window.addEventListener('resize',setVH);
         <div style="margin-bottom:1rem">
           <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">ANVÄND MALL</div>
           <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="useTemplate('confirm')" style="border-color:var(--green);color:var(--green)">⭐ Tack för bokat pass</button>
             <button class="btn btn-ghost btn-sm" onclick="useTemplate('reminder')">⏰ Påminnelse</button>
             <button class="btn btn-ghost btn-sm" onclick="useTemplate('info')">📋 Passinformation</button>
             <button class="btn btn-ghost btn-sm" onclick="useTemplate('thanks')" style="border-color:var(--green);color:var(--green)">🙏 Tackmejl efter event</button>
@@ -692,6 +696,14 @@ Hälsningar,
             <option>Frivilligt – medlemmar uppmanas men måste inte</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">Hur räknas insatsen?</label>
+          <select>
+            <option>Antal pass – varje familj tar ett visst antal pass</option>
+            <option>Antal timmar – varje familj bidrar med ett visst antal timmar</option>
+          </select>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5">💡 <strong>Tips:</strong> Räknar ni i timmar kan ni erbjuda både långa och korta pass. Ett kort pass (1–2 tim) gör det lättare för fler att hjälpa till, och enklare att byta eller ta ett extra pass.</div>
+        </div>
         <button class="btn btn-primary" style="margin-top:.5rem">Spara inställningar</button>
       </div>
 
@@ -750,7 +762,7 @@ Hälsningar,
       <div class="card">
         <div class="card-title" style="margin-bottom:.5rem">Integritet &amp; GDPR</div>
         <div class="msg info">Ni är personuppgiftsansvariga för den data ni lägger in. Lagpasset är personuppgiftsbiträde och lagrar data i EU (Frankfurt). Barnens förnamn, lag och förälderns e-post är det enda som lagras. Inga efternamn, personnummer eller adresser krävs.</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:.5rem">Barn med skyddad identitet: använd ett påhittat visningsnamn och bocka i "Skyddad identitet" på barnkortet. Barnet anonymiseras i den gemensamma laglistan.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:.5rem">Behöver en deltagare extra integritet kan du använda ett påhittat visningsnamn. Personliga länkar och e-post visas aldrig för andra deltagare.</p>
         <a href="#" style="font-size:13px;color:var(--green);text-decoration:underline;text-underline-offset:3px;display:inline-block;margin-top:.5rem">Läs biträdesavtalet →</a>
       </div>
     </div>
@@ -770,7 +782,7 @@ Hälsningar,
     <div class="form-group">
       <label class="form-label">Barnets visningsnamn</label>
       <input type="text" id="newChildName" placeholder="Förnamn Efternamn">
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i laglistan. Kan vara påhittat om deltagaren har skyddad identitet.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i laglistan. Kan vara påhittat om deltagaren behöver extra integritet.</div>
     </div>
     <div class="form-group">
       <label class="form-label">Lag</label>
@@ -783,13 +795,6 @@ Hälsningar,
       <label class="form-label">Förälderns e-postadress</label>
       <input type="email" id="newChildEmail" placeholder="foralderns@email.se">
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Används för att skicka personlig länk. Visas aldrig för andra.</div>
-    </div>
-    <div class="form-group" style="margin-bottom:.5rem">
-      <div class="checkbox-row">
-        <input type="checkbox" id="newChildProtected">
-        <label for="newChildProtected">Skyddad identitet</label>
-      </div>
-      <div class="protected-note" id="protectedNote" style="display:none">Deltagarens namn anonymiseras för övriga i laglistan. Kontaktpersonen hittar sin länk via sin personliga e-post.</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
@@ -919,6 +924,21 @@ Hälsningar,
     <div class="form-group">
       <label class="form-label">Notering (visas för deltagare)</label>
       <input type="text" placeholder="Ex. Tag med arbetshandskar, Matsalen…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Var ligger passet? (plats)</label>
+      <input type="text" placeholder="Ex. Kiosken vid plan 2, Infotältet vid entrén…">
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas i bekräftelsen och tackmejlet så deltagaren vet vart de ska.</div>
+    </div>
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Kontaktperson vid passet</label>
+        <input type="text" placeholder="Ex. Maria Lindqvist">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kontaktpersonens telefon</label>
+        <input type="tel" placeholder="070-123 45 67">
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Lag &amp; kvoter</label>
@@ -1052,7 +1072,7 @@ const CHILDREN = [
   {id:"c02",name:"Agnes Marklinder",   team:"FJ",  email:"agnes.m@hotmail.com",      protected:false, booked:true,  linkSent:true, pass:"Bygg · Tor 17–20"},
   {id:"c03",name:"Alba Franzén",       team:"FJ",  email:"franzenfam@gmail.com",     protected:false, booked:false, linkSent:true},
   {id:"c04",name:"Alice Todelius",     team:"FJ",  email:"k.todelius@gmail.com",     protected:false, booked:true,  linkSent:true, pass:"Nattvakt · Lör 22–06"},
-  {id:"c05",name:"Robin Grön",         team:"FJ",  email:"🔒 dold",              protected:true,  booked:true,  linkSent:true, pass:"Infotält · Lör 08–13"},
+  {id:"c05",name:"Robin Grön",         team:"FJ",  email:"robin.gron@gmail.com",     assignedByAdmin:true, booked:true,  linkSent:true, pass:"Infotält · Lör 08–13"},
   {id:"c06",name:"Alva Svarén",        team:"FJ",  email:"henrik.svaren@gmail.com",  protected:false, booked:false, linkSent:false},
   {id:"c07",name:"Elin Björk",         team:"FJ",  email:"bjork.familjen@gmail.com", protected:false, booked:true,  linkSent:true, pass:"Parkering · Lör 07–12"},
   {id:"c08",name:"Maja Lindström",     team:"FJ",  email:"lindstrom.m@hotmail.com",  protected:false, booked:true,  linkSent:true, pass:"Servering · Lör 12–16"},
@@ -1346,19 +1366,19 @@ function renderChildTable(){
     if(teamFilter && !c.team.includes(teamFilter.split(' ')[0])) return false;
     if(statusFilter==='booked' && !c.booked) return false;
     if(statusFilter==='pending' && c.booked) return false;
-    if(statusFilter==='protected' && !c.protected) return false;
+    if(statusFilter==='admin' && !c.assignedByAdmin) return false;
     return true;
   });
 
   document.getElementById('childTable').innerHTML = filtered.map(c=>`<tr>
     <td>
       <div style="display:flex;align-items:center;gap:.6rem">
-        <div style="width:30px;height:30px;border-radius:50%;background:${c.protected?'#fff0e8':'var(--green-light)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${c.protected?'#c05000':'var(--green)'}">
-          ${c.protected?'🔒':c.name.split(' ').map(w=>w[0]).slice(0,2).join('')}
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">
+          ${c.name.split(' ').map(w=>w[0]).slice(0,2).join('')}
         </div>
         <div>
           <div style="font-weight:600;color:var(--dark)">${c.name}</div>
-          ${c.protected?'<div class="badge badge-protected" style="margin-top:2px">🔒 Skyddad</div>':''}
+          ${c.assignedByAdmin?'<div class="badge badge-protected" style="margin-top:2px">Tilldelad av admin</div>':''}
         </div>
       </div>
     </td>
@@ -1379,7 +1399,7 @@ function renderPoolTable(){
     return `<tr>
       <td>
         <div style="display:flex;align-items:center;gap:.6rem">
-          <div style="width:30px;height:30px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#4055b5">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
           <div style="font-weight:600;color:var(--dark)">${p.name}</div>
         </div>
       </td>
@@ -1462,9 +1482,7 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
 });
 
-document.getElementById('newChildProtected').addEventListener('change',function(){
-  document.getElementById('protectedNote').style.display=this.checked?'block':'none';
-});
+// (skyddad identitet borttagen – ersatt av manuell tilldelning)
 
 function addChild(){
   const name=document.getElementById('newChildName').value.trim();
@@ -1908,12 +1926,15 @@ function aiSummarizeFeedback() {
 function useTemplate(type) {
   const subj = document.getElementById('emailSubject');
   const body = document.getElementById('emailBody');
-  if(type === 'reminder') {
+  if(type === 'confirm') {
+    subj.value = 'Du är en stjärna! Tack för att du valt ditt pass ⭐';
+    body.value = `Hej [NAMN]!\n\nDu är en stjärna – tack för att du valt att hjälpa till på Åsacupen 2026! ⭐\n\nHär är ditt pass:\n\nPass: [PASSTYP]\nDag: [DAG]\nTid: [TID]\nPlats: [PLATS]\nKontaktperson vid passet: [KONTAKTNAMN], [KONTAKTTELEFON]\n\nKan du inte komma?\nOm du blir sjuk eller får förhinder, säg till så snart du kan så att vi hinner hitta en ersättare. Öppna din personliga länk och anmäl förhinder, eller hör av dig till [KONTAKTNAMN].\n\nVill du byta pass? Öppna din länk och välj ett annat – det går fram till sista anmälningsdag.\n\nStort tack för din insats – det betyder mycket för klubben!\n\nHälsningar,\nÅsa IF`;
+  } else if(type === 'reminder') {
     subj.value = 'Påminnelse: välj ditt pass – Åsacupen 2026';
     body.value = `Hej!\n\nVi påminner om att du ännu inte valt ett pass inför Åsacupen 2026. Sista dag är 18 juni.\n\nÖppna din personliga länk för att välja:\n[PERSONLIG LÄNK]\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF`;
   } else if(type === 'info') {
     subj.value = 'Ditt pass – Åsacupen 2026';
-    body.value = `Hej!\n\nTack för att du hjälper till under Åsacupen 2026. Här är information om ditt pass:\n\nPass: [PASSTYP]\nDag: [DAG]\nTid: [TID]\nPlats: [PLATS]\n\nVi ses på cupen!\n\nHälsningar,\nÅsa IF`;
+    body.value = `Hej!\n\nTack för att du hjälper till under Åsacupen 2026. Här är information om ditt pass:\n\nPass: [PASSTYP]\nDag: [DAG]\nTid: [TID]\nPlats: [PLATS]\nKontaktperson vid passet: [KONTAKTNAMN], [KONTAKTTELEFON]\n\nVi ses på cupen!\n\nHälsningar,\nÅsa IF`;
   } else if(type === 'thanks') {
     subj.value = 'Tack för din insats – Åsacupen 2026! 🙏';
     body.value = `Hej!\n\nÅsacupen 2026 är avslutad och vi vill ta tillfället att säga ett stort TACK!\n\nTack vare er hjälp kunde vi genomföra ett fantastiskt event. 105 volontärer lade ner sin tid – utan er hade det inte blivit möjligt.\n\nHur gick det?\n• 18 av er lämnade feedback – snittbetyg 4,2 av 5\n• Stämningen och organisationen fick extra beröm\n• Vi har noterat era förbättringsförslag till nästa år\n\nVi ses på Åsacupen 2027! ⚽\n\nHälsningar,\nÅsa IF & cupkommittén`;
