@@ -362,13 +362,13 @@ setVH(); window.addEventListener('resize',setVH);
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
         <div>
           <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bemanning</h2>
-          <p style="font-size:13px;color:var(--muted);margin-top:2px">Personerna som bemannar passen. Varje rad får en personlig länk för passval.</p>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Alla personer som ska hjälpa till. Lägg till, redigera och tilldela pass direkt.</p>
         </div>
         <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till person</button>
       </div>
 
       <div class="msg info">
-        <strong>Tips:</strong> Om en person inte väljer själv kan du tilldela ett pass manuellt – då visas "Tilldelad av admin". Du kan också skriva in ett påhittat visningsnamn om du behöver.
+        <strong>Tips:</strong> Du kan tilldela ett pass direkt när du lägger till eller redigerar en person – t.ex. om någon anmält sig per telefon. Annars väljer personen själv via sin personliga länk.
       </div>
 
       <!-- Filter/sök -->
@@ -390,7 +390,7 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
 
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-          <thead><tr><th>Namn</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Länk skickad</th></tr></thead>
+          <thead><tr><th>Bemannare</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th></th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
       </div>
@@ -827,11 +827,11 @@ Hälsningar,
 <div class="modal-overlay" id="modalAddChild">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Lägg till person</div>
+      <div class="modal-title" id="addChildTitle">Lägg till person</div>
       <button class="modal-close" onclick="closeModal('modalAddChild')">✕</button>
     </div>
     <div class="form-group">
-      <label class="form-label">Namn (förälder/deltagare)</label>
+      <label class="form-label">Namn (förälder/person)</label>
       <input type="text" id="newChildName" placeholder="Förnamn Efternamn">
     </div>
     <div class="inline-2">
@@ -850,12 +850,13 @@ Hälsningar,
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Används för att skicka personlig länk. Visas aldrig för andra.</div>
     </div>
     <div class="form-group">
-      <label class="form-label">Barnets namn (valfritt)</label>
-      <input type="text" id="newChildKid" placeholder="Barnets förnamn">
+      <label class="form-label">Tilldela pass (valfritt)</label>
+      <select id="newChildShift"><option value="">— Inget pass nu (personen väljer själv) —</option></select>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Välj ett pass om du vill boka personen direkt. Annars väljer de själva via sin länk.</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
-      <button class="btn btn-primary" onclick="addChild()">Spara</button>
+      <button class="btn btn-primary" onclick="saveChild()">Spara</button>
     </div>
   </div>
 </div>
@@ -1113,7 +1114,8 @@ Hälsningar,
 // ═══════════════════════════════════════
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
-const EVENT_ID = (new URLSearchParams(window.location.search)).get('event') || '00000000-0000-0000-0000-000000000002';
+const _eventParam = (new URLSearchParams(window.location.search)).get('event');
+const EVENT_ID = _eventParam || '00000000-0000-0000-0000-000000000002';
 
 async function sbFetch(table, params) {
   params = params || '';
@@ -1785,6 +1787,10 @@ function renderChildTable(){
       <td style="font-size:13px;color:var(--text)">${passText !== '–' ? passText : '<span style="color:var(--muted)">–</span>'}</td>
       <td>${booked ? '<span class="badge badge-green">Pass valt ✓</span>' : '<span class="badge badge-amber">Inget pass</span>'}</td>
       <td>${useDB ? (c.phone ? '<span style="font-size:12.5px;color:var(--green)">' + c.phone + '</span>' : '<span style="color:var(--muted)">–</span>') : (c.linkSent ? '<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>' : '<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>')}</td>
+      <td><div style="display:flex;gap:.35rem">
+        <button class="btn btn-ghost btn-sm" onclick="editChild('${c.id}')" title="Redigera">✏️</button>
+        <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteChild('${c.id}')" title="Ta bort">🗑</button>
+      </div></td>
     </tr>`;
   }).join('');
 }
@@ -2021,6 +2027,14 @@ function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id === 'modalPrint') buildPrintOptions();
   if(id === 'modalSendLinks') fillSendLinksInfo();
+  if(id === 'modalAddChild' && !openModal._editingChild){
+    editingChildId = null;
+    const t = document.getElementById('addChildTitle');
+    if(t) t.textContent = 'Lägg till person';
+    ['newChildName','newChildTeam','newChildPhone','newChildEmail'].forEach(fid=>{ const e=document.getElementById(fid); if(e) e.value=''; });
+    fillChildShiftOptions();
+  }
+  openModal._editingChild = false;
   if(id === 'modalAddShift'){
     editingShiftId = null;
     const t = document.getElementById('addShiftTitle');
@@ -2028,6 +2042,24 @@ function openModal(id){
     ['nsTitle','nsLocation','nsContactName','nsContactPhone','nsNotes'].forEach(fid=>{ const e=document.getElementById(fid); if(e) e.value=''; });
     fillNewShiftDays();
   }
+}
+
+let editingChildId = null;
+
+function fillChildShiftOptions(selectedShiftId){
+  const sel = document.getElementById('newChildShift');
+  if(!sel) return;
+  const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+  const shifts = DB.shifts.slice().sort((a,b)=>(a.title+a.date+a.time_start).localeCompare(b.title+b.date+b.time_start));
+  let html = '<option value="">— Inget pass nu (personen väljer själv) —</option>';
+  shifts.forEach(s=>{
+    const d = new Date(s.date);
+    const taken = DB.bookings.filter(b=>b.shift_id===s.id).length;
+    const full = taken >= s.slots;
+    const label = s.title + ' · ' + days[d.getDay()] + ' ' + s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5) + ' (' + taken + '/' + s.slots + ')' + (full ? ' – fullt' : '');
+    html += '<option value="' + s.id + '"' + (s.id===selectedShiftId?' selected':'') + (full && s.id!==selectedShiftId?' disabled':'') + '>' + label + '</option>';
+  });
+  sel.innerHTML = html;
 }
 
 function fillNewShiftDays(){
@@ -2334,39 +2366,95 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{
 
 // (skyddad identitet borttagen – ersatt av manuell tilldelning)
 
-async function addChild(){
+async function saveChild(){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){ demoBlock(); return; }
   const name=document.getElementById('newChildName').value.trim();
   const team=document.getElementById('newChildTeam').value.trim();
   const phone=document.getElementById('newChildPhone').value.trim();
   const email=document.getElementById('newChildEmail').value.trim();
-  const kid=document.getElementById('newChildKid').value.trim();
-  if(!name){alert('Ange deltagarens namn.');return;}
+  const shiftId=document.getElementById('newChildShift').value;
+  if(!name){alert('Ange personens namn.');return;}
   if(!email){alert('Ange en e-postadress.');return;}
   try {
-    const token = 'tok-' + Math.random().toString(36).slice(2,12);
-    const result = await sbInsert('participants', {
-      event_id: EVENT_ID,
-      name: name,
-      email: email,
-      phone: phone || null,
-      team: team || null,
-      child_name: kid || null,
-      token: token
-    });
-    if(result && result.length) DB.participants.push(result[0]);
+    let participant;
+    if(editingChildId){
+      // Uppdatera befintlig person
+      await sbUpdate('participants', editingChildId, { name, email, phone: phone||null, team: team||null });
+      participant = DB.participants.find(p => p.id === editingChildId);
+      if(participant) Object.assign(participant, { name, email, phone: phone||null, team: team||null });
+    } else {
+      // Ny person
+      const token = 'tok-' + Math.random().toString(36).slice(2,12);
+      const result = await sbInsert('participants', {
+        event_id: EVENT_ID, name, email, phone: phone||null, team: team||null, token
+      });
+      if(result && result.length){ participant = result[0]; DB.participants.push(participant); }
+    }
+
+    // Hantera pass-tilldelning
+    if(participant){
+      const existing = DB.bookings.find(b => b.participant_id === participant.id);
+      if(shiftId){
+        if(existing && existing.shift_id !== shiftId){
+          // Byt pass
+          await sbUpdate('bookings', existing.id, { shift_id: shiftId });
+          existing.shift_id = shiftId;
+        } else if(!existing){
+          // Ny bokning
+          const b = await sbInsert('bookings', { shift_id: shiftId, participant_id: participant.id, booked_by_admin: true, display_name: name });
+          if(b && b.length) DB.bookings.push(b[0]);
+        }
+      }
+    }
+
     DB.participants.sort((a,b)=>(a.team||'').localeCompare(b.team||'') || a.name.localeCompare(b.name));
     closeModal('modalAddChild');
+    editingChildId = null;
     renderChildTable();
     renderDashboard();
-    showToast('Deltagare tillagd');
-    document.getElementById('newChildName').value='';
-    document.getElementById('newChildTeam').value='';
-    document.getElementById('newChildPhone').value='';
-    document.getElementById('newChildEmail').value='';
-    document.getElementById('newChildKid').value='';
+    renderShiftTable();
+    showToast('Sparat');
   } catch(e){
     console.error(e);
-    showToast('Kunde inte lägga till deltagaren', 'error');
+    showToast('Kunde inte spara', 'error');
+  }
+}
+
+function editChild(id){
+  const p = DB.participants.find(x => x.id === id);
+  if(!p) return;
+  editingChildId = id;
+  openModal._editingChild = true;
+  openModal('modalAddChild');
+  document.getElementById('addChildTitle').textContent = 'Redigera person';
+  document.getElementById('newChildName').value = p.name || '';
+  document.getElementById('newChildTeam').value = p.team || '';
+  document.getElementById('newChildPhone').value = p.phone || '';
+  document.getElementById('newChildEmail').value = p.email || '';
+  const booking = DB.bookings.find(b => b.participant_id === id);
+  fillChildShiftOptions(booking ? booking.shift_id : '');
+}
+
+async function deleteChild(id){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){ demoBlock(); return; }
+  const p = DB.participants.find(x => x.id === id);
+  if(!p) return;
+  const bookings = DB.bookings.filter(b => b.participant_id === id);
+  let msg = 'Ta bort ' + p.name + ' från bemanningen?';
+  if(bookings.length) msg += '\n\nDe är bokade på ' + bookings.length + ' pass som då frigörs.';
+  if(!confirm(msg)) return;
+  try {
+    for(const b of bookings){ await sbDelete('bookings', b.id); }
+    await sbDelete('participants', id);
+    DB.bookings = DB.bookings.filter(b => b.participant_id !== id);
+    DB.participants = DB.participants.filter(x => x.id !== id);
+    renderChildTable();
+    renderDashboard();
+    renderShiftTable();
+    showToast(p.name + ' borttagen');
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte ta bort personen', 'error');
   }
 }
 
@@ -3175,6 +3263,11 @@ function renderFeedback(){
 
 // INIT
 async function init() {
+  // Riktig admin: om inget event valts, gå till event-väljaren först
+  if(!_eventParam && typeof IS_DEMO !== 'undefined' && !IS_DEMO){
+    window.location.href = 'events.html';
+    return;
+  }
   await loadEvent();
   await loadFromDB();
   renderFeedback();
