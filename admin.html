@@ -235,6 +235,7 @@ setVH(); window.addEventListener('resize',setVH);
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <img src="logo-white.png" alt="LagPasset" style="height:24px;width:auto;flex-shrink:0">
+    <div id="sidebarClubLogo" style="margin-left:auto;display:none;align-items:center"></div>
     <div class="club-name" id="sidebarClubName" style="margin-left:auto;text-align:right;line-height:1.2">Åsa IF</div>
   </div>
   <nav class="nav-items">
@@ -334,7 +335,7 @@ setVH(); window.addEventListener('resize',setVH);
         <div class="card-header">
           <div>
             <div class="card-title">Stationsbeläggning</div>
-            <div class="card-sub">Klicka på en station för att se pass per dag</div>
+            <div class="card-sub">Varje station för sig – lägst beläggning överst. Klicka för att se pass per dag.</div>
           </div>
         </div>
         <div id="stationOverview" style="display:flex;flex-direction:column;gap:.6rem"></div>
@@ -345,12 +346,12 @@ setVH(); window.addEventListener('resize',setVH);
         <div class="card-header">
           <div>
             <div class="card-title">Status per lag</div>
-            <div class="card-sub">Antal valda pass av lagets kvot</div>
+            <div class="card-sub">Hur många i varje lag som valt pass</div>
           </div>
         </div>
         <div class="table-wrap" style="overflow-x:auto">
           <table>
-            <thead><tr><th>Lag</th><th>Kvot</th><th>Valda</th><th>Återstår</th><th>Status</th></tr></thead>
+            <thead><tr><th>Lag</th><th>Medlemmar</th><th>Har valt</th><th>Saknas</th><th>Status</th></tr></thead>
             <tbody id="lagStatusTable"></tbody>
           </table>
         </div>
@@ -425,7 +426,7 @@ setVH(); window.addEventListener('resize',setVH);
           <p style="font-size:13px;color:var(--muted);margin-top:2px" id="shiftsSubtitle">Klicka på en station för att se och hantera enskilda pass.</p>
         </div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-          <button class="btn btn-ghost" onclick="openModal('modalPrint')">🖨️ Skriv ut lista</button>
+          <button class="btn btn-ghost" onclick="smartPrint()">🖨️ Skriv ut lista</button>
           <button class="btn btn-ghost" id="btnAiImport" onclick="openModal('modalImportAI')">🤖 AI-import</button>
           <button class="btn btn-primary" id="btnNyttPass" onclick="openModal('modalAddShift')">+ Nytt pass</button>
         </div>
@@ -544,7 +545,7 @@ setVH(); window.addEventListener('resize',setVH);
               <div style="font-size:14px;font-weight:700;color:var(--dark)">Påminnelse till de som inte valt pass</div>
               <div style="font-size:12.5px;color:var(--muted);margin-top:2px">Skickas automatiskt <strong id="autoReminderDays">5</strong> dagar före sista anmälningsdag, bara till de som inte valt pass. Innehåller personlig passval-länk. <a href="#" onclick="showSection('settings');return false" style="color:var(--green)">Ändra antal dagar i Inställningar</a></div>
             </div>
-            <span class="badge badge-green" style="flex-shrink:0">Aktiv</span>
+            <span class="badge badge-green" id="autoReminderBadge" style="flex-shrink:0;cursor:pointer" onclick="toggleAutoReminder()" title="Klicka för att slå av/på">Aktiv</span>
             <button class="btn btn-ghost btn-sm" onclick="editAutoTemplate('reminder')" style="flex-shrink:0">Redigera</button>
           </div>
         </div>
@@ -716,7 +717,7 @@ Hälsningar,
         <div class="form-group">
           <label class="form-label">Automatisk påminnelse</label>
           <div class="deadline-row">
-            <input type="number" value="5" min="1" max="30" style="width:70px">
+            <input type="number" id="setReminderDays" value="5" min="1" max="30" style="width:70px">
             <span>dagar före sista anmälningsdag till medlemmar som inte valt pass</span>
           </div>
         </div>
@@ -744,25 +745,35 @@ Hälsningar,
         <div class="inline-2">
           <div class="form-group">
             <label class="form-label">Föreningsnamn</label>
-            <input type="text" value="Åsa IF">
+            <input type="text" id="clubName" value="Åsa IF">
           </div>
           <div class="form-group">
             <label class="form-label">Kontakt-e-post</label>
-            <input type="email" value="kansli@asaif.com">
+            <input type="email" id="clubEmail" value="kansli@asaif.com">
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Logotyp (URL)</label>
-          <input type="text" placeholder="https://asaif.se/logo.png">
+          <label class="form-label">Föreningens logotyp</label>
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+            <div id="clubLogoPreview" style="width:72px;height:72px;border-radius:12px;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;background:#fafbfa;overflow:hidden;flex-shrink:0">
+              <span style="font-size:11px;color:var(--muted);text-align:center;padding:4px">Ingen logga</span>
+            </div>
+            <div>
+              <input type="file" id="clubLogoFile" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handleLogoUpload(event)">
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('clubLogoFile').click()">📤 Ladda upp logga</button>
+              <button class="btn btn-ghost btn-sm" id="clubLogoRemove" onclick="removeLogo()" style="display:none;color:#c0392b">Ta bort</button>
+              <div style="font-size:12px;color:var(--muted);margin-top:6px">PNG, JPG eller WebP. Helst kvadratisk, max 1&nbsp;MB.</div>
+            </div>
+          </div>
         </div>
         <div class="form-group" style="margin-bottom:.5rem">
           <label class="form-label">Accentfärg</label>
           <div style="display:flex;gap:.6rem;align-items:center">
-            <input type="color" value="#1a8c3a" style="width:44px;height:36px;padding:2px;border-radius:6px;cursor:pointer;border:1.5px solid var(--border)">
-            <input type="text" value="#1a8c3a" style="max-width:110px">
+            <input type="color" id="clubColorPicker" value="#1a8c3a" style="width:44px;height:36px;padding:2px;border-radius:6px;cursor:pointer;border:1.5px solid var(--border)" oninput="document.getElementById('clubColorText').value=this.value">
+            <input type="text" id="clubColorText" value="#1a8c3a" style="max-width:110px" oninput="document.getElementById('clubColorPicker').value=this.value">
           </div>
         </div>
-        <button class="btn btn-primary" style="margin-top:.5rem">Spara profil</button>
+        <button class="btn btn-primary" style="margin-top:.5rem" onclick="saveProfile()">Spara profil</button>
       </div>
 
       <div class="card">
@@ -1156,10 +1167,19 @@ function getEventDays(){
   return days;
 }
 
+let CLUB = null;
+
 async function loadEvent(){
   try {
     const events = await sbFetch('events', '?id=eq.' + EVENT_ID);
     if(events.length) EVENT = events[0];
+    // Ladda föreningen kopplad till eventet
+    if(EVENT && EVENT.club_id){
+      try {
+        const clubs = await sbFetch('clubs', '?id=eq.' + EVENT.club_id);
+        if(clubs.length) CLUB = clubs[0];
+      } catch(e){ console.error('Klubb-fel:', e); }
+    }
   } catch(e){ console.error('Event-fel:', e); }
 }
 
@@ -1183,6 +1203,94 @@ async function saveEventSettings(){
     showToast('Event-inställningar sparade');
   } catch(e){
     showToast('Kunde inte spara', 'error');
+  }
+}
+
+// ── Föreningsprofil & logga ──
+let pendingLogo = null; // base64 som väntar på att sparas
+
+function fillProfile(){
+  if(!CLUB) return;
+  const setVal = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+  setVal('clubName', CLUB.name);
+  setVal('clubEmail', CLUB.contact_email);
+  if(CLUB.accent_color){ setVal('clubColorPicker', CLUB.accent_color); setVal('clubColorText', CLUB.accent_color); }
+  if(CLUB.logo) showLogoPreview(CLUB.logo);
+}
+
+function showLogoPreview(dataUrl){
+  const box = document.getElementById('clubLogoPreview');
+  const removeBtn = document.getElementById('clubLogoRemove');
+  if(box){ box.innerHTML = '<img src="' + dataUrl + '" alt="Logga" style="width:100%;height:100%;object-fit:contain">'; }
+  if(removeBtn) removeBtn.style.display = 'inline-flex';
+}
+
+function handleLogoUpload(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  if(file.size > 1024*1024){ alert('Filen är för stor (max 1 MB). Välj en mindre bild.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    // Krymp bilden via canvas så base64 hålls liten (max 400px)
+    const img = new Image();
+    img.onload = function(){
+      const max = 400;
+      let w = img.width, h = img.height;
+      if(w > max || h > max){
+        if(w >= h){ h = Math.round(h * max / w); w = max; }
+        else { w = Math.round(w * max / h); h = max; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const out = canvas.toDataURL('image/png');
+      pendingLogo = out;
+      showLogoPreview(out);
+      showToast('Logga vald – klicka Spara profil');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeLogo(){
+  pendingLogo = '';
+  const box = document.getElementById('clubLogoPreview');
+  const removeBtn = document.getElementById('clubLogoRemove');
+  if(box) box.innerHTML = '<span style="font-size:11px;color:var(--muted);text-align:center;padding:4px">Ingen logga</span>';
+  if(removeBtn) removeBtn.style.display = 'none';
+}
+
+async function saveProfile(){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){ demoBlock(); return; }
+  if(!CLUB || !CLUB.id){ showToast('Ingen förening kopplad till eventet', 'error'); return; }
+  const name = document.getElementById('clubName').value.trim();
+  const email = document.getElementById('clubEmail').value.trim();
+  const color = document.getElementById('clubColorText').value.trim();
+  const data = { name: name, contact_email: email, accent_color: color };
+  if(pendingLogo !== null) data.logo = pendingLogo; // '' = borttagen, base64 = ny
+  try {
+    await sbUpdate('clubs', CLUB.id, data);
+    Object.assign(CLUB, data);
+    pendingLogo = null;
+    applyClubBranding();
+    showToast('Profil sparad');
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte spara profilen', 'error');
+  }
+}
+
+// Visa föreningens logga/namn i sidebaren
+function applyClubBranding(){
+  if(!CLUB) return;
+  const nameEl = document.getElementById('sidebarClubName');
+  if(nameEl && CLUB.name) nameEl.textContent = CLUB.name + (typeof IS_DEMO !== 'undefined' && IS_DEMO ? ' (demo)' : '');
+  const logoSlot = document.getElementById('sidebarClubLogo');
+  if(logoSlot){
+    if(CLUB.logo){ logoSlot.innerHTML = '<img src="' + CLUB.logo + '" alt="' + (CLUB.name||'') + '" style="height:26px;width:auto;max-width:90px;object-fit:contain;border-radius:4px">'; logoSlot.style.display='flex'; }
+    else { logoSlot.innerHTML = ''; logoSlot.style.display='none'; }
   }
 }
 
@@ -1350,25 +1458,48 @@ function renderDashboard(){
   renderStationOverview();
   // ④ Lag-status tabell
   const tbody = document.getElementById('lagStatusTable');
-  tbody.innerHTML = TEAMS.map(t=>{
-    const rem = t.quota - t.booked;
-    const pct = Math.round(t.booked/t.quota*100);
-    const badgeCls = rem===0?'badge-green':rem<=3?'badge-amber':'badge-red';
-    return `<tr>
-      <td class="td-name">${t.name}</td>
-      <td>${t.quota}</td>
-      <td><strong style="color:var(--green)">${t.booked}</strong></td>
-      <td>${rem}</td>
-      <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
-    </tr>`;
-  }).join('');
+  if(DB.participants.length > 0){
+    const bookedSet = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
+    // Gruppera deltagare per lag
+    const teams = {};
+    DB.participants.forEach(p => {
+      const t = p.team || '–';
+      if(!teams[t]) teams[t] = { name: t, members: 0, booked: 0 };
+      teams[t].members += 1;
+      if(bookedSet.has(p.id)) teams[t].booked += 1;
+    });
+    const rows = Object.values(teams).sort((a,b) => a.name.localeCompare(b.name));
+    tbody.innerHTML = rows.map(t => {
+      const rem = t.members - t.booked;
+      const badgeCls = rem===0?'badge-green':rem<=2?'badge-amber':'badge-red';
+      return `<tr>
+        <td class="td-name">${t.name}</td>
+        <td>${t.members}</td>
+        <td><strong style="color:var(--green)">${t.booked}</strong></td>
+        <td>${rem}</td>
+        <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
+      </tr>`;
+    }).join('');
+  } else {
+    tbody.innerHTML = TEAMS.map(t=>{
+      const rem = t.quota - t.booked;
+      const badgeCls = rem===0?'badge-green':rem<=3?'badge-amber':'badge-red';
+      return `<tr>
+        <td class="td-name">${t.name}</td>
+        <td>${t.quota}</td>
+        <td><strong style="color:var(--green)">${t.booked}</strong></td>
+        <td>${rem}</td>
+        <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
+      </tr>`;
+    }).join('');
+  }
 }
 
 // Aggregera SHIFTS_DATA per station (type)
 function getStationStats(){
   if(DB.shifts.length > 0){
     // DB-driven
-    const iconMap = {'Servering':'🍽️','Parkering':'🅿️','Kiosk':'🛒','Resultatrapportering':'📋','Bygg':'🔨','Nattvakt':'🌙','Infotält':'ℹ️'};
+    const iconMap = {'Servering':'🍽️','Parkering':'🅿️','Kiosk':'🌭','Resultatrapportering':'📋','Bygg':'🔨','Nattvakt':'🌙','Infotält':'ℹ️'};
     const stations = {};
     DB.shifts.forEach(s=>{
       const key = s.title;
@@ -1502,36 +1633,53 @@ function sendReminderNow(){
 function renderAttention(){
   const stations = getStationStats();
   const items = [];
-  // Förhinder/sjukanmälan (högst prioritet — akut)
-  const sickReports = [
-    {name:'Petra Nilsson', team:'F11', shift:'Servering · Lör 08–12', reason:'sjuk'},
-  ];
-  sickReports.forEach(r=>{
-    items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(192,57,43,.35);border-radius:10px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:.6rem">
-        <span style="font-size:1.1rem">🤒</span>
-        <span style="font-size:13.5px;color:var(--dark)"><strong>${r.name}</strong> (${r.team}) har anmält förhinder – <strong>${r.shift}</strong> är nu ledigt</span>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="showSection('pool')">Fyll från pool →</button>
-    </div>`);
-  });
+  // (Sjuk-/förhinderanmälan visas här när funktionen finns kopplad till databasen)
   // Ej valt-varning
-  const remaining = 24;
+  const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
+  const remaining = DB.participants.length ? DB.participants.filter(p => !bookedIds.has(p.id)).length : 24;
   if(remaining > 0){
-    items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(232,160,32,.3);border-radius:10px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:.6rem">
-        <span style="font-size:1.1rem">📋</span>
-        <span style="font-size:13.5px;color:var(--dark)"><strong>24 medlemmar</strong> har inte valt något pass ännu</span>
+    // Räkna ut när automatisk påminnelse går ut
+    let reminderInfo = '';
+    let reminderOff = (typeof autoReminderEnabled !== 'undefined') && !autoReminderEnabled;
+    if(reminderOff){
+      reminderInfo = '🔕 Automatisk påminnelse är <strong>avstängd</strong> – du behöver påminna manuellt.';
+    } else {
+      const deadlineEl = document.getElementById('setDeadline');
+      const daysEl = document.getElementById('setReminderDays');
+      if(deadlineEl && deadlineEl.value){
+        const days = daysEl && daysEl.value ? parseInt(daysEl.value) : 5;
+        const deadline = new Date(deadlineEl.value);
+        const remindDate = new Date(deadline);
+        remindDate.setDate(remindDate.getDate() - days);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const fmt = d => d.toLocaleDateString('sv-SE', {day:'numeric', month:'short'});
+        if(remindDate < today){
+          reminderInfo = 'Automatisk påminnelse skulle gått ut ' + fmt(remindDate) + ' – kontrollera inställningarna.';
+        } else {
+          const diffDays = Math.round((remindDate - today) / 86400000);
+          const när = diffDays === 0 ? 'idag' : (diffDays === 1 ? 'imorgon' : 'om ' + diffDays + ' dagar');
+          reminderInfo = 'Automatisk påminnelse går ut ' + när + ' (' + fmt(remindDate) + '), ' + days + ' dagar före sista anmälningsdag.';
+        }
+      }
+    }
+    const reminderIcon = reminderOff ? '' : '🔔';
+    items.push(`<div style="padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(232,160,32,.3);border-radius:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <span style="font-size:1.1rem">📋</span>
+          <span style="font-size:13.5px;color:var(--dark)"><strong>${remaining} ${remaining === 1 ? 'medlem' : 'medlemmar'}</strong> har inte valt något pass ännu</span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="sendReminderNow()">📧 Påminn ${remaining === 1 ? 'denna' : 'de ' + remaining} nu</button>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="sendReminderNow()">📧 Påminn de 24 nu</button>
+      ${reminderInfo ? '<div style="display:flex;align-items:center;gap:.4rem;margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--border)">' + (reminderIcon ? '<span style="font-size:.95rem">' + reminderIcon + '</span>' : '') + '<span style="font-size:12.5px;color:var(--muted)">' + reminderInfo + '</span></div>' : ''}
     </div>`);
   }
-  // Stationer under 60%
-  stations.filter(s=>s.pct<60).forEach(st=>{
+  // Stationer som behöver fler personer (under 50% fyllt – kritiskt lågt)
+  stations.filter(s=>s.pct<50).forEach(st=>{
     items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(192,57,43,.25);border-radius:10px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:.6rem">
         <span style="font-size:1.1rem">${st.icon}</span>
-        <span style="font-size:13.5px;color:var(--dark)"><strong>${st.name}</strong> har bara ${st.pct}% beläggning</span>
+        <span style="font-size:13.5px;color:var(--dark)"><strong>${st.name}</strong> behöver fler personer – bara ${st.pct}% av platserna fyllda</span>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="openCategory('${st.cat}');showSection('shifts')">Visa pass →</button>
     </div>`);
@@ -2020,10 +2168,26 @@ function buildPrintOptions(){
   ).join('');
 }
 
+let currentStationTitle = null;
+
+// Smart utskrift: i en station → skriv ut bara den. I översikten → välj vad.
+function smartPrint(){
+  const detailVisible = document.getElementById('shiftDetailView') && document.getElementById('shiftDetailView').style.display !== 'none';
+  if(detailVisible && currentStationTitle){
+    printStations([currentStationTitle]);
+  } else {
+    openModal('modalPrint');
+  }
+}
+
 function doPrint(){
   const checked = Array.from(document.querySelectorAll('#printOptions input:checked')).map(c => c.value);
   if(checked.length === 0){ alert('Välj minst ett arbetsställe.'); return; }
+  closeModal('modalPrint');
+  printStations(checked);
+}
 
+function printStations(stationList){
   const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   let html = '<html><head><meta charset="utf-8"><title>Passlista – Åsacupen 2026</title>';
   html += '<style>';
@@ -2043,7 +2207,7 @@ function doPrint(){
   html += '@media print{.station-page{padding:1.5rem}}';
   html += '</style></head><body>';
 
-  checked.forEach(station => {
+  stationList.forEach(station => {
     const shifts = DB.shifts.filter(s => s.title === station)
       .sort((a,b) => (a.date + a.time_start).localeCompare(b.date + b.time_start));
     html += '<div class="station-page">';
@@ -2080,10 +2244,17 @@ function doPrint(){
   html += '</body></html>';
 
   const w = window.open('', '_blank');
+  if(!w){ alert('Tillåt popup-fönster för att skriva ut.'); return; }
   w.document.write(html);
   w.document.close();
-  setTimeout(function(){ w.print(); }, 300);
-  closeModal('modalPrint');
+  // Skriv ut och stäng fönstret automatiskt efteråt
+  w.onload = function(){
+    w.focus();
+    w.print();
+  };
+  w.onafterprint = function(){ w.close(); };
+  // Fallback om onload inte triggar
+  setTimeout(function(){ try { if(!w.closed && w.document.readyState === 'complete') { w.focus(); w.print(); } } catch(e){} }, 500);
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(o=>{
@@ -2618,6 +2789,7 @@ function openCategory(cat) {
   }
 
   document.getElementById('categoryTitle').textContent = title;
+  currentStationTitle = title;
   document.getElementById('shiftsSubtitle').textContent = title + ' – enskilda pass';
   document.getElementById('shiftPassView').style.display = 'block';
   document.getElementById('shiftInstructionView').style.display = 'none';
@@ -2858,6 +3030,33 @@ function editAutoTemplate(which){
   const titles = { confirm: 'Tack för bokat pass (automatiskt)', reminder: 'Automatisk påminnelse' };
   alert('Här kan du redigera mallen "' + titles[which] + '".\n\nMalltexten sparas i databasen (kommer i nästa steg). Tills vidare används en standardtext.');
 }
+
+// På/av för automatisk påminnelse (sparas lokalt i webbläsaren)
+let autoReminderEnabled = (function(){
+  try { return localStorage.getItem('lp_autoReminder') !== 'off'; } catch(e){ return true; }
+})();
+
+function applyAutoReminderBadge(){
+  const badge = document.getElementById('autoReminderBadge');
+  if(!badge) return;
+  if(autoReminderEnabled){
+    badge.textContent = 'Aktiv';
+    badge.className = 'badge badge-green';
+    badge.style.cursor = 'pointer';
+  } else {
+    badge.textContent = 'Avstängd';
+    badge.className = 'badge';
+    badge.style.cssText = 'flex-shrink:0;cursor:pointer;background:#eee;color:#888';
+  }
+}
+
+function toggleAutoReminder(){
+  autoReminderEnabled = !autoReminderEnabled;
+  try { localStorage.setItem('lp_autoReminder', autoReminderEnabled ? 'on' : 'off'); } catch(e){}
+  applyAutoReminderBadge();
+  showToast(autoReminderEnabled ? 'Automatisk påminnelse påslagen' : 'Automatisk påminnelse avstängd');
+  if(typeof renderAttention === 'function') renderAttention();
+}
 function showToast(msg, type) {
   type = type || 'success';
   const t = document.createElement('div');
@@ -2912,6 +3111,9 @@ async function init() {
   if(typeof updateRecipientCount === 'function') updateRecipientCount();
   if(typeof renderEmailLog === 'function') renderEmailLog();
   fillEventSettings();
+  if(typeof fillProfile === 'function') fillProfile();
+  if(typeof applyClubBranding === 'function') applyClubBranding();
+  if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
   renderDashboard();
   renderShiftTable();
   renderPoolTable();
