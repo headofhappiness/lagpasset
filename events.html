@@ -58,7 +58,7 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
   <img src="logo-white.png" alt="Lagpasset">
   <div class="right">
     <span class="club" id="clubName">Åsa IF</span>
-    <a href="index.html">Logga ut</a>
+    <a href="#" onclick="signOut();return false;">Logga ut</a>
   </div>
 </div>
 
@@ -106,6 +106,7 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
@@ -205,7 +206,23 @@ async function createEvent(){
   }
 }
 
-load();
+// Logga ut
+async function signOut(){
+  const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  await _sbAuth.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+// Session-check — kräver inloggning
+(async function(){
+  const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data:{ session } } = await _sbAuth.auth.getSession();
+  if(!session){
+    window.location.href = 'login.html';
+    return;
+  }
+  load();
+})();
 </script>
 </body>
 </html>

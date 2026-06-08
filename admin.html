@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <link rel="icon" type="image/png" href="favicon.png">
-<title>Lagpasset – Admin</title>
+<title>Demo – Lagpasset admin</title>
 <meta name="description" content="Klicka runt i en demo av Lagpasset och se hur enkelt föreningen hanterar föräldrapass.">
 <meta property="og:title" content="Lagpasset – Se admindemon">
 <meta property="og:description" content="Se hur föreningen hanterar föräldrapass – klicka runt fritt, inget sparas.">
@@ -227,7 +227,26 @@ setVH(); window.addEventListener('resize',setVH);
 <div id="sidebarOverlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:19"></div>
 
 <!-- DEMO WELCOME OVERLAY -->
-
+<div class="demo-welcome-overlay" id="demoWelcome" style="display:none">
+  <div class="demo-welcome-card">
+    <div class="demo-welcome-logo" style="display:flex;align-items:center;justify-content:center;margin-bottom:.5rem"><img src="logo.png" alt="LagPasset" style="height:30px;width:auto"></div>
+    <div style="font-size:2rem;margin:.5rem 0">👋</div>
+    <div class="demo-welcome-title">Välkommen till admindemon!</div>
+    <div class="demo-welcome-sub">Klicka runt fritt i demon – inget sparas. Se admindemon för att förstå föreningens vy, eller se medlemsvyn för att uppleva det ur medlemmens perspektiv.</div>
+    <div class="demo-step-list">
+      <div class="demo-step"><div class="demo-step-num">1</div><span>Se <strong>Översikt</strong> – live-status per lag, station och pass</span></div>
+      <div class="demo-step"><div class="demo-step-num">2</div><span>Öppna <strong>Passschema</strong> – se pass, beläggning och stationsinstruktioner</span></div>
+      <div class="demo-step"><div class="demo-step-num">3</div><span>Prova <strong>Mejla bemanning</strong> – filtrera på passtyp och skicka riktat</span></div>
+      <div class="demo-step"><div class="demo-step-num">4</div><span>Klicka <strong>Skriv ut lista</strong> i Pass &amp; beläggning – se utskriftsvyn</span></div>
+      <div class="demo-step"><div class="demo-step-num">5</div><span>Gå till <strong>Bemanning</strong> – se hur man importerar lag och kontaktuppgifter</span></div>
+    </div>
+    <div class="demo-cta-row">
+      <button class="btn btn-primary" style="width:100%;font-size:15px;min-height:44px" onclick="closeDemoWelcome()">Utforska demon →</button>
+      <a href="guest.html" target="_blank" style="font-size:13.5px;color:var(--green);text-decoration:none;font-weight:600">👤 Se hur det ser ut för medlemmar →</a>
+      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en personlig genomgång</a>
+    </div>
+  </div>
+</div>
 
 <!-- DEMO TOAST -->
 <div class="demo-toast" id="demoToast">🔒 I demon kan du inte spara ändringar</div>
@@ -285,7 +304,14 @@ setVH(); window.addEventListener('resize',setVH);
     </div>
   </header>
 
-  
+  <!-- DEMO BANNER – inuti main så den inte täcker sidebaren -->
+  <div class="demo-banner" id="demoBanner" style="padding:.5rem 1rem;gap:.6rem">
+    <span class="demo-banner-lock">🔒 Demo – inget sparas</span>
+    <a href="guest.html" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(26,140,58,.15);border:1.5px solid rgba(26,140,58,.35);color:var(--green);padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">👤 Medlemsvyn →</a>
+    <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(232,160,32,.12);border:1.5px solid rgba(232,160,32,.4);color:#b07000;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">📅 Boka genomgång</a>
+    <a href="bli-kund.html" style="display:inline-flex;align-items:center;gap:5px;background:var(--green);color:#fff;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">Bli kund →</a>
+    <button onclick="document.getElementById('demoBanner').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;line-height:1;margin-left:.25rem" title="Stäng">✕</button>
+  </div>
 
   <div class="content">
 
@@ -1154,6 +1180,7 @@ Hälsningar,
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ═══════════════════════════════════════
 // SUPABASE – koppling
@@ -2985,15 +3012,14 @@ function demoBlock(){
 }
 
 function closeDemoWelcome(){
-  const el = document.getElementById('demoWelcome');
-  if(el) el.style.display = 'none';
+  document.getElementById('demoWelcome').style.display = 'none';
 }
 
 // Block all save/send actions in demo
 function previewEmail(){ demoBlock(); }
 
 // Sidebar club label
-document.getElementById('sidebarClubName').textContent = (EVENT && EVENT.name) ? 'Åsa IF' : 'Åsa IF';
+document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
 
 // ── Instruktioner per passtyp ──
 const defaultInstructions = {
@@ -3655,6 +3681,15 @@ function renderStaffingAnalysis(){
 
 // INIT
 async function init() {
+  // Session-check — kräver inloggning om inte demo
+  if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
+    const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const { data:{ session } } = await _sbAuth.auth.getSession();
+    if(!session){
+      window.location.href = 'login.html';
+      return;
+    }
+  }
   // Riktig admin: om inget event valts, gå till event-väljaren först
   if(!_eventParam && typeof IS_DEMO !== 'undefined' && !IS_DEMO){
     window.location.href = 'events.html';

@@ -1180,6 +1180,7 @@ Hälsningar,
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ═══════════════════════════════════════
 // SUPABASE – koppling
@@ -3680,6 +3681,15 @@ function renderStaffingAnalysis(){
 
 // INIT
 async function init() {
+  // Session-check — kräver inloggning om inte demo
+  if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
+    const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const { data:{ session } } = await _sbAuth.auth.getSession();
+    if(!session){
+      window.location.href = 'login.html';
+      return;
+    }
+  }
   // Riktig admin: om inget event valts, gå till event-väljaren först
   if(!_eventParam && typeof IS_DEMO !== 'undefined' && !IS_DEMO){
     window.location.href = 'events.html';
