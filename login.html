@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logga in – Lagpasset</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f4; --surface:#fff; --border:#c4d8c4;
+  --green:#1a8c3a; --green-mid:#22a847; --green-light:#e8f7ec;
+  --dark:#111c13; --text:#1e2e20; --muted:#4a6a4e; --red:#c0392b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.box{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:2.25rem 2rem;max-width:420px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,.05);text-align:center}
+.logo{font-family:"Nunito",sans-serif;font-size:1.4rem;font-weight:900;color:var(--dark);margin-bottom:.25rem}
+.logo span{color:var(--green)}
+.sub{font-size:14px;color:var(--muted);margin-bottom:1.5rem}
+h1{font-family:"Nunito",sans-serif;font-size:1.35rem;color:var(--dark);font-weight:800;margin-bottom:.4rem}
+.green-line{width:46px;height:4px;background:var(--green);border-radius:3px;margin:.5rem auto 1.1rem}
+label{display:block;text-align:left;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:.4rem}
+input{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.8rem .9rem;font-family:"Outfit",sans-serif;font-size:15px;color:var(--text)}
+input:focus{outline:none;border-color:var(--green)}
+.btn{width:100%;border:none;border-radius:10px;padding:.85rem;font-family:"Outfit",sans-serif;font-size:15px;font-weight:700;cursor:pointer;background:var(--green);color:#fff;margin-top:1rem;transition:background .15s}
+.btn:hover{background:var(--green-mid)}
+.btn:disabled{opacity:.6;cursor:default}
+.msg{border-radius:10px;padding:.8rem .9rem;font-size:13.5px;margin-top:1rem;text-align:left}
+.msg.ok{background:var(--green-light);color:var(--green)}
+.msg.err{background:#fdecea;color:var(--red)}
+.msg.info{background:#eef4ff;color:#1d4ed8}
+.foot{font-size:12.5px;color:var(--muted);margin-top:1.5rem}
+.foot a{color:var(--green);text-decoration:none}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">Lag<span>passet</span></div>
+  <div class="sub">För föreningar</div>
+
+  <div id="checking">
+    <div class="msg info"><span class="spinner"></span> Kontrollerar inloggning...</div>
+  </div>
+
+  <div id="loginForm" class="hidden">
+    <h1>Logga in</h1>
+    <div class="green-line"></div>
+    <label for="email">Din e-postadress</label>
+    <input type="email" id="email" placeholder="namn@forening.se" autocomplete="email">
+    <button class="btn" id="sendBtn" onclick="sendLink()">Skicka inloggningslänk</button>
+    <div id="msg" class="msg" style="display:none"></div>
+    <div class="foot">Vi mejlar en länk – ingen lösenord behövs. Ny förening? <a href="bli-kund.html">Bli kund</a></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function show(id){ document.getElementById('checking').classList.add('hidden'); document.getElementById(id).classList.remove('hidden'); }
+function setMsg(text, type){ const m=document.getElementById('msg'); m.className='msg '+(type||'info'); m.style.display='block'; m.innerHTML=text; }
+
+// Dirigera inloggad användare till rätt vy utifrån roll
+async function routeUser(user){
+  try {
+    const { data, error } = await sb.from('club_users').select('club_id, role').eq('user_id', user.id).maybeSingle();
+    if(error) throw error;
+    if(!data){
+      show('loginForm');
+      setMsg('Du är inloggad, men kontot är inte kopplat till någon förening än. Kontakta Lagpasset så hjälper vi dig.', 'err');
+      await sb.auth.signOut();
+      return;
+    }
+    if(data.role === 'superadmin'){ location.href = 'superadmin.html'; return; }
+    // Klubb-admin → till sitt event-val
+    location.href = 'events.html' + (data.club_id ? ('?club=' + data.club_id) : '');
+  } catch(e){
+    show('loginForm');
+    setMsg('Något gick fel vid inloggningen. Försök igen.', 'err');
+  }
+}
+
+async function sendLink(){
+  const email = document.getElementById('email').value.trim();
+  if(!email || !email.includes('@')){ setMsg('Ange en giltig e-postadress.', 'err'); return; }
+  const btn = document.getElementById('sendBtn'); btn.disabled = true; btn.textContent = 'Skickar...';
+  try {
+    const { error } = await sb.auth.signInWithOtp({
+      email: email,
+      options: { emailRedirectTo: location.origin + location.pathname }
+    });
+    if(error) throw error;
+    setMsg('✓ Kolla din mejl! Vi har skickat en inloggningslänk till <strong>' + email + '</strong>. Klicka på länken så loggas du in.', 'ok');
+  } catch(e){
+    setMsg('Kunde inte skicka länken: ' + (e.message || 'okänt fel'), 'err');
+  }
+  btn.disabled = false; btn.textContent = 'Skicka inloggningslänk';
+}
+
+// Vid sidladdning: redan inloggad (eller just klickat magic link)?
+(async function(){
+  // Auth-state hanterar både befintlig session och retur från magic link
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session && session.user){ await routeUser(session.user); }
+  else { show('loginForm'); }
+})();
+
+sb.auth.onAuthStateChange((event, session) => {
+  if(event === 'SIGNED_IN' && session && session.user){ routeUser(session.user); }
+});
+</script>
+</body>
+</html>
