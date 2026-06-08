@@ -967,18 +967,18 @@ Hälsningar,
       <div class="modal-title">📧 Skicka personliga länkar</div>
       <button class="modal-close" onclick="closeModal('modalSendLinks')">✕</button>
     </div>
-    <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1rem">Varje förälder får en unik länk via e-post. Länken är kopplad till deras barn och visar bara deras lags pass.</p>
-    <div class="msg info">124 medlemmar i systemet · 67 har valt pass · <strong>57 har inte valt pass ännu</strong></div>
+    <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1rem">Varje deltagare får en unik länk via e-post. Länken är personlig och kopplad till dem.</p>
+    <div class="msg info" id="sendLinksInfo">Laddar...</div>
     <div class="form-group">
       <label class="form-label">Skicka till</label>
-      <select>
-        <option>Alla medlemmar (124 st)</option>
-        <option>Bara de som inte valt pass ännu (57 st)</option>
+      <select id="sendLinksTo">
+        <option value="all">Alla deltagare</option>
+        <option value="unbooked">Bara de som inte valt pass ännu</option>
       </select>
     </div>
     <div class="form-group" style="margin-bottom:.5rem">
       <label class="form-label">Meddelande i mejlet (valfritt)</label>
-      <textarea rows="3" placeholder="Hej! Glöm inte att välja ett pass inför Åsacupen…">Hej! Välj ditt volontärpass för Åsacupen 2026 via länken nedan. Det tar bara en minut!</textarea>
+      <textarea id="sendLinksMsg" rows="3" placeholder="Hej! Glöm inte att välja ett pass…">Välj ditt volontärpass via länken nedan. Det tar bara en minut!</textarea>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalSendLinks')">Avbryt</button>
@@ -1750,6 +1750,7 @@ async function removeBooking(bookingId, shiftId){
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id === 'modalPrint') buildPrintOptions();
+  if(id === 'modalSendLinks') fillSendLinksInfo();
   if(id === 'modalAddShift'){
     editingShiftId = null;
     const t = document.getElementById('addShiftTitle');
@@ -2101,15 +2102,70 @@ function previewEmail(){ alert('Förhandsgranskning: mejlet öppnas i ett nytt f
 // ═══════════════════════════════════════
 // LINKS
 // ═══════════════════════════════════════
-function sendLinks(){
-  closeModal('modalSendLinks');
-  setTimeout(()=>alert('Länkarna är skickade! 57 föräldrar fick sitt personliga mejl.'),300);
+const EDGE_SEND_URL = SUPABASE_URL + '/functions/v1/send-links';
+
+function fillSendLinksInfo(){
+  const info = document.getElementById('sendLinksInfo');
+  if(!info) return;
+  const total = DB.participants.length;
+  const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
+  const unbooked = DB.participants.filter(p => !bookedIds.has(p.id)).length;
+  info.innerHTML = total + ' deltagare i systemet · ' + (total - unbooked) + ' har valt pass · <strong>' + unbooked + ' har inte valt pass ännu</strong>';
+}
+
+async function sendLinks(){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){
+    demoBlock();
+    closeModal('modalSendLinks');
+    return;
+  }
+  const to = document.getElementById('sendLinksTo').value;
+  const message = document.getElementById('sendLinksMsg').value.trim();
+  const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
+  let recipients = DB.participants;
+  if(to === 'unbooked') recipients = DB.participants.filter(p => !bookedIds.has(p.id));
+  recipients = recipients
+    .filter(p => p.email && p.token)
+    .map(p => ({ name: p.name, email: p.email, token: p.token }));
+
+  if(recipients.length === 0){ alert('Inga mottagare med e-post och länk hittades.'); return; }
+  if(!confirm('Skicka personlig länk till ' + recipients.length + ' deltagare?')) return;
+
+  const baseUrl = window.location.origin + '/guest.html';
+  try {
+    showToast('Skickar ' + recipients.length + ' mejl...');
+    const res = await fetch(EDGE_SEND_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        mode: 'links',
+        recipients: recipients,
+        message: message,
+        baseUrl: baseUrl,
+        eventName: (EVENT && EVENT.name) || 'eventet'
+      })
+    });
+    const data = await res.json();
+    closeModal('modalSendLinks');
+    if(res.ok){
+      showToast(data.sent + ' av ' + data.total + ' mejl skickade');
+    } else {
+      showToast('Fel: ' + (data.error || 'kunde inte skicka'), 'error');
+    }
+  } catch(e){
+    console.error(e);
+    closeModal('modalSendLinks');
+    showToast('Kunde inte skicka mejlen', 'error');
+  }
 }
 
 // ═══════════════════════════════════════
 // DEMO MECHANICS
 // ═══════════════════════════════════════
-const IS_DEMO = true;
+const IS_DEMO = false;
 
 function demoBlock(){
   const t = document.getElementById('demoToast');
@@ -2124,7 +2180,6 @@ function closeDemoWelcome(){
 }
 
 // Block all save/send actions in demo
-function sendLinks(){ demoBlock(); closeModal('modalSendLinks'); }
 function sendEmail(){ demoBlock(); }
 function previewEmail(){ demoBlock(); }
 

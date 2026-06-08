@@ -1284,11 +1284,42 @@ async function submitLiveBooking(){
     }
     msgB.style.display='none';
     showLiveConfirmation(name, phone);
+    // Skicka tackmejl (blockerar inte bokningen om det misslyckas)
+    sendThanksEmail(name, phone);
   } catch(e){
     console.error(e);
     showErr('Kunde inte spara bokningen. Försök igen.');
   }
   btn.disabled=false; btn.textContent='Välj det här passet ✓';
+}
+
+async function sendThanksEmail(name, phone){
+  try {
+    const s = currentShift;
+    const tid = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+    await fetch(SUPABASE_URL + '/functions/v1/send-links', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        mode: 'thanks',
+        recipient: { name: name, email: LIVE.participant.email },
+        eventName: (LIVE.event && LIVE.event.name) || 'eventet',
+        shift: {
+          title: s.title,
+          time: liveDayLabel(s.date) + ' · ' + tid,
+          location: s.location,
+          contact_name: s.contact_name,
+          contact_phone: s.contact_phone
+        }
+      })
+    });
+  } catch(e){
+    console.error('Tackmejl kunde inte skickas:', e);
+    // Tyst fel — bokningen är ändå sparad
+  }
 }
 
 function showLiveConfirmation(name, phone){
