@@ -148,13 +148,95 @@ async function loadClubs(){
           '<td>' + evCount + ' st</td>' +
           '<td>' + (hasLoggedIn ? '<span class="pill pill-ok">Aktiv</span>' : '<span class="pill pill-wait">Inväntar inloggning</span>') + '</td>' +
           '<td style="display:flex;gap:.5rem">' +
-          '<button onclick="sendWelcome(\'' + c.contact_email + '\',\'' + (c.contact_name||c.name) + '\',\'' + c.name + '\')" style="background:none;border:1px solid var(--border);color:var(--green);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">📧 Välkomstmejl</button>' +
+          '<button onclick="previewWelcome(\'' + c.id + '\',\'' + c.name + '\',\'' + (c.contact_name||'') + '\',\'' + (c.contact_email||'') + '\')" style="background:none;border:1px solid var(--border);color:var(--green);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">📧 Välkomstmejl</button>' +
           '<button onclick="deleteClub(\''+c.id+'\',\''+c.name+'\',\'' + (linkedClubIds.has(c.id) ? [...(links||[]).filter(l=>l.club_id===c.id).map(l=>l.user_id)][0]||'' : '') + '\')" style="background:none;border:1px solid #e8c0c0;color:#c0392b;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">Radera</button>' +
           '</td>' +
           '</tr>';
       }).join('') + '</tbody></table>';
   } catch(e){
     wrap.innerHTML = '<div class="msg err">Kunde inte ladda föreningar: ' + (e.message||'') + '</div>';
+  }
+}
+
+
+// ── Välkomstmejl förhandsgranskning ────────────────────────────────────────
+let _wClubId = null, _wClubName = null;
+
+function buildWelcomeHtml(adminName, clubName, email){
+  var green='#1a8c3a',dark='#111c13',txt='#1e2e20',muted='#4a6a4e',bg='#faf8f4',bdr='#c4d8c4',gl='#e8f7ec';
+  var steps=[
+    ['1','Logga in','Gå till lagpasset.se och klicka Logga in. Ange '+email+' – du får en länk direkt i mejlen.'],
+    ['2','Skapa ett arrangemang','Klicka "Skapa nytt arrangemang", fyll i namn och datum.'],
+    ['3','Importera deltagarlistan','Ladda upp er CSV-fil. Systemet skapar personliga bokningslänkar automatiskt.'],
+    ['4','Skicka inbjudningar','Klicka "Skicka länk" – varje deltagare får sin personliga länk direkt i mejlen.'],
+  ];
+  var stepsHtml = steps.map(function(s){
+    return '<div style="display:flex;gap:.7rem;margin-bottom:.75rem;align-items:flex-start">'+
+      '<div style="width:22px;height:22px;border-radius:50%;background:'+green+';color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px">'+s[0]+'</div>'+
+      '<div><div style="font-size:13px;font-weight:700;color:'+dark+';margin-bottom:1px">'+s[1]+'</div>'+
+      '<div style="font-size:12px;color:'+muted+';line-height:1.5">'+s[2]+'</div></div></div>';
+  }).join('');
+  return '<!DOCTYPE html><html><body style="margin:0;padding:16px;background:#f0f0f0">'+
+    '<div style="max-width:500px;margin:0 auto;background:#fff;font-family:Helvetica Neue,Arial,sans-serif;color:'+txt+'">'+
+    '<div style="background:'+dark+';padding:1.1rem 1.75rem;text-align:center">'+
+      '<div style="font-size:1.05rem;font-weight:800;color:#fff">Lag<span style="color:#4ade80">Passet</span></div>'+
+      '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:3px">Digitala volontärpass</div>'+
+    '</div>'+
+    '<div style="padding:1.5rem 1.75rem 1rem;text-align:center">'+
+      '<h1 style="font-size:1.35rem;font-weight:800;color:'+dark+';margin:0 0 .2rem">'+clubName+' är redo!</h1>'+
+      '<div style="width:28px;height:3px;background:'+green+';margin:.5rem auto 1rem;border-radius:2px"></div>'+
+      '<p style="font-size:14.5px;line-height:1.8;text-align:left;margin:0">Hej '+(adminName||'')+'!<br><br>Ni är nu upplagda i LagPasset. Logga in med <strong>'+email+'</strong> och kom igång.</p>'+
+    '</div>'+
+    '<div style="margin:0 1.75rem 1.25rem;background:'+bg+';border:1px solid '+bdr+';border-radius:10px;padding:1rem">'+
+      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:'+muted+';margin-bottom:.75rem">Kom igång</div>'+
+      stepsHtml+
+    '</div>'+
+    '<div style="text-align:center;padding:0 1.75rem 1.25rem">'+
+      '<a href="https://lagpasset.se/login.html" style="display:inline-block;background:'+green+';color:#fff;text-decoration:none;padding:12px 28px;border-radius:100px;font-size:15px;font-weight:700">Logga in på Lagpasset &#8594;</a>'+
+    '</div>'+
+    '<div style="background:'+bg+';border-top:1px solid '+bdr+';padding:.9rem 1.75rem;text-align:center;font-size:11px;color:'+muted+'">LagPasset &middot; Head of Happiness AB &middot; lagpasset.se</div>'+
+    '</div></body></html>';
+}
+
+function previewWelcome(clubId, clubName, contactName, email){
+  _wClubId = clubId; _wClubName = clubName;
+  document.getElementById('wContactName').value = contactName || '';
+  document.getElementById('wEmail').value = email || '';
+  document.getElementById('wMsg').style.display = 'none';
+  document.getElementById('welcomeModal').style.display = 'flex';
+  refreshPreview();
+}
+function refreshPreview(){
+  var name = document.getElementById('wContactName').value;
+  var email = document.getElementById('wEmail').value;
+  document.getElementById('welcomePreviewFrame').srcdoc = buildWelcomeHtml(name, _wClubName||'', email);
+}
+function closeWelcome(){
+  document.getElementById('welcomeModal').style.display = 'none';
+}
+async function doSendWelcome(){
+  var contactName = document.getElementById('wContactName').value.trim();
+  var email = document.getElementById('wEmail').value.trim();
+  var msg = document.getElementById('wMsg');
+  var btn = document.getElementById('wSendBtn');
+  if(!email || !email.includes('@')){
+    msg.style.cssText='display:block;background:#fdecea;color:#c0392b;border-radius:8px;padding:.6rem .9rem';
+    msg.textContent='Ange en giltig e-postadress.'; return;
+  }
+  btn.disabled=true; btn.textContent='Skickar...';
+  try {
+    var { error } = await sb.functions.invoke('send-welcome', {
+      body: { adminName: contactName||null, clubName: _wClubName, email: email }
+    });
+    if(error) throw error;
+    msg.style.cssText='display:block;background:var(--green-light);color:var(--green);border-radius:8px;padding:.6rem .9rem';
+    msg.textContent='✓ Välkomstmejl skickat till ' + email + '!';
+    btn.textContent='✓ Skickat!';
+    setTimeout(closeWelcome, 2500);
+  } catch(e){
+    msg.style.cssText='display:block;background:#fdecea;color:#c0392b;border-radius:8px;padding:.6rem .9rem';
+    msg.textContent='Misslyckades: ' + (e.message||'okänt fel');
+    btn.disabled=false; btn.textContent='📧 Skicka välkomstmejl';
   }
 }
 
@@ -231,5 +313,47 @@ init();
   <a href="anvandningsvillkor.html" style="color:rgba(200,240,200,.6);text-decoration:none">Användarvillkor</a> ·
   <a href="integritetspolicy.html" style="color:rgba(200,240,200,.6);text-decoration:none">Integritetspolicy</a>
 </footer>
+
+<!-- Förhandsgranska välkomstmejl -->
+<div id="welcomeModal" style="display:none;position:fixed;inset:0;background:rgba(17,28,19,.5);z-index:50;align-items:flex-start;justify-content:center;padding:1.5rem;overflow-y:auto">
+  <div style="background:#fff;border-radius:18px;max-width:600px;width:100%;padding:1.75rem;margin:auto">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div style="font-family:'Nunito',sans-serif;font-size:1.15rem;font-weight:800;color:var(--dark)">📧 Välkomstmejl</div>
+      <button onclick="closeWelcome()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+
+    <!-- Mottagare (redigerbar) -->
+    <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">Skickas till</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem">Namn</label>
+          <input id="wContactName" style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff" oninput="refreshPreview()">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem">E-postadress</label>
+          <input id="wEmail" type="email" style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff" oninput="refreshPreview()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Förhandsgranskning -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Förhandsgranskning</div>
+    <div style="border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.25rem">
+      <iframe id="welcomePreviewFrame" style="width:100%;height:480px;border:none;display:block" srcdoc=""></iframe>
+    </div>
+
+    <!-- Status -->
+    <div id="wMsg" style="font-size:13px;margin-bottom:.75rem;display:none;padding:.6rem .9rem;border-radius:8px"></div>
+
+    <!-- Knappar -->
+    <div style="display:flex;gap:.6rem;justify-content:flex-end">
+      <button onclick="closeWelcome()" style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:9px 20px;font-family:inherit;font-size:14px;cursor:pointer;color:var(--muted)">Avbryt</button>
+      <button onclick="doSendWelcome()" id="wSendBtn" style="background:var(--green);color:#fff;border:none;border-radius:100px;padding:9px 20px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">📧 Skicka välkomstmejl</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
