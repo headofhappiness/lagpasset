@@ -14,12 +14,12 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;min-height:100vh}
-.nav{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.4rem;border-bottom:1px solid var(--border);background:#fff;position:sticky;top:0;z-index:10}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.4rem;background:#060e07;position:sticky;top:0;z-index:10}
 .nav-logo{font-family:"Nunito",sans-serif;font-size:1.15rem;color:var(--dark);font-weight:800}
 .nav-logo span{color:var(--green)}
-.nav-right{display:flex;align-items:center;gap:.85rem;font-size:13px;color:var(--muted)}
-.badge-sa{background:#111c13;color:#fff;border-radius:100px;padding:3px 11px;font-size:11px;font-weight:700;letter-spacing:.03em}
-.linkbtn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:"Outfit",sans-serif;text-decoration:underline}
+.nav-right{display:flex;align-items:center;gap:.85rem;font-size:13px;color:rgba(200,240,200,.75)}
+.badge-sa{background:var(--green);color:#fff;border-radius:100px;padding:3px 11px;font-size:11px;font-weight:700;letter-spacing:.03em}
+.linkbtn{background:none;border:none;color:rgba(200,240,200,.7);cursor:pointer;font-size:13px;font-family:"Outfit",sans-serif;text-decoration:underline}
 .page{max-width:920px;margin:0 auto;padding:2rem 1.5rem 5rem}
 h1{font-family:"Nunito",sans-serif;font-size:1.8rem;color:var(--dark);font-weight:900}
 .green-line{width:46px;height:4px;background:var(--green);border-radius:3px;margin:.55rem 0 .4rem}
@@ -64,7 +64,7 @@ td{padding:.7rem .5rem;border-bottom:1px solid var(--border);font-size:14px;vert
 </head>
 <body>
 <div class="nav">
-  <div class="nav-logo"><img src="logo.png" alt="Lagpasset" style="height:24px;vertical-align:middle"> <span class="badge-sa">SUPERADMIN</span></div>
+  <div class="nav-logo"><img src="logo-white.png" alt="Lagpasset" style="height:28px;vertical-align:middle;margin-right:8px"> <span class="badge-sa">SUPERADMIN</span></div>
   <div class="nav-right"><span id="whoami"></span><button class="linkbtn" onclick="logout()">Logga ut</button></div>
 </div>
 
@@ -158,6 +158,7 @@ async function loadClubs(){
           '<td>' + evCount + ' st</td>' +
           '<td>' + (hasLoggedIn ? '<span class="pill pill-ok">Aktiv</span>' : '<span class="pill pill-wait">Inväntar inloggning</span>') + '</td>' +
           '<td style="display:flex;gap:.5rem">' +
+          '<button onclick="editClub(\'' + c.id + '\',\'' + (c.name||'') + '\',\'' + (c.contact_name||'') + '\',\'' + (c.contact_email||'') + '\',\'' + (c.contact_phone||'') + '\')" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">✏️ Redigera</button>' +
           '<button onclick="previewWelcome(\'' + c.id + '\',\'' + c.name + '\',\'' + (c.contact_name||'') + '\',\'' + (c.contact_email||'') + '\')" style="background:none;border:1px solid var(--border);color:var(--green);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">📧 Välkomstmejl</button>' +
           '<button onclick="deleteClub(\''+c.id+'\',\''+c.name+'\',\'' + (linkedClubIds.has(c.id) ? [...(links||[]).filter(l=>l.club_id===c.id).map(l=>l.user_id)][0]||'' : '') + '\')" style="background:none;border:1px solid #e8c0c0;color:#c0392b;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">Radera</button>' +
           '</td>' +
@@ -171,6 +172,42 @@ async function loadClubs(){
 
 // ── Välkomstmejl förhandsgranskning ────────────────────────────────────────
 let _wClubId = null, _wClubName = null;
+
+function editClub(id, name, contact, email, phone){
+  document.getElementById('editId').value = id;
+  document.getElementById('editName').value = name;
+  document.getElementById('editContact').value = contact;
+  document.getElementById('editEmail').value = email;
+  document.getElementById('editPhone').value = phone;
+  document.getElementById('editMsg').style.display = 'none';
+  document.getElementById('editModal').style.display = 'flex';
+}
+function closeEdit(){
+  document.getElementById('editModal').style.display = 'none';
+}
+async function saveEdit(){
+  const id = document.getElementById('editId').value;
+  const name = document.getElementById('editName').value.trim();
+  const contact = document.getElementById('editContact').value.trim();
+  const email = document.getElementById('editEmail').value.trim().toLowerCase();
+  const phone = document.getElementById('editPhone').value.trim();
+  const msg = document.getElementById('editMsg');
+  const btn = document.getElementById('editSaveBtn');
+  if(!name || !email){ msg.style.display='block'; msg.style.color='#c0392b'; msg.textContent='Namn och e-post krävs.'; return; }
+  btn.disabled=true; btn.textContent='Sparar...';
+  try {
+    const { error } = await sb.from('clubs').update({
+      name, contact_name: contact||null, contact_email: email, contact_phone: phone||null
+    }).eq('id', id);
+    if(error) throw error;
+    closeEdit();
+    await loadClubs();
+  } catch(e){
+    msg.style.display='block'; msg.style.color='#c0392b';
+    msg.textContent = 'Kunde inte spara: ' + (e.message||'okänt fel');
+  }
+  btn.disabled=false; btn.textContent='Spara →';
+}
 
 function buildWelcomeHtml(adminName, clubName, email){
   var green='#1a8c3a',dark='#111c13',txt='#1e2e20',muted='#4a6a4e',bg='#faf8f4',bdr='#c4d8c4',gl='#e8f7ec';
@@ -395,5 +432,24 @@ init();
     </div>
   </div>
 </div>
+<!-- Redigera förening -->
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(17,28,19,.45);z-index:60;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:16px;max-width:480px;width:100%;padding:1.75rem">
+    <div style="font-family:'Nunito',sans-serif;font-size:1.15rem;font-weight:800;color:var(--dark);margin-bottom:1.25rem">✏️ Redigera förening</div>
+    <input type="hidden" id="editId">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
+      <div><label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:.3rem">Föreningens namn</label><input id="editName" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px"></div>
+      <div><label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:.3rem">Kontaktperson</label><input id="editContact" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px"></div>
+      <div><label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:.3rem">Admin-e-post</label><input id="editEmail" type="email" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px"></div>
+      <div><label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:.3rem">Telefon</label><input id="editPhone" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px"></div>
+    </div>
+    <div id="editMsg" style="font-size:13px;margin-bottom:.75rem;display:none;padding:.5rem .75rem;border-radius:8px;background:#fdecea"></div>
+    <div style="display:flex;gap:.6rem;justify-content:flex-end">
+      <button onclick="closeEdit()" style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:8px 18px;font-family:inherit;font-size:14px;cursor:pointer;color:var(--muted)">Avbryt</button>
+      <button onclick="saveEdit()" id="editSaveBtn" style="background:var(--green);color:#fff;border:none;border-radius:100px;padding:8px 18px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Spara →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
