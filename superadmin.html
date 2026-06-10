@@ -100,6 +100,15 @@ td{padding:.7rem .5rem;border-bottom:1px solid var(--border);font-size:14px;vert
     <div class="card-title">🏟️ Alla föreningar</div>
     <div class="table-wrap"><div id="clubTableWrap"><div class="muted">Laddar...</div></div></div>
   </div>
+
+  <!-- Utskickslogg -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <div class="card-title" style="margin:0">📋 Utskickslogg</div>
+      <button onclick="loadEmailLog()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:inherit">↻ Uppdatera</button>
+    </div>
+    <div class="table-wrap"><div id="emailLogWrap"><div class="muted">Laddar...</div></div></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -125,6 +134,7 @@ async function init(){
   document.getElementById('gate').classList.add('hidden');
   document.getElementById('page').classList.remove('hidden');
   await loadClubs();
+  await loadEmailLog();
 }
 
 async function loadClubs(){
@@ -232,11 +242,41 @@ async function doSendWelcome(){
     msg.style.cssText='display:block;background:var(--green-light);color:var(--green);border-radius:8px;padding:.6rem .9rem';
     msg.textContent='✓ Välkomstmejl skickat till ' + email + '!';
     btn.textContent='✓ Skickat!';
+    // Logga utskicket
+    try { await sb.from('club_email_log').insert({ club_name: _wClubName, recipient_email: email, type: 'Välkomstmejl' }); } catch(le){ console.warn('Loggning misslyckades', le); }
+    await loadEmailLog();
     setTimeout(closeWelcome, 2500);
   } catch(e){
     msg.style.cssText='display:block;background:#fdecea;color:#c0392b;border-radius:8px;padding:.6rem .9rem';
     msg.textContent='Misslyckades: ' + (e.message||'okänt fel');
     btn.disabled=false; btn.textContent='📧 Skicka välkomstmejl';
+  }
+}
+
+async function loadEmailLog(){
+  const wrap = document.getElementById('emailLogWrap');
+  if(!wrap) return;
+  try {
+    const { data, error } = await sb.from('club_email_log').select('*').order('sent_at', { ascending: false }).limit(50);
+    if(error) throw error;
+    if(!data || !data.length){
+      wrap.innerHTML = '<div class="muted">Inga utskick loggade ännu.</div>';
+      return;
+    }
+    const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+    wrap.innerHTML = '<table><thead><tr><th>Förening</th><th>Mottagare</th><th>Typ</th><th>Skickat</th></tr></thead><tbody>' +
+      data.map(r => {
+        const d = new Date(r.sent_at);
+        const dateStr = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+        return '<tr>' +
+          '<td><strong>' + (r.club_name||'–') + '</strong></td>' +
+          '<td>' + (r.recipient_email||'–') + '</td>' +
+          '<td><span style="background:var(--green-light);color:var(--green);border-radius:100px;padding:2px 9px;font-size:11.5px;font-weight:700">' + (r.type||'mejl') + '</span></td>' +
+          '<td style="color:var(--muted);font-size:13px">' + dateStr + '</td>' +
+          '</tr>';
+      }).join('') + '</tbody></table>';
+  } catch(e){
+    wrap.innerHTML = '<div class="muted">Kunde inte ladda logg' + (e.message ? ': ' + e.message : '') + '</div>';
   }
 }
 
