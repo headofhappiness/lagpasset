@@ -147,11 +147,31 @@ async function loadClubs(){
           '<td>' + (c.contact_email || '<span class="muted">–</span>') + (c.contact_phone ? '<br><span class="muted">' + c.contact_phone + '</span>' : '') + '</td>' +
           '<td>' + evCount + ' st</td>' +
           '<td>' + (hasLoggedIn ? '<span class="pill pill-ok">Aktiv</span>' : '<span class="pill pill-wait">Inväntar inloggning</span>') + '</td>' +
-          '<td><button onclick="deleteClub(\''+c.id+'\',\''+c.name+'\',\'' + (linkedClubIds.has(c.id) ? [...(links||[]).filter(l=>l.club_id===c.id).map(l=>l.user_id)][0]||'' : '') + '\')" style="background:none;border:1px solid #e8c0c0;color:#c0392b;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">Radera</button></td>' +
+          '<td style="display:flex;gap:.5rem">' +
+          '<button onclick="sendWelcome(\'' + c.contact_email + '\',\'' + (c.contact_name||c.name) + '\',\'' + c.name + '\')" style="background:none;border:1px solid var(--border);color:var(--green);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">📧 Välkomstmejl</button>' +
+          '<button onclick="deleteClub(\''+c.id+'\',\''+c.name+'\',\'' + (linkedClubIds.has(c.id) ? [...(links||[]).filter(l=>l.club_id===c.id).map(l=>l.user_id)][0]||'' : '') + '\')" style="background:none;border:1px solid #e8c0c0;color:#c0392b;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">Radera</button>' +
+          '</td>' +
           '</tr>';
       }).join('') + '</tbody></table>';
   } catch(e){
     wrap.innerHTML = '<div class="msg err">Kunde inte ladda föreningar: ' + (e.message||'') + '</div>';
+  }
+}
+
+async function sendWelcome(email, contactName, clubName){
+  const btn = event.target;
+  btn.textContent = 'Skickar...';
+  try {
+    const { data, error } = await sb.functions.invoke('send-welcome', {
+      body: { adminName: contactName || null, clubName: clubName, email: email }
+    });
+    if(error) throw error;
+    btn.textContent = '✓ Skickat!';
+    btn.style.color = 'var(--green)';
+  } catch(e){
+    btn.textContent = 'Misslyckades';
+    btn.style.color = '#c0392b';
+    console.warn('Välkomstmejl fel:', e);
   }
 }
 
@@ -195,15 +215,9 @@ async function addClub(){
     if(error) throw error;
     if(data && data.error) throw new Error(data.error);
     msg.className='msg ok'; msg.style.display='block';
-    msg.innerHTML = '✓ <strong>' + name + '</strong> tillagd. Välkomstmejl skickat till <strong>' + email + '</strong>.';
+    msg.innerHTML = '✓ <strong>' + name + '</strong> tillagd. <a href="#" onclick="sendWelcome(\'' + email + '\',\'' + (contact||name) + '\',\'' + name + '\');return false;" style="color:var(--green);font-weight:600">Skicka välkomstmejl →</a>';
     document.getElementById('cName').value=''; document.getElementById('cContact').value=''; document.getElementById('cEmail').value=''; document.getElementById('cPhone').value='';
     await loadClubs();
-    // Skicka välkomstmejl (tyst – blockerar inte om det misslyckas)
-    try {
-      await sb.functions.invoke('send-welcome', {
-        body: { adminName: contact || null, clubName: name, email: email }
-      });
-    } catch(e){ console.warn('Välkomstmejl kunde inte skickas:', e); }
   } catch(e){
     msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte spara: ' + (e.message||'okänt fel');
   }
