@@ -212,10 +212,10 @@ async function saveEdit(){
 function buildWelcomeHtml(adminName, clubName, email){
   var green='#1a8c3a',dark='#111c13',txt='#1e2e20',muted='#4a6a4e',bg='#faf8f4',bdr='#c4d8c4',gl='#e8f7ec';
   var steps=[
-    ['1','Logga in','Gå till lagpasset.se och klicka Logga in. Ange '+email+' – du får en länk direkt i mejlen.'],
-    ['2','Skicka era listor','Skicka era gamla scheman och deltagarlista till hej@lagpasset.se i god tid innan mötet – ju tidigare desto bättre.'],
-    ['3','Boka ett uppstartsmöte (30 min)','Vi går igenom allt tillsammans. Du är redo att skicka ut personliga bokningslänkar direkt efter mötet.'],
-    ['4','Kör!','Deltagarna får sin personliga länk och väljer pass – ni ser beläggningen i realtid.'],
+    ['1','Boka ert uppstartsmöte (30 min)','Välj en tid som passar med knappen nedan. Vi ses på Google Meet.'],
+    ['2','Skicka era listor innan mötet','Skicka gamla scheman och deltagarlista till hej@lagpasset.se – ju tidigare desto bättre, så hinner vi förbereda.'],
+    ['3','Vi ses på mötet','Vi har importerat allt och går igenom systemet tillsammans. Du lämnar mötet redo att köra.'],
+    ['4','Skicka ut bokningslänkarna','Klicka Skicka länk – varje deltagare väljer sitt pass i mobilen och ni ser beläggningen i realtid.'],
   ];
   var stepsHtml = steps.map(function(s){
     return '<div style="display:flex;gap:.7rem;margin-bottom:.75rem;align-items:flex-start">'+
