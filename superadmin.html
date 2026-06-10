@@ -213,9 +213,9 @@ function buildWelcomeHtml(adminName, clubName, email){
   var green='#1a8c3a',dark='#111c13',txt='#1e2e20',muted='#4a6a4e',bg='#faf8f4',bdr='#c4d8c4',gl='#e8f7ec';
   var steps=[
     ['1','Logga in','Gå till lagpasset.se och klicka Logga in. Ange '+email+' – du får en länk direkt i mejlen.'],
-    ['2','Skapa ett arrangemang','Klicka "Skapa nytt arrangemang", fyll i namn och datum.'],
-    ['3','Importera deltagarlistan','Ladda upp er CSV-fil. Systemet skapar personliga bokningslänkar automatiskt.'],
-    ['4','Skicka inbjudningar','Klicka "Skicka länk" – varje deltagare får sin personliga länk direkt i mejlen.'],
+    ['2','Skicka era listor','Skicka era gamla scheman och deltagarlista till hej@lagpasset.se i god tid innan mötet – ju tidigare desto bättre.'],
+    ['3','Boka ett uppstartsmöte (30 min)','Vi går igenom allt tillsammans. Du är redo att skicka ut personliga bokningslänkar direkt efter mötet.'],
+    ['4','Kör!','Deltagarna får sin personliga länk och väljer pass – ni ser beläggningen i realtid.'],
   ];
   var stepsHtml = steps.map(function(s){
     return '<div style="display:flex;gap:.7rem;margin-bottom:.75rem;align-items:flex-start">'+
@@ -238,8 +238,11 @@ function buildWelcomeHtml(adminName, clubName, email){
       '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:'+muted+';margin-bottom:.75rem">Kom igång</div>'+
       stepsHtml+
     '</div>'+
-    '<div style="text-align:center;padding:0 1.75rem 1.25rem">'+
+    '<div style="text-align:center;padding:0 1.75rem 1rem">'+
       '<a href="https://lagpasset.se/login.html" style="display:inline-block;background:'+green+';color:#fff;text-decoration:none;padding:12px 28px;border-radius:100px;font-size:15px;font-weight:700">Logga in på Lagpasset &#8594;</a>'+
+    '</div>'+
+    '<div style="text-align:center;padding:0 1.75rem 1.25rem">'+
+      '<a href="https://cal.com/lisa-jonsson-lbe4ex/mote-med-lisa-pa-lagpasset-20-min" style="display:inline-block;background:#fff;color:'+green+';text-decoration:none;padding:11px 26px;border-radius:100px;font-size:14px;font-weight:700;border:2px solid '+green+'">📅 Boka uppstartsmöte (30 min)</a>'+
     '</div>'+
     '<div style="background:'+bg+';border-top:1px solid '+bdr+';padding:.9rem 1.75rem;text-align:center;font-size:11px;color:'+muted+'">LagPasset &middot; Head of Happiness AB &middot; lagpasset.se</div>'+
     '</div></body></html>';
