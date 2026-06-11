@@ -26,6 +26,10 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
 .sub{color:var(--muted);margin-top:.35rem;margin-bottom:2rem}
 .section-label{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
 .event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;margin-bottom:2.5rem}
+.section-filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.sf-btn{border:1.5px solid var(--border);background:#fff;border-radius:100px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:"Outfit",sans-serif;transition:all .15s}
+.sf-btn:hover{border-color:var(--green);color:var(--green)}
+.sf-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
 .event-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;cursor:pointer;transition:all .15s;text-decoration:none;color:inherit;display:flex;flex-direction:column}
 .event-card:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,140,58,.1)}
 .event-card .tag{align-self:flex-start;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--green-light);color:var(--green);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.03em}
@@ -259,7 +263,7 @@ async function render(events){
     } catch(e){}
     const section = ev.section || 'Arrangemang';
     const safeData = JSON.stringify({ id: ev.id, name: ev.name||'', section: ev.section||'', start: ev.date_start||'', end: ev.date_end||'' }).replace(/'/g, '&#39;');
-    cards += '<div class="event-card-wrap" style="position:relative">' +
+    cards += '<div class="event-card-wrap" style="position:relative" data-section="' + (ev.section||'Arrangemang') + '">' +
       '<a class="event-card" href="admin.html?event=' + ev.id + '">' +
       '<span class="tag">' + section + '</span>' +
       '<h3>' + (ev.name || 'Namnlöst event') + '</h3>' +
@@ -272,7 +276,30 @@ async function render(events){
       '</div>';
   }
   cards += '<div class="event-card new" onclick="openNew()"><div class="plus">+</div><div>Skapa nytt arrangemang</div></div>';
-  document.getElementById('eventList').innerHTML = '<div class="section-label">Aktiva arrangemang</div><div class="event-grid">' + cards + '</div>';
+  // Bygg sektionsfilter om det finns mer än en sektion
+  const sections = [...new Set(events.map(e => e.section || 'Arrangemang'))].filter(Boolean);
+  let filterHtml = '';
+  if(sections.length > 1){
+    filterHtml = '<div class="section-filters">' +
+      '<button class="sf-btn active" onclick="filterSection(null,this)">Alla</button>' +
+      sections.map(s => '<button class="sf-btn" onclick="filterSection('' + s + '',this)">' + s + '</button>').join('') +
+      '</div>';
+  }
+  document.getElementById('eventList').innerHTML = filterHtml + '<div class="event-grid" id="eventGrid">' + cards + '</div>';
+}
+
+function filterSection(section, btn){
+  // Uppdatera aktiv knapp
+  document.querySelectorAll('.sf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Visa/dölj kort
+  document.querySelectorAll('.event-card-wrap').forEach(wrap => {
+    if(!section || wrap.dataset.section === section){
+      wrap.style.display = '';
+    } else {
+      wrap.style.display = 'none';
+    }
+  });
 }
 
 function openNew(){ document.getElementById('modalNew').classList.add('open'); }
