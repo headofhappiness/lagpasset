@@ -158,7 +158,7 @@ textarea{resize:vertical;min-height:70px}
 .feedback-meta{font-size:12px;color:var(--muted)}
 
 /* DEMO */
-.demo-banner{background:linear-gradient(135deg,rgba(26,140,58,.1),rgba(26,140,58,.04));border-bottom:1.5px solid rgba(26,140,58,.25);padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.demo-banner{background:linear-gradient(135deg,rgba(26,140,58,.1),rgba(26,140,58,.04));border-bottom:1.5px solid rgba(26,140,58,.25);padding:.6rem 1.5rem;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .demo-banner a{color:var(--green);font-weight:600;text-decoration:none}
 .demo-banner a:hover{text-decoration:underline}
 .demo-banner-lock{font-size:12px;background:rgba(26,140,58,.1);border:1px solid rgba(26,140,58,.2);border-radius:100px;padding:2px 10px;color:var(--green);font-weight:700}
@@ -244,7 +244,7 @@ setVH(); window.addEventListener('resize',setVH);
     <div class="demo-cta-row">
       <button class="btn btn-primary" style="width:100%;font-size:15px;min-height:44px" onclick="closeDemoWelcome()">Utforska demon →</button>
       <a href="guest.html" target="_blank" style="font-size:13.5px;color:var(--green);text-decoration:none;font-weight:600">👤 Se hur det ser ut för medlemmar →</a>
-      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en personlig genomgång</a>
+      <a href="https://cal.com/lisa-jonsson-lbe4ex/mote-med-lisa-pa-lagpasset-20-min" target="_blank" style="font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en personlig genomgång</a>
     </div>
   </div>
 </div>
@@ -257,7 +257,7 @@ setVH(); window.addEventListener('resize',setVH);
   <div class="sidebar-logo">
     <a id="logoLink" href="events.html" title="Byt arrangemang" style="display:flex;align-items:center;cursor:pointer;flex-shrink:0"><img src="logo-white.png" alt="LagPasset" style="height:24px;width:auto;display:block"></a>
     <div id="sidebarClubLogo" style="margin-left:auto;display:none;align-items:center"></div>
-    <div class="club-name" id="sidebarClubName" style="margin-left:auto;text-align:right;line-height:1.2"></div>
+    <div class="club-name" id="sidebarClubName" style="margin-left:auto;text-align:right;line-height:1.4;max-width:140px;word-break:break-word"></div>
   </div>
   <div class="sidebar-event" id="sidebarEvent" style="display:none">📅 <span id="sidebarEventName"></span></div>
   <nav class="nav-items">
@@ -307,10 +307,10 @@ setVH(); window.addEventListener('resize',setVH);
   </header>
 
   <!-- DEMO BANNER – inuti main så den inte täcker sidebaren -->
-  <div class="demo-banner" id="demoBanner" style="padding:.5rem 1rem;gap:.6rem">
+  <div class="demo-banner" id="demoBanner" style="padding:.5rem 1rem;gap:.6rem;display:none">
     <span class="demo-banner-lock">🔒 Demo – inget sparas</span>
     <a href="guest.html" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(26,140,58,.15);border:1.5px solid rgba(26,140,58,.35);color:var(--green);padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">👤 Medlemsvyn →</a>
-    <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(232,160,32,.12);border:1.5px solid rgba(232,160,32,.4);color:#b07000;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">📅 Boka genomgång</a>
+    <a href="https://cal.com/lisa-jonsson-lbe4ex/mote-med-lisa-pa-lagpasset-20-min" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(232,160,32,.12);border:1.5px solid rgba(232,160,32,.4);color:#b07000;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">📅 Boka genomgång</a>
     <a href="bli-kund.html" style="display:inline-flex;align-items:center;gap:5px;background:var(--green);color:#fff;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">Bli kund →</a>
     <button onclick="document.getElementById('demoBanner').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;line-height:1;margin-left:.25rem" title="Stäng">✕</button>
   </div>
@@ -3120,6 +3120,7 @@ function previewEmail(){ demoBlock(); }
 
 // Sidebar club label
 document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
+  document.getElementById('demoBanner').style.display = 'flex';
 
 // ── Instruktioner per passtyp ──
 const defaultInstructions = {
