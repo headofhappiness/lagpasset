@@ -128,8 +128,8 @@ async function init(){
   if(!session || !session.user){ location.href = 'login.html'; return; }
   const { data, error } = await sb.from('club_users').select('role').eq('user_id', session.user.id).maybeSingle();
   if(error || !data || data.role !== 'superadmin'){
-    // Inte superadmin → tillbaka till login
-    location.href = 'login.html';
+    // Inte superadmin → logga ut och visa login-formulär
+    location.href = 'login.html?logout=1';
     return;
   }
   document.getElementById('whoami').textContent = session.user.email;

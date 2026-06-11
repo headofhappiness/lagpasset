@@ -117,6 +117,13 @@ async function sendLink(){
 
 // Vid sidladdning: redan inloggad (eller just klickat magic link)?
 (async function(){
+  // Om ?logout=1 → logga ut aktiv session och visa formuläret direkt
+  if(new URLSearchParams(location.search).get('logout') === '1'){
+    await sb.auth.signOut();
+    history.replaceState({}, '', 'login.html');
+    show('loginForm');
+    return;
+  }
   // Auth-state hanterar både befintlig session och retur från magic link
   const { data:{ session } } = await sb.auth.getSession();
   if(session && session.user){ await routeUser(session.user); }
