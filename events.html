@@ -466,11 +466,7 @@ async function submitNewEvent(){
     if(CLUB_ID) row.club_id = CLUB_ID;
     const created = await sb('events', { method:'POST', body: JSON.stringify(row) });
     closeNew();
-    if(created && created.length){
-      window.location.href = 'admin.html?event=' + created[0].id;
-    } else {
-      load();
-    }
+    await load();
   } catch(e){
     console.error(e);
     msg.textContent = 'Kunde inte skapa arrangemanget: ' + (e.message || 'okänt fel');
