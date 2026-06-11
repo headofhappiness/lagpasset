@@ -103,11 +103,13 @@ td{padding:.7rem .5rem;border-bottom:1px solid var(--border);font-size:14px;vert
 
   <!-- Utskickslogg -->
   <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleEmailLog()">
       <div class="card-title" style="margin:0">📋 Utskickslogg</div>
-      <button onclick="loadEmailLog()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:inherit">↻ Uppdatera</button>
+      <span id="logToggleIcon" style="font-size:13px;color:var(--muted);font-family:'Outfit',sans-serif">▸ Visa</span>
     </div>
-    <div class="table-wrap"><div id="emailLogWrap"><div class="muted">Laddar...</div></div></div>
+    <div id="logBody" style="display:none;margin-top:.75rem">
+      <div class="table-wrap"><div id="emailLogWrap"><div class="muted">Laddar...</div></div></div>
+    </div>
   </div>
 </div>
 
@@ -134,7 +136,6 @@ async function init(){
   document.getElementById('gate').classList.add('hidden');
   document.getElementById('page').classList.remove('hidden');
   await loadClubs();
-  await loadEmailLog();
 }
 
 let _showArchived = false;
@@ -344,6 +345,10 @@ function refreshPreview(){
 }
 function closeWelcome(){
   document.getElementById('welcomeModal').style.display = 'none';
+  var btn = document.getElementById('wSendBtn');
+  btn.disabled = false;
+  btn.textContent = '📧 Skicka välkomstmejl';
+  document.getElementById('wMsg').style.display = 'none';
 }
 async function doSendWelcome(){
   var contactName = document.getElementById('wContactName').value.trim();
@@ -365,13 +370,24 @@ async function doSendWelcome(){
     btn.textContent='✓ Skickat!';
     // Logga utskicket
     try { await sb.from('club_email_log').insert({ club_name: _wClubName, recipient_email: email, type: 'Välkomstmejl' }); } catch(le){ console.warn('Loggning misslyckades', le); }
-    await loadEmailLog();
+    // Uppdatera logg om den är öppen
+    if(document.getElementById('logBody').style.display !== 'none'){ await loadEmailLog(); }
     setTimeout(closeWelcome, 2500);
   } catch(e){
     msg.style.cssText='display:block;background:#fdecea;color:#c0392b;border-radius:8px;padding:.6rem .9rem';
     msg.textContent='Misslyckades: ' + (e.message||'okänt fel');
     btn.disabled=false; btn.textContent='📧 Skicka välkomstmejl';
   }
+}
+
+let _logLoaded = false;
+function toggleEmailLog(){
+  const body = document.getElementById('logBody');
+  const icon = document.getElementById('logToggleIcon');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  icon.textContent = isOpen ? '▸ Visa' : '▾ Dölj';
+  if(!isOpen && !_logLoaded){ _logLoaded = true; loadEmailLog(); }
 }
 
 async function loadEmailLog(){
