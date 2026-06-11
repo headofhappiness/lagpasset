@@ -200,7 +200,7 @@ async function load(){
     if(IS_DEMO){
       eventId = DEMO_EVENT_ID;
       STATION = 'Servering';
-      ANSVARIG = { name:'Anna Svensson', email:'lisa@headofhappiness.se', phone:'070-111 22 33' };
+      ANSVARIG = { name:'Okänd ansvarig', email:'', phone:'' };
       document.getElementById('demoBanner').style.display = 'block';
     } else {
       const contacts = await sbFetch('contacts', '?token=eq.' + encodeURIComponent(TOKEN) + '&limit=1');

@@ -621,7 +621,7 @@ setVH(); window.addEventListener('resize',setVH);
 
         <div class="form-group">
           <label class="form-label">Ämnesrad</label>
-          <input type="text" id="emailSubject" value="Åsacupen 2026">
+          <input type="text" id="emailSubject" placeholder="Ämnesrad">
         </div>
         <div class="form-group" style="margin-bottom:.75rem">
           <label class="form-label">Meddelande</label>
@@ -776,7 +776,7 @@ Hälsningar,
         <div class="card-title" style="margin-bottom:1rem">Event-inställningar</div>
         <div class="form-group">
           <label class="form-label">Eventnamn</label>
-          <input type="text" id="setEventName" value="Åsacupen 2026">
+          <input type="text" id="setEventName" placeholder="Arrangmangets namn">
         </div>
         <div class="inline-2">
           <div class="form-group">
@@ -836,7 +836,7 @@ Hälsningar,
           </div>
           <div class="form-group">
             <label class="form-label">Kontakt-e-post</label>
-            <input type="email" id="clubEmail" value="kansli@asaif.com">
+            <input type="email" id="clubEmail" placeholder="Föreningens e-post">
           </div>
         </div>
         <div class="form-group">
@@ -2182,7 +2182,7 @@ function renderShiftDetailInline(shiftId){
 }
 
 async function deleteShift(id){
-  if(!confirm('Ta bort passet?')) return;
+  if(!await showConfirm('Ta bort passet?', 'Ta bort')) return;
   try {
     await sbDelete('shifts', id);
     DB.shifts = DB.shifts.filter(s => s.id !== id);
@@ -2206,7 +2206,7 @@ async function deleteStation(){
   let msg = 'Ta bort hela kategorin "' + title + '"?\n\nDetta tar bort ' + stationShifts.length + ' pass';
   if(bookingCount > 0) msg += ' och ' + bookingCount + ' bokningar';
   msg += '. Det går inte att ångra.';
-  if(!confirm(msg)) return;
+  if(!await showConfirm(msg, 'Ta bort')) return;
   try {
     for(const id of ids){ await sbDelete('shifts', id); }
     DB.shifts = DB.shifts.filter(s => s.title !== title);
@@ -2222,7 +2222,7 @@ async function deleteStation(){
 }
 
 async function removeBooking(bookingId, shiftId){
-  if(!confirm('Avboka denna person från passet?')) return;
+  if(!await showConfirm('Avboka denna person från passet?', 'Avboka')) return;
   try {
     await sbDelete('bookings', bookingId);
     DB.bookings = DB.bookings.filter(b => b.id !== bookingId);
@@ -2666,7 +2666,7 @@ function doPrint(){
 
 function printStations(stationList){
   const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
-  let html = '<html><head><meta charset="utf-8"><title>Passlista – Åsacupen 2026</title>';
+  let html = '<html><head><meta charset="utf-8"><title>Passlista – ' + (EVENT && EVENT.name ? EVENT.name : 'Arrangemang') + '</title>';
   html += '<style>';
   html += 'body{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;margin:0;padding:0}';
   html += '.station-page{padding:2.5rem;page-break-after:always}';
@@ -2818,7 +2818,7 @@ async function deleteChild(id){
   const bookings = DB.bookings.filter(b => b.participant_id === id);
   let msg = 'Ta bort ' + p.name + ' från bemanningen?';
   if(bookings.length) msg += '\n\nDe är bokade på ' + bookings.length + ' pass som då frigörs.';
-  if(!confirm(msg)) return;
+  if(!await showConfirm(msg, 'Ta bort')) return;
   try {
     for(const b of bookings){ await sbDelete('bookings', b.id); }
     await sbDelete('participants', id);
@@ -2938,7 +2938,7 @@ async function sendEmail(){
     .filter(p => p.email && p.token)
     .map(p => ({ name: p.name, email: p.email, token: p.token }));
   if(recipients.length === 0){ showToast('Inga mottagare med e-post hittades.', 'error'); return; }
-  if(!confirm('Skicka mejlet till ' + recipients.length + ' deltagare?')) return;
+  if(!await showConfirm('Skicka mejlet till ' + recipients.length + ' deltagare?', 'Skicka')) return;
 
   const baseUrl = window.location.origin + '/guest.html';
   try {
@@ -3065,7 +3065,7 @@ async function sendLinks(){
     .map(p => ({ name: p.name, email: p.email, token: p.token }));
 
   if(recipients.length === 0){ showToast('Inga mottagare med e-post och länk hittades.', 'error'); return; }
-  if(!confirm('Skicka personlig länk till ' + recipients.length + ' deltagare?')) return;
+  if(!await showConfirm('Skicka personlig länk till ' + recipients.length + ' deltagare?', 'Skicka')) return;
 
   const baseUrl = window.location.origin + '/guest.html';
   try {
@@ -4281,6 +4281,23 @@ init();
 </nav>
 
 <script>
+
+// ── Confirm-modal (ersätter window.confirm) ────────────
+let _confirmResolve = null;
+function showConfirm(msg, okLabel){
+  document.getElementById('confirmMsg').textContent = msg;
+  if(okLabel) document.getElementById('confirmOkBtn').textContent = okLabel;
+  else document.getElementById('confirmOkBtn').textContent = 'OK';
+  document.getElementById('confirmModal').style.display = 'flex';
+  return new Promise(resolve => { _confirmResolve = resolve; });
+}
+function confirmResolve(val){
+  document.getElementById('confirmModal').style.display = 'none';
+  if(_confirmResolve){ _confirmResolve(val); _confirmResolve = null; }
+}
+
+</script>
+<script>
 // ── Ny version-banner ─────────────────────────────────────
 (function(){
   let _initialTag = null;
@@ -4313,5 +4330,17 @@ init();
   setInterval(checkVersion, 5 * 60 * 1000);
 })();
 </script>
+
+<!-- Bekräftelse-modal -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(17,28,19,.45);z-index:9998;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:16px;max-width:380px;width:100%;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,.15)">
+    <div id="confirmMsg" style="font-size:15px;color:var(--dark);margin-bottom:1.25rem;line-height:1.5"></div>
+    <div style="display:flex;gap:.6rem;justify-content:flex-end">
+      <button onclick="confirmResolve(false)" style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:8px 20px;font-family:inherit;font-size:14px;cursor:pointer;color:var(--muted)">Avbryt</button>
+      <button id="confirmOkBtn" onclick="confirmResolve(true)" style="background:var(--green);color:#fff;border:none;border-radius:100px;padding:8px 20px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">OK</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
