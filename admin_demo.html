@@ -158,7 +158,8 @@ textarea{resize:vertical;min-height:70px}
 .feedback-meta{font-size:12px;color:var(--muted)}
 
 /* DEMO */
-.demo-banner{background:linear-gradient(135deg,rgba(26,140,58,.1),rgba(26,140,58,.04));border-bottom:1.5px solid rgba(26,140,58,.25);padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.demo-banner{display:none !important;background:linear-gradient(135deg,rgba(26,140,58,.1),rgba(26,140,58,.04));border-bottom:1.5px solid rgba(26,140,58,.25);padding:.6rem 1.5rem;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.demo-banner.active{display:flex !important}
 .demo-banner a{color:var(--green);font-weight:600;text-decoration:none}
 .demo-banner a:hover{text-decoration:underline}
 .demo-banner-lock{font-size:12px;background:rgba(26,140,58,.1);border:1px solid rgba(26,140,58,.2);border-radius:100px;padding:2px 10px;color:var(--green);font-weight:700}
@@ -244,7 +245,7 @@ setVH(); window.addEventListener('resize',setVH);
     <div class="demo-cta-row">
       <button class="btn btn-primary" style="width:100%;font-size:15px;min-height:44px" onclick="closeDemoWelcome()">Utforska demon →</button>
       <a href="guest.html" target="_blank" style="font-size:13.5px;color:var(--green);text-decoration:none;font-weight:600">👤 Se hur det ser ut för medlemmar →</a>
-      <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en personlig genomgång</a>
+      <a href="https://cal.com/lisa-jonsson-lbe4ex/mote-med-lisa-pa-lagpasset-20-min" target="_blank" style="font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px">📅 Boka en personlig genomgång</a>
     </div>
   </div>
 </div>
@@ -254,10 +255,10 @@ setVH(); window.addEventListener('resize',setVH);
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <a id="logoLink" href="events.html" title="Byt arrangemang" style="display:flex;align-items:center;cursor:pointer;flex-shrink:0"><img src="logo-white.png" alt="LagPasset" style="height:24px;width:auto;display:block"></a>
-    <div id="sidebarClubLogo" style="margin-left:auto;display:none;align-items:center"></div>
-    <div class="club-name" id="sidebarClubName" style="margin-left:auto;text-align:right;line-height:1.2">Åsa IF</div>
+  <div class="sidebar-logo" style="flex-direction:column;align-items:flex-start;gap:.25rem;padding-bottom:.9rem">
+    <a id="logoLink" href="events.html" title="Byt arrangemang" style="display:inline-flex;align-items:center"><img src="logo-white.png" alt="LagPasset" style="height:22px;width:auto;display:block"></a>
+    <div id="sidebarClubLogo" style="display:none;align-items:center"></div>
+    <div class="club-name" id="sidebarClubName" style="font-size:12px;color:rgba(200,240,200,.75);font-weight:500;line-height:1.3;padding-left:2px"></div>
   </div>
   <div class="sidebar-event" id="sidebarEvent" style="display:none">📅 <span id="sidebarEventName"></span></div>
   <nav class="nav-items">
@@ -289,7 +290,7 @@ setVH(); window.addEventListener('resize',setVH);
   </nav>
   <div class="sidebar-footer" style="display:flex;flex-direction:column;align-items:flex-start;gap:.4rem">
     <img src="logo-white.png" alt="LagPasset" style="height:15px;width:auto;opacity:.6">
-    <span>Lagpasset.se · v1.0</span>
+    <span>Lagpasset.se</span>
   </div>
 </aside>
 
@@ -307,12 +308,12 @@ setVH(); window.addEventListener('resize',setVH);
   </header>
 
   <!-- DEMO BANNER – inuti main så den inte täcker sidebaren -->
-  <div class="demo-banner" id="demoBanner" style="padding:.5rem 1rem;gap:.6rem">
+  <div class="demo-banner" id="demoBanner">
     <span class="demo-banner-lock">🔒 Demo – inget sparas</span>
     <a href="guest.html" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(26,140,58,.15);border:1.5px solid rgba(26,140,58,.35);color:var(--green);padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">👤 Medlemsvyn →</a>
-    <a href="https://calendly.com/lisa-headofhappiness/mote-med-lisa-pa-lagpasset" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(232,160,32,.12);border:1.5px solid rgba(232,160,32,.4);color:#b07000;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">📅 Boka genomgång</a>
+    <a href="https://cal.com/lisa-jonsson-lbe4ex/mote-med-lisa-pa-lagpasset-20-min" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(232,160,32,.12);border:1.5px solid rgba(232,160,32,.4);color:#b07000;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">📅 Boka genomgång</a>
     <a href="bli-kund.html" style="display:inline-flex;align-items:center;gap:5px;background:var(--green);color:#fff;padding:4px 13px;border-radius:100px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap">Bli kund →</a>
-    <button onclick="document.getElementById('demoBanner').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;line-height:1;margin-left:.25rem" title="Stäng">✕</button>
+    <button onclick="document.getElementById('demoBanner').classList.remove('active')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;line-height:1;margin-left:.25rem" title="Stäng">✕</button>
   </div>
 
   <div class="content">
@@ -323,19 +324,19 @@ setVH(); window.addEventListener('resize',setVH);
       <!-- ① Tre nyckeltal -->
       <div class="grid-3" style="margin-bottom:1.1rem">
         <div class="stat-card green">
-          <div class="stat-num">81%</div>
+          <div class="stat-num" id="statPct">–</div>
           <div class="stat-label">Total beläggning</div>
           <div class="progress-wrap">
-            <div class="progress-bar"><div class="progress-fill" style="width:81%"></div></div>
-            <div class="progress-label"><span>105 bokade</span><span>129 totalt</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="statBar" style="width:0%"></div></div>
+            <div class="progress-label"><span id="statBooked">–</span><span id="statTotal">–</span></div>
           </div>
         </div>
         <div class="stat-card amber">
-          <div class="stat-num">24</div>
+          <div class="stat-num" id="statLeft">–</div>
           <div class="stat-label">Platser kvar att fylla</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num">22</div>
+          <div class="stat-num" id="statDays">–</div>
           <div class="stat-label">Dagar till event</div>
         </div>
       </div>
@@ -621,7 +622,7 @@ setVH(); window.addEventListener('resize',setVH);
 
         <div class="form-group">
           <label class="form-label">Ämnesrad</label>
-          <input type="text" id="emailSubject" value="Åsacupen 2026">
+          <input type="text" id="emailSubject" placeholder="Ämnesrad">
         </div>
         <div class="form-group" style="margin-bottom:.75rem">
           <label class="form-label">Meddelande</label>
@@ -630,7 +631,7 @@ setVH(); window.addEventListener('resize',setVH);
 Har du frågor, kontakta oss på kansli@asaif.com.
 
 Hälsningar,
-Åsa IF</textarea>
+</textarea>
         </div>
 
         <label class="checkbox-row" style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;cursor:pointer">
@@ -776,7 +777,7 @@ Hälsningar,
         <div class="card-title" style="margin-bottom:1rem">Event-inställningar</div>
         <div class="form-group">
           <label class="form-label">Eventnamn</label>
-          <input type="text" id="setEventName" value="Åsacupen 2026">
+          <input type="text" id="setEventName" placeholder="Arrangmangets namn">
         </div>
         <div class="inline-2">
           <div class="form-group">
@@ -832,11 +833,11 @@ Hälsningar,
         <div class="inline-2">
           <div class="form-group">
             <label class="form-label">Föreningsnamn</label>
-            <input type="text" id="clubName" value="Åsa IF">
+            <input type="text" id="clubName">
           </div>
           <div class="form-group">
             <label class="form-label">Kontakt-e-post</label>
-            <input type="email" id="clubEmail" value="kansli@asaif.com">
+            <input type="email" id="clubEmail" placeholder="Föreningens e-post">
           </div>
         </div>
         <div class="form-group">
@@ -875,6 +876,26 @@ Hälsningar,
           <thead><tr><th>Ansvarsområde</th><th>Namn</th><th>Kontakt</th><th>Stations-länk</th><th></th></tr></thead>
           <tbody id="contactsTable"></tbody>
         </table></div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.25rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;gap:.5rem;flex-wrap:wrap">
+          <div>
+            <div class="card-title">Föreningens sektioner</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px">Sektionerna används som kategorier på era arrangemang. Lägg till och ta bort fritt.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openAddSection()">+ Ny sektion</button>
+        </div>
+        <div id="sectionPills" style="display:flex;flex-wrap:wrap;gap:.5rem;min-height:32px">
+          <span style="font-size:13px;color:var(--muted);font-style:italic">Laddar...</span>
+        </div>
+        <div id="addSectionRow" style="display:none;margin-top:.85rem;display:none">
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <input type="text" id="newSectionInput" placeholder="Ex. Herr 1" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px" onkeydown="if(event.key==='Enter')saveNewSection()">
+            <button class="btn btn-primary btn-sm" onclick="saveNewSection()">Lägg till</button>
+            <button class="btn btn-ghost btn-sm" onclick="closeAddSection()">Avbryt</button>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -1080,7 +1101,7 @@ Hälsningar,
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddFaq')">Avbryt</button>
-      <button class="btn btn-primary" onclick="demoBlock&&demoBlock();closeModal('modalAddFaq')">Spara</button>
+      <button class="btn btn-primary" onclick="closeModal('modalAddFaq')">Spara</button>
     </div>
   </div>
 </div>
@@ -1258,7 +1279,11 @@ const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 async function adminLogout(){ await _sbAuth.auth.signOut(); window.location.href = 'login.html'; }
 const _eventParam = (new URLSearchParams(window.location.search)).get('event');
 const _demoName = (new URLSearchParams(window.location.search)).get('namn');
-const EVENT_ID = _eventParam || '00000000-0000-0000-0000-000000000002';
+const DEMO_EVENT_ID = '00000000-0000-0000-0000-000000000002';
+const _isLiveMode = !window.location.pathname.includes('admin_demo');
+// Demo: om inget event-ID valt, gå till demo-väljaren
+if(!_eventParam && !_demoName){ window.location.href = 'events_demo.html'; }
+const EVENT_ID = _eventParam || DEMO_EVENT_ID;
 
 async function sbFetch(table, params) {
   params = params || '';
@@ -1374,8 +1399,8 @@ async function saveEventSettings(){
   const name = document.getElementById('setEventName').value.trim();
   const start = document.getElementById('setEventStart').value;
   const end = document.getElementById('setEventEnd').value;
-  if(!name || !start){ alert('Fyll i eventnamn och första eventdag.'); return; }
-  if(end && end < start){ alert('Sista eventdagen kan inte vara före första.'); return; }
+  if(!name || !start){ showToast('Fyll i eventnamn och första eventdag.', 'error'); return; }
+  if(end && end < start){ showToast('Sista eventdagen kan inte vara före första.', 'error'); return; }
   const deadline = document.getElementById('setDeadline').value || null;
   const reminderDays = parseInt(document.getElementById('setReminderDays').value) || 5;
   const participation = document.getElementById('setParticipation').value;
@@ -1419,7 +1444,7 @@ function showLogoPreview(dataUrl){
 function handleLogoUpload(event){
   const file = event.target.files[0];
   if(!file) return;
-  if(file.size > 1024*1024){ alert('Filen är för stor (max 1 MB). Välj en mindre bild.'); return; }
+  if(file.size > 1024*1024){ showToast('Filen är för stor (max 1 MB).', 'error'); return; }
   const reader = new FileReader();
   reader.onload = function(e){
     // Krymp bilden via canvas så base64 hålls liten (max 400px)
@@ -1623,7 +1648,7 @@ function showSection(id){
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='pool'){ renderPoolTable(); renderResourceRequests(); }
-  if(id==='settings'){ renderContactsTable(); renderFaqList(); }
+  if(id==='settings'){ renderContactsTable(); renderFaqList(); renderSections(); }
   if(id==='shifts'){ renderStationRows(); }
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) setTimeout(closeSidebar, 50);
@@ -1645,6 +1670,26 @@ function closeSidebar(){
 // DASHBOARD
 // ═══════════════════════════════════════
 function renderDashboard(){
+  // ① Uppdatera stat-korten med riktig data
+  const totalSlots = DB.shifts.reduce((s,sh) => s + (sh.slots||0), 0);
+  const totalBooked = DB.bookings.length;
+  const pct = totalSlots > 0 ? Math.round(totalBooked / totalSlots * 100) : 0;
+  const left = Math.max(0, totalSlots - totalBooked);
+  const daysEl = document.getElementById('statDays');
+  if(daysEl && EVENT && EVENT.date_start){
+    const diff = Math.ceil((new Date(EVENT.date_start) - new Date()) / 86400000);
+    daysEl.textContent = Math.max(0, diff);
+  } else if(daysEl){ daysEl.textContent = '–'; }
+  const pctEl = document.getElementById('statPct');
+  const barEl = document.getElementById('statBar');
+  const bookedEl = document.getElementById('statBooked');
+  const totalEl = document.getElementById('statTotal');
+  const leftEl = document.getElementById('statLeft');
+  if(pctEl) pctEl.textContent = totalSlots > 0 ? pct + '%' : '0%';
+  if(barEl) barEl.style.width = pct + '%';
+  if(bookedEl) bookedEl.textContent = totalBooked + ' bokade';
+  if(totalEl) totalEl.textContent = totalSlots + ' totalt';
+  if(leftEl) leftEl.textContent = left;
   // ② Behöver din uppmärksamhet
   renderAttention();
   // ③ Stationsbeläggning
@@ -1674,17 +1719,7 @@ function renderDashboard(){
       </tr>`;
     }).join('');
   } else {
-    tbody.innerHTML = TEAMS.map(t=>{
-      const rem = t.quota - t.booked;
-      const badgeCls = rem===0?'badge-green':rem<=3?'badge-amber':'badge-red';
-      return `<tr>
-        <td class="td-name">${t.name}</td>
-        <td>${t.quota}</td>
-        <td><strong style="color:var(--green)">${t.booked}</strong></td>
-        <td>${rem}</td>
-        <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
-      </tr>`;
-    }).join('');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem;font-style:italic">Inga deltagare importerade ännu.</td></tr>';
   }
 }
 
@@ -1817,7 +1852,6 @@ function sendReminderNow(){
   const months = ['jan','feb','mars','apr','maj','juni','juli','aug','sep','okt','nov','dec'];
   const stamp = `${now.getDate()} ${months[now.getMonth()]} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   reminderHistory.unshift({date:stamp, count:24, type:'Manuell'});
-  if(typeof demoBlock === 'function'){ demoBlock(); }
   const log = document.getElementById('reminderLog');
   const arrow = document.getElementById('reminderLogArrow');
   if(log){ log.style.display='flex'; arrow.textContent='\u25be'; renderReminderLog(); }
@@ -1843,7 +1877,7 @@ function renderAttention(){
   const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
   const _isDemoMode = typeof IS_DEMO !== 'undefined' && IS_DEMO;
   const _partSource = _isDemoMode ? CHILDREN : DB.participants;
-  const remaining = _partSource.length ? (_isDemoMode ? _partSource.filter(p => !p.booked).length : _partSource.filter(p => !bookedIds.has(p.id)).length) : 24;
+  const remaining = _isDemoMode ? (_partSource.filter(p => !p.booked).length) : (_partSource.filter(p => !bookedIds.has(p.id)).length);
   if(remaining > 0){
     // Räkna ut när automatisk påminnelse går ut
     let reminderInfo = '';
@@ -1946,8 +1980,8 @@ function renderChildTable(){
 
   // I demo: visa alltid hårdkodad fake-data, aldrig riktig DB-data
   const forceDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
-  const source = (!forceDemo && DB.participants.length) ? DB.participants : CHILDREN;
-  const useDB = !forceDemo && DB.participants.length > 0;
+  const source = forceDemo ? CHILDREN : DB.participants;
+  const useDB = !forceDemo;
 
   const filtered = source.filter(c=>{
     const name = useDB ? c.name : c.name;
@@ -2061,7 +2095,7 @@ function renderFaqList(){
           <div style="font-size:13.5px;font-weight:600;color:var(--dark)">${f.q}</div>
           <div style="font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5">${f.a}</div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="demoBlock&&demoBlock()" style="flex-shrink:0">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="if(typeof IS_DEMO!=='undefined'&&IS_DEMO)demoBlock&&demoBlock()" style="flex-shrink:0">✏️</button>
       </div>
     </div>`
   ).join('');
@@ -2162,7 +2196,7 @@ function renderShiftDetailInline(shiftId){
 }
 
 async function deleteShift(id){
-  if(!confirm('Ta bort passet?')) return;
+  if(!await showConfirm('Ta bort passet?', 'Ta bort')) return;
   try {
     await sbDelete('shifts', id);
     DB.shifts = DB.shifts.filter(s => s.id !== id);
@@ -2186,7 +2220,7 @@ async function deleteStation(){
   let msg = 'Ta bort hela kategorin "' + title + '"?\n\nDetta tar bort ' + stationShifts.length + ' pass';
   if(bookingCount > 0) msg += ' och ' + bookingCount + ' bokningar';
   msg += '. Det går inte att ångra.';
-  if(!confirm(msg)) return;
+  if(!await showConfirm(msg, 'Ta bort')) return;
   try {
     for(const id of ids){ await sbDelete('shifts', id); }
     DB.shifts = DB.shifts.filter(s => s.title !== title);
@@ -2202,7 +2236,7 @@ async function deleteStation(){
 }
 
 async function removeBooking(bookingId, shiftId){
-  if(!confirm('Avboka denna person från passet?')) return;
+  if(!await showConfirm('Avboka denna person från passet?', 'Avboka')) return;
   try {
     await sbDelete('bookings', bookingId);
     DB.bookings = DB.bookings.filter(b => b.id !== bookingId);
@@ -2305,9 +2339,9 @@ async function createShift(){
   const contactPhone = document.getElementById('nsContactPhone').value.trim();
   const notes = document.getElementById('nsNotes').value.trim();
 
-  if(!title){ alert('Ange ett passnamn.'); return; }
-  if(!date){ alert('Välj en dag. (Ange eventets datum i Inställningar om listan är tom.)'); return; }
-  if(!start || !end){ alert('Ange start- och sluttid.'); return; }
+  if(!title){ showToast('Ange ett passnamn.', 'error'); return; }
+  if(!date){ showToast('Välj en dag för passet.', 'error'); return; }
+  if(!start || !end){ showToast('Ange start- och sluttid.', 'error'); return; }
 
   const payload = {
     event_id: EVENT_ID, title, date, time_start: start, time_end: end, slots,
@@ -2396,7 +2430,7 @@ function requestFillPool(reqId){
     const cands = DB.shifts.filter(s => s.title.toLowerCase() === r.station.toLowerCase());
     shift = cands.find(s => (s.slots - DB.bookings.filter(b => b.shift_id === s.id).length) > 0) || cands[0];
   }
-  if(!shift){ alert('Hittade inget pass i kategorin "' + r.station + '" att fylla.'); return; }
+  if(!shift){ showToast('Hittade inget pass att fylla i den kategorin.', 'error'); return; }
   openFillPool(shift.id);
   window._pendingResourceReq = reqId;
 }
@@ -2445,7 +2479,7 @@ function openFillPool(shiftId){
 async function confirmFillPool(){
   const manual = document.getElementById('fillPoolManual').value.trim();
   const name = manual || fillPoolSelected;
-  if(!name){ alert('Välj en person ur poolen eller skriv in ett namn.'); return; }
+  if(!name){ showToast('Välj en person eller skriv in ett namn.', 'error'); return; }
   try {
     const result = await sbInsert('bookings', {
       shift_id: fillPoolShiftId,
@@ -2492,7 +2526,7 @@ async function addPoolMember(){
   const team = document.getElementById('poolTeam').value.trim();
   const can = document.getElementById('poolCan').value.trim();
   const phone = document.getElementById('poolPhone').value.trim();
-  if(!name){ alert('Ange ett namn.'); return; }
+  if(!name){ showToast('Ange ett namn.', 'error'); return; }
   try {
     const result = await sbInsert('pool_members', {
       event_id: EVENT_ID,
@@ -2568,7 +2602,8 @@ async function mailAnsvarigLink(contactId){
         subject: 'Din länk som ' + c.area + ' – ' + evName,
         recipients: [{ name:c.name, email:c.email }],
         message: 'Hej ' + c.name + '!\n\nHär är din personliga länk för att hantera ' + c.area + ' under ' + evName + '. Du ser din besättning, kan dela info till dem och be om en extra resurs om ni blir för få. Ingen inloggning behövs – spara länken.\n\n' + url,
-        eventName: evName
+        eventName: evName,
+        clubName: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen'
       })
     });
     const data = await res.json();
@@ -2589,7 +2624,7 @@ async function addContact(){
   const name = document.getElementById('contactPersonName').value.trim();
   const email = document.getElementById('contactPersonEmail').value.trim();
   const phone = document.getElementById('contactPersonPhone').value.trim();
-  if(!area || !name){ alert('Ange ansvarsområde och namn.'); return; }
+  if(!area || !name){ showToast('Ange ansvarsområde och namn.', 'error'); return; }
   try {
     const result = await sbInsert('contacts', {
       event_id: EVENT_ID,
@@ -2638,14 +2673,14 @@ function smartPrint(){
 
 function doPrint(){
   const checked = Array.from(document.querySelectorAll('#printOptions input:checked')).map(c => c.value);
-  if(checked.length === 0){ alert('Välj minst ett arbetsställe.'); return; }
+  if(checked.length === 0){ showToast('Välj minst ett arbetsställe.', 'error'); return; }
   closeModal('modalPrint');
   printStations(checked);
 }
 
 function printStations(stationList){
   const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
-  let html = '<html><head><meta charset="utf-8"><title>Passlista – Åsacupen 2026</title>';
+  let html = '<html><head><meta charset="utf-8"><title>Passlista – ' + (EVENT && EVENT.name ? EVENT.name : 'Arrangemang') + '</title>';
   html += '<style>';
   html += 'body{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;margin:0;padding:0}';
   html += '.station-page{padding:2.5rem;page-break-after:always}';
@@ -2668,7 +2703,7 @@ function printStations(stationList){
       .sort((a,b) => (a.date + a.time_start).localeCompare(b.date + b.time_start));
     html += '<div class="station-page">';
     html += '<h1>' + station + '</h1>';
-    html += '<div class="sub">Åsacupen 2026 · Åsa IF</div>';
+    html += (EVENT && EVENT.name) ? '<div class="sub">' + (EVENT.name) + (CLUB && CLUB.name ? ' · ' + CLUB.name : '') + '</div>' : '';
 
     shifts.forEach(s => {
       const bookings = DB.bookings.filter(b => b.shift_id === s.id);
@@ -2700,7 +2735,7 @@ function printStations(stationList){
   html += '</body></html>';
 
   const w = window.open('', '_blank');
-  if(!w){ alert('Tillåt popup-fönster för att skriva ut.'); return; }
+  if(!w){ showToast('Tillåt popup-fönster i webbläsaren för att skriva ut.', 'error'); return; }
   w.document.write(html);
   w.document.close();
   // Skriv ut och stäng fönstret automatiskt efteråt
@@ -2727,8 +2762,8 @@ async function saveChild(){
   const email=document.getElementById('newChildEmail').value.trim();
   const kid=document.getElementById('newChildKid').value.trim();
   const shiftId=document.getElementById('newChildShift').value;
-  if(!name){alert('Ange personens namn.');return;}
-  if(!email){alert('Ange en e-postadress.');return;}
+  if(!name){showToast('Ange personens namn.', 'error'); return;}
+  if(!email){showToast('Ange en e-postadress.', 'error'); return;}
   try {
     let participant;
     if(editingChildId){
@@ -2797,7 +2832,7 @@ async function deleteChild(id){
   const bookings = DB.bookings.filter(b => b.participant_id === id);
   let msg = 'Ta bort ' + p.name + ' från bemanningen?';
   if(bookings.length) msg += '\n\nDe är bokade på ' + bookings.length + ' pass som då frigörs.';
-  if(!confirm(msg)) return;
+  if(!await showConfirm(msg, 'Ta bort')) return;
   try {
     for(const b of bookings){ await sbDelete('bookings', b.id); }
     await sbDelete('participants', id);
@@ -2858,7 +2893,7 @@ function renderLagChips(){
 
 async function sendTestEmail(){
   const addr = document.getElementById('testEmailAddr').value.trim();
-  if(!addr || !addr.includes('@')){ alert('Ange en giltig e-postadress.'); return; }
+  if(!addr || !addr.includes('@')){ showToast('Ange en giltig e-postadress.', 'error'); return; }
   const subject = document.getElementById('emailSubject').value.trim() || 'Testmejl från Lagpasset';
   const body = document.getElementById('emailBody').value.trim() || 'Detta är ett testmejl.';
   if(typeof IS_DEMO !== 'undefined' && IS_DEMO){
@@ -2877,7 +2912,8 @@ async function sendTestEmail(){
         recipients: [{ name: 'Test', email: addr, token: 'demo-test-token' }],
         message: body,
         baseUrl: window.location.origin + '/guest.html',
-        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet'
+        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet',
+        clubName: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen'
       })
     });
     const data = await res.json();
@@ -2908,15 +2944,15 @@ async function sendEmail(){
   }
   const subject = document.getElementById('emailSubject').value.trim();
   const body = document.getElementById('emailBody').value.trim();
-  if(!subject || !body){ alert('Fyll i ämnesrad och meddelande.'); return; }
+  if(!subject || !body){ showToast('Fyll i ämnesrad och meddelande.', 'error'); return; }
 
   const includeLink = document.getElementById('includeBookingLink') && document.getElementById('includeBookingLink').checked;
 
   const recipients = getEmailRecipients()
     .filter(p => p.email && p.token)
     .map(p => ({ name: p.name, email: p.email, token: p.token }));
-  if(recipients.length === 0){ alert('Inga mottagare med e-post hittades.'); return; }
-  if(!confirm('Skicka mejlet till ' + recipients.length + ' deltagare?')) return;
+  if(recipients.length === 0){ showToast('Inga mottagare med e-post hittades.', 'error'); return; }
+  if(!await showConfirm('Skicka mejlet till ' + recipients.length + ' deltagare?', 'Skicka')) return;
 
   const baseUrl = window.location.origin + '/guest.html';
   try {
@@ -2931,7 +2967,8 @@ async function sendEmail(){
         recipients: recipients,
         message: body,
         baseUrl: baseUrl,
-        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet'
+        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet',
+        clubName: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen'
       })
     });
     const data = await res.json();
@@ -2948,7 +2985,7 @@ async function sendEmail(){
     showToast('Kunde inte skicka mejlen', 'error');
   }
 }
-function previewEmail(){ alert('Förhandsgranskning: mejlet öppnas i ett nytt fönster (i produktion).'); }
+function previewEmail(){ showToast('Förhandsgranskning ej tillgänglig ännu.'); }
 
 // ── Utskickslogg ──
 // Automatiska typer = systemet skickar själv; övriga = admin skickar manuellt
@@ -3041,8 +3078,8 @@ async function sendLinks(){
     .filter(p => p.email && p.token)
     .map(p => ({ name: p.name, email: p.email, token: p.token }));
 
-  if(recipients.length === 0){ alert('Inga mottagare med e-post och länk hittades.'); return; }
-  if(!confirm('Skicka personlig länk till ' + recipients.length + ' deltagare?')) return;
+  if(recipients.length === 0){ showToast('Inga mottagare med e-post och länk hittades.', 'error'); return; }
+  if(!await showConfirm('Skicka personlig länk till ' + recipients.length + ' deltagare?', 'Skicka')) return;
 
   const baseUrl = window.location.origin + '/guest.html';
   try {
@@ -3058,7 +3095,8 @@ async function sendLinks(){
         recipients: recipients,
         message: message,
         baseUrl: baseUrl,
-        eventName: (EVENT && EVENT.name) || 'eventet'
+        eventName: (EVENT && EVENT.name) || 'eventet',
+        clubName: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen'
       })
     });
     const data = await res.json();
@@ -3079,6 +3117,8 @@ async function sendLinks(){
 // DEMO MECHANICS
 // ═══════════════════════════════════════
 const IS_DEMO = true;
+// Ta bort demo-banner från DOM direkt — visas bara i admin_demo.html
+(function(){ const b = document.getElementById('demoBanner'); if(b && !IS_DEMO) b.remove(); })();
 
 function demoBlock(){
   const t = document.getElementById('demoToast');
@@ -3092,10 +3132,11 @@ function closeDemoWelcome(){
 }
 
 // Block all save/send actions in demo
-function previewEmail(){ demoBlock(); }
+function previewEmail(){ if(typeof IS_DEMO!=="undefined"&&IS_DEMO){ demoBlock(); } else { showToast("Förhandsgranskning ej tillgänglig i live-läge."); } }
 
 // Sidebar club label
 document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
+  document.getElementById('demoBanner').classList.add('active');
 
 // ── Instruktioner per passtyp ──
 const defaultInstructions = {
@@ -3585,28 +3626,34 @@ function useTemplate(type) {
   const subj = document.getElementById('emailSubject');
   const body = document.getElementById('emailBody');
   const linkCheck = document.getElementById('includeBookingLink');
+  const evName = (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet';
+  const clubN = (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen';
+  const contactEmail = (typeof CLUB !== 'undefined' && CLUB && CLUB.contact_email) || 'hej@lagpasset.se';
+  const deadline = (typeof EVENT !== 'undefined' && EVENT && EVENT.signup_deadline)
+    ? new Date(EVENT.signup_deadline).toLocaleDateString('sv-SE', { day:'numeric', month:'long' })
+    : 'sista anmälningsdag';
   if(type === 'invite') {
-    subj.value = 'Välj ditt pass \u2013 Åsacupen 2026';
-    body.value = 'Hej!\n\nDet är dags att välja volontärpass inför Åsacupen 2026. Klicka på knappen nedan, välj ett pass som passar dig \u2013 det tar bara en minut.\n\nSista anmälningsdag är 18 juni.\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF';
+    subj.value = `Välj ditt pass \u2013 ${evName}`;
+    body.value = `Hej!\n\nDet är dags att välja volontärpass inför ${evName}. Klicka på knappen nedan, välj ett pass som passar dig \u2013 det tar bara en minut.\n\nSista anmälningsdag är ${deadline}.\n\nHar du frågor, hör av dig till ${contactEmail}.\n\nHälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
   } else if(type === 'reminderManual') {
-    subj.value = 'Påminnelse: välj ditt pass \u2013 Åsacupen 2026';
-    body.value = 'Hej!\n\nVi påminner om att du ännu inte valt ett pass inför Åsacupen 2026. Sista dag är 18 juni.\n\nKlicka på knappen nedan för att välja ditt pass.\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF';
+    subj.value = `Påminnelse: välj ditt pass \u2013 ${evName}`;
+    body.value = `Hej!\n\nVi påminner om att du ännu inte valt ett pass inför ${evName}. Sista dag är ${deadline}.\n\nKlicka på knappen nedan för att välja ditt pass.\n\nHar du frågor, hör av dig till ${contactEmail}.\n\nHälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
   } else if(type === 'info') {
-    subj.value = 'Information inför Åsacupen 2026';
-    body.value = 'Hej!\n\nTack för att du hjälper till under Åsacupen 2026. Här kommer praktisk information inför helgen:\n\n\u2022 Anmäl dig vid infotältet minst 10 minuter före ditt pass\n\u2022 Klä dig efter väder \u2013 mycket utomhus\n\u2022 Föreningen bjuder på fika under passet\n\nVi ses på cupen!\n\nHälsningar,\nÅsa IF';
+    subj.value = `Information inför ${evName}`;
+    body.value = `Hej!\n\nTack för att du hjälper till under ${evName}. Här kommer praktisk information inför helgen:\n\n\u2022 Anmäl dig vid infotältet minst 10 minuter före ditt pass\n\u2022 Klä dig efter väder \u2013 mycket utomhus\n\u2022 Föreningen bjuder på fika under passet\n\nVi ses på cupen!\n\nHälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = false;
   } else if(type === 'thanks') {
-    subj.value = 'Tack för din insats \u2013 Åsacupen 2026! 🙏';
-    body.value = 'Hej!\n\nÅsacupen 2026 är avslutad och vi vill säga ett stort TACK!\n\nTack vare er hjälp kunde vi genomföra ett fantastiskt event. Utan er hade det inte varit möjligt.\n\nVi ses på Åsacupen 2027! \u26bd\n\nHälsningar,\nÅsa IF & cupkommittén';
+    subj.value = `Tack för din insats \u2013 ${evName}! 🙏`;
+    body.value = `Hej!\n\n${evName} är avslutad och vi vill säga ett stort TACK!\n\nTack vare er hjälp kunde vi genomföra ett fantastiskt event. Utan er hade det inte varit möjligt.\n\nHälsningar,\n${clubN} & cupkommittén`;
     if(linkCheck) linkCheck.checked = false;
   }
 }
 
 function editAutoTemplate(which){
   const titles = { confirm: 'Tack för bokat pass (automatiskt)', reminder: 'Automatisk påminnelse' };
-  alert('Här kan du redigera mallen "' + titles[which] + '".\n\nMalltexten sparas i databasen (kommer i nästa steg). Tills vidare används en standardtext.');
+  showToast('Mallar kan redigeras i nästa version.');
 }
 
 // På/av för automatisk påminnelse (sparas lokalt i webbläsaren)
@@ -3857,11 +3904,11 @@ function handleImportDrop(e) {
 function handleImportFile(file) {
   if (!file) return;
   if (!file.name.match(/\.(csv|txt)$/i)) {
-    alert('Välj en CSV-fil (.csv). Exportera från Excel via Arkiv → Spara som → CSV.');
+    showToast('Välj en CSV-fil (.csv).', 'error');
     return;
   }
   if (typeof Papa === 'undefined') {
-    alert('CSV-parsern laddades inte. Kontrollera din internetanslutning och försök igen.');
+    showToast('CSV-parsern laddades inte. Kontrollera anslutningen.', 'error');
     return;
   }
   Papa.parse(file, {
@@ -3869,7 +3916,7 @@ function handleImportFile(file) {
     skipEmptyLines: true,
     complete: function(results) {
       const rows = results.data;
-      if (!rows.length) { alert('Filen verkar tom.'); return; }
+      if (!rows.length) { showToast('Filen verkar tom.', 'error'); return; }
       const headers = rows[0].map(h => String(h).trim());
       _importData = rows.slice(1).filter(r => r.some(c => String(c).trim()));
       _importCols = _detectCols(headers);
@@ -3884,7 +3931,7 @@ function handleImportFile(file) {
          !_importCols.epost ? '⚠️ Kolumn för e-post saknas – välj nedan.' :
          '✓ Namn och e-post identifierade.');
     },
-    error: function(err) { alert('Kunde inte läsa filen: ' + err.message); }
+    error: function(err) { showToast('Kunde inte läsa filen: ' + err.message, 'error'); }
   });
 }
 
@@ -3926,7 +3973,7 @@ function _genToken() {
 
 async function runImport() {
   if (_importCols.namn === undefined || _importCols.epost === undefined) {
-    alert('Välj minst kolumnerna för Namn och E-post innan du importerar.');
+    showToast('Välj minst kolumnerna för Namn och E-post.', 'error');
     return;
   }
   const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
@@ -3949,7 +3996,7 @@ async function runImport() {
   const invalid = _importData.length - rows.length;
 
   if (!rows.length) {
-    alert('Inga giltiga rader hittades. Kontrollera att Namn och E-post är korrekt mappade.');
+    showToast('Inga giltiga rader hittades. Kontrollera kolumnmappningen.', 'error');
     btn.disabled = false; btn.textContent = 'Importera →';
     return;
   }
@@ -4075,6 +4122,102 @@ async function sendReminderNow(){
 }
 
 // INIT
+
+// ═══════════════════════════════════════
+// SEKTIONER
+// ═══════════════════════════════════════
+const DEFAULT_SECTIONS = ['Fotboll','Innebandy','Friidrott','Handboll','Basket','Tennis','Hela föreningen'];
+let _sectionsLoaded = false;
+
+async function renderSections(){
+  const wrap = document.getElementById('sectionPills');
+  if(!wrap) return;
+  if(!CLUB || !CLUB.id){ wrap.innerHTML = '<span style="font-size:13px;color:var(--muted)">Ingen förening kopplad.</span>'; return; }
+  try {
+    const rows = await sbFetch('sections', '?club_id=eq.' + CLUB.id + '&order=name.asc');
+    if(!rows.length && !_sectionsLoaded){
+      // Inga sektioner ännu — seeda standardlistan automatiskt och tyst
+      await seedDefaultSections();
+      return;
+    }
+    wrap.innerHTML = rows.map(r =>
+      `<span style="display:inline-flex;align-items:center;gap:.35rem;background:var(--green-light);color:var(--green);border-radius:100px;padding:4px 12px;font-size:13px;font-weight:600">
+        ${r.name}
+        <button onclick="deleteSection('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:14px;line-height:1;padding:0;opacity:.7" title="Ta bort">×</button>
+      </span>`
+    ).join('');
+    _sectionsLoaded = true;
+  } catch(e){
+    wrap.innerHTML = '<span style="font-size:13px;color:var(--muted)">Kunde inte ladda sektioner.</span>';
+  }
+}
+
+async function seedDefaultSections(){
+  if(!CLUB || !CLUB.id) return;
+  try {
+    const rows = DEFAULT_SECTIONS.map(name => ({ club_id: CLUB.id, name }));
+    const res = await fetch(SUPABASE_URL + '/rest/v1/sections', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(rows)
+    });
+    if(!res.ok) throw new Error(await res.text());
+    _sectionsLoaded = true;
+    await renderSections();
+    await loadClubSections();
+    showToast('Standardsektioner tillagda');
+  } catch(e){ showToast('Kunde inte lägga till sektioner', 'error'); }
+}
+
+async function deleteSection(id){
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/sections?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    if(!res.ok) throw new Error(await res.text());
+    await renderSections();
+    await loadClubSections();
+  } catch(e){ showToast('Kunde inte ta bort sektionen', 'error'); }
+}
+
+function openAddSection(){
+  const row = document.getElementById('addSectionRow');
+  if(row){ row.style.display = 'block'; setTimeout(()=>document.getElementById('newSectionInput').focus(),50); }
+}
+function closeAddSection(){
+  const row = document.getElementById('addSectionRow');
+  if(row){ row.style.display = 'none'; document.getElementById('newSectionInput').value = ''; }
+}
+
+async function saveNewSection(){
+  const input = document.getElementById('newSectionInput');
+  const name = input ? input.value.trim() : '';
+  if(!name){ showToast('Ange ett namn.', 'error'); return; }
+  if(!CLUB || !CLUB.id) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/sections', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify([{ club_id: CLUB.id, name }])
+    });
+    if(!res.ok) throw new Error(await res.text());
+    closeAddSection();
+    _sectionsLoaded = true;
+    await renderSections();
+    await loadClubSections();
+    showToast(name + ' tillagd');
+  } catch(e){ showToast('Kunde inte spara sektionen', 'error'); }
+}
+
+let CLUB_SECTIONS = [];
+async function loadClubSections(){
+  if(!CLUB || !CLUB.id) return;
+  try {
+    CLUB_SECTIONS = await sbFetch('sections', '?club_id=eq.' + CLUB.id + '&order=name.asc');
+  } catch(e){ CLUB_SECTIONS = []; }
+}
+
 async function init() {
   // Session-check — kräver inloggning om inte demo
   if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
@@ -4103,6 +4246,12 @@ async function init() {
   fillEventSettings();
   if(typeof fillProfile === 'function') fillProfile();
   if(typeof applyClubBranding === 'function') applyClubBranding();
+  // Säkerställ att rätt klubbnamn visas (aldrig demo-namn i live-läge)
+  if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
+    const _nameEl = document.getElementById('sidebarClubName');
+    if(_nameEl && CLUB && CLUB.name) _nameEl.textContent = CLUB.name;
+    else if(_nameEl && !CLUB) _nameEl.textContent = '';
+  }
   // Loggan tar tillbaka till arrangemangsväljaren
   const _logo = document.getElementById('logoLink');
   if(_logo) _logo.href = (typeof IS_DEMO !== 'undefined' && IS_DEMO) ? 'events_demo.html?valj=1' : 'events.html';
@@ -4153,5 +4302,68 @@ init();
     </button>
   </div>
 </nav>
+
+<script>
+
+// ── Confirm-modal (ersätter window.confirm) ────────────
+let _confirmResolve = null;
+function showConfirm(msg, okLabel){
+  document.getElementById('confirmMsg').textContent = msg;
+  if(okLabel) document.getElementById('confirmOkBtn').textContent = okLabel;
+  else document.getElementById('confirmOkBtn').textContent = 'OK';
+  document.getElementById('confirmModal').style.display = 'flex';
+  return new Promise(resolve => { _confirmResolve = resolve; });
+}
+function confirmResolve(val){
+  document.getElementById('confirmModal').style.display = 'none';
+  if(_confirmResolve){ _confirmResolve(val); _confirmResolve = null; }
+}
+
+</script>
+<script>
+// ── Ny version-banner ─────────────────────────────────────
+(function(){
+  let _initialTag = null;
+
+  async function checkVersion(){
+    try {
+      const res = await fetch(location.pathname + '?_=' + Date.now(), {
+        method: 'HEAD', cache: 'no-store'
+      });
+      const tag = res.headers.get('ETag') || res.headers.get('Last-Modified');
+      if(!tag) return;
+      if(!_initialTag){ _initialTag = tag; return; }
+      if(tag !== _initialTag) showUpdateBanner();
+    } catch(e){}
+  }
+
+  function showUpdateBanner(){
+    if(document.getElementById('lpUpdateBanner')) return;
+    const b = document.createElement('div');
+    b.id = 'lpUpdateBanner';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#1a8c3a;color:#fff;text-align:center;padding:10px 1rem;font-size:14px;font-weight:600;cursor:pointer;font-family:"Outfit",sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.2)';
+    b.innerHTML = '🔄 En uppdatering av LagPasset finns tillgänglig. <u>Klicka här för att ladda om.</u>';
+    b.onclick = () => location.reload();
+    document.body.prepend(b);
+  }
+
+  // Kolla direkt vid sidladdning för att sätta baseline
+  checkVersion();
+  // Kolla sedan var 5:e minut
+  setInterval(checkVersion, 5 * 60 * 1000);
+})();
+</script>
+
+<!-- Bekräftelse-modal -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(17,28,19,.45);z-index:9998;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:16px;max-width:380px;width:100%;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,.15)">
+    <div id="confirmMsg" style="font-size:15px;color:var(--dark);margin-bottom:1.25rem;line-height:1.5"></div>
+    <div style="display:flex;gap:.6rem;justify-content:flex-end">
+      <button onclick="confirmResolve(false)" style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:8px 20px;font-family:inherit;font-size:14px;cursor:pointer;color:var(--muted)">Avbryt</button>
+      <button id="confirmOkBtn" onclick="confirmResolve(true)" style="background:var(--green);color:#fff;border:none;border-radius:100px;padding:8px 20px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">OK</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
