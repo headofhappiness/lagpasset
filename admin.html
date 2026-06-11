@@ -2568,7 +2568,8 @@ async function mailAnsvarigLink(contactId){
         subject: 'Din länk som ' + c.area + ' – ' + evName,
         recipients: [{ name:c.name, email:c.email }],
         message: 'Hej ' + c.name + '!\n\nHär är din personliga länk för att hantera ' + c.area + ' under ' + evName + '. Du ser din besättning, kan dela info till dem och be om en extra resurs om ni blir för få. Ingen inloggning behövs – spara länken.\n\n' + url,
-        eventName: evName
+        eventName: evName,
+        clubName: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen'
       })
     });
     const data = await res.json();
@@ -2877,7 +2878,8 @@ async function sendTestEmail(){
         recipients: [{ name: 'Test', email: addr, token: 'demo-test-token' }],
         message: body,
         baseUrl: window.location.origin + '/guest.html',
-        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet'
+        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet',
+        clubName: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen'
       })
     });
     const data = await res.json();
@@ -2931,7 +2933,8 @@ async function sendEmail(){
         recipients: recipients,
         message: body,
         baseUrl: baseUrl,
-        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet'
+        eventName: (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet',
+        clubName: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen'
       })
     });
     const data = await res.json();
@@ -3058,7 +3061,8 @@ async function sendLinks(){
         recipients: recipients,
         message: message,
         baseUrl: baseUrl,
-        eventName: (EVENT && EVENT.name) || 'eventet'
+        eventName: (EVENT && EVENT.name) || 'eventet',
+        clubName: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen'
       })
     });
     const data = await res.json();
@@ -3585,21 +3589,27 @@ function useTemplate(type) {
   const subj = document.getElementById('emailSubject');
   const body = document.getElementById('emailBody');
   const linkCheck = document.getElementById('includeBookingLink');
+  const evName = (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet';
+  const clubN = (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen';
+  const contactEmail = (typeof CLUB !== 'undefined' && CLUB && CLUB.contact_email) || 'hej@lagpasset.se';
+  const deadline = (typeof EVENT !== 'undefined' && EVENT && EVENT.signup_deadline)
+    ? new Date(EVENT.signup_deadline).toLocaleDateString('sv-SE', { day:'numeric', month:'long' })
+    : 'sista anmälningsdag';
   if(type === 'invite') {
-    subj.value = 'Välj ditt pass \u2013 Åsacupen 2026';
-    body.value = 'Hej!\n\nDet är dags att välja volontärpass inför Åsacupen 2026. Klicka på knappen nedan, välj ett pass som passar dig \u2013 det tar bara en minut.\n\nSista anmälningsdag är 18 juni.\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF';
+    subj.value = `Välj ditt pass \u2013 ${evName}`;
+    body.value = `Hej!\n\nDet är dags att välja volontärpass inför ${evName}. Klicka på knappen nedan, välj ett pass som passar dig \u2013 det tar bara en minut.\n\nSista anmälningsdag är ${deadline}.\n\nHar du frågor, hör av dig till ${contactEmail}.\n\nHälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
   } else if(type === 'reminderManual') {
-    subj.value = 'Påminnelse: välj ditt pass \u2013 Åsacupen 2026';
-    body.value = 'Hej!\n\nVi påminner om att du ännu inte valt ett pass inför Åsacupen 2026. Sista dag är 18 juni.\n\nKlicka på knappen nedan för att välja ditt pass.\n\nHar du frågor, hör av dig till kansli@asaif.com.\n\nHälsningar,\nÅsa IF';
+    subj.value = `Påminnelse: välj ditt pass \u2013 ${evName}`;
+    body.value = `Hej!\n\nVi påminner om att du ännu inte valt ett pass inför ${evName}. Sista dag är ${deadline}.\n\nKlicka på knappen nedan för att välja ditt pass.\n\nHar du frågor, hör av dig till ${contactEmail}.\n\nHälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
   } else if(type === 'info') {
-    subj.value = 'Information inför Åsacupen 2026';
-    body.value = 'Hej!\n\nTack för att du hjälper till under Åsacupen 2026. Här kommer praktisk information inför helgen:\n\n\u2022 Anmäl dig vid infotältet minst 10 minuter före ditt pass\n\u2022 Klä dig efter väder \u2013 mycket utomhus\n\u2022 Föreningen bjuder på fika under passet\n\nVi ses på cupen!\n\nHälsningar,\nÅsa IF';
+    subj.value = `Information inför ${evName}`;
+    body.value = `Hej!\n\nTack för att du hjälper till under ${evName}. Här kommer praktisk information inför helgen:\n\n\u2022 Anmäl dig vid infotältet minst 10 minuter före ditt pass\n\u2022 Klä dig efter väder \u2013 mycket utomhus\n\u2022 Föreningen bjuder på fika under passet\n\nVi ses på cupen!\n\nHälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = false;
   } else if(type === 'thanks') {
-    subj.value = 'Tack för din insats \u2013 Åsacupen 2026! 🙏';
-    body.value = 'Hej!\n\nÅsacupen 2026 är avslutad och vi vill säga ett stort TACK!\n\nTack vare er hjälp kunde vi genomföra ett fantastiskt event. Utan er hade det inte varit möjligt.\n\nVi ses på Åsacupen 2027! \u26bd\n\nHälsningar,\nÅsa IF & cupkommittén';
+    subj.value = `Tack för din insats \u2013 ${evName}! 🙏`;
+    body.value = `Hej!\n\n${evName} är avslutad och vi vill säga ett stort TACK!\n\nTack vare er hjälp kunde vi genomföra ett fantastiskt event. Utan er hade det inte varit möjligt.\n\nHälsningar,\n${clubN} & cupkommittén`;
     if(linkCheck) linkCheck.checked = false;
   }
 }
