@@ -228,12 +228,15 @@ async function render(events){
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;max-width:760px">' +
 
         '<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column">' +
-          '<div style="font-size:1.75rem;margin-bottom:.75rem">📅</div>' +
-          '<div style="font-family:Nunito,sans-serif;font-size:1.1rem;font-weight:800;color:var(--dark);margin-bottom:.4rem">Skapa ett arrangemang</div>' +
-          '<p style="font-size:13.5px;color:var(--muted);line-height:1.65;flex:1;margin-bottom:1.25rem">Lägg upp ett cup eller event med datum och platser. Importera sedan deltagarlistan och skicka personliga bokningslänkar.</p>' +
-          '<button onclick="openNew()" style="background:var(--green);color:#fff;border:none;border-radius:100px;padding:11px 24px;font-family:Outfit,sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">Skapa arrangemang →</button>' +
+          '<div style="font-size:1.75rem;margin-bottom:.75rem">🏷️</div>' +
+          '<div style="font-family:Nunito,sans-serif;font-size:1.1rem;font-weight:800;color:var(--dark);margin-bottom:.4rem">Föreningens sektioner</div>' +
+          '<p style="font-size:13.5px;color:var(--muted);line-height:1.65;margin-bottom:.85rem">Kategorier för era arrangemang – t.ex. Fotboll eller Innebandy. Ta bort med × och lägg till nya.</p>' +
+          '<div id="quickSectionPills" style="display:flex;flex-wrap:wrap;gap:.4rem;min-height:28px;margin-bottom:.85rem"></div>' +
+          '<div style="display:flex;gap:.5rem">' +
+            '<input type="text" id="quickSectionInput" placeholder="Lägg till sektion..." style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px">' +
+            '<button onclick="quickAddSection()" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation">Lägg till</button>' +
+          '</div>' +
         '</div>' +
-
         '<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column">' +
           '<div style="font-size:1.75rem;margin-bottom:.75rem">🏷️</div>' +
           '<div style="font-family:Nunito,sans-serif;font-size:1.1rem;font-weight:800;color:var(--dark);margin-bottom:.4rem">Föreningens sektioner</div>' +
@@ -250,7 +253,14 @@ async function render(events){
           '</div>' +
         '</div>' +
 
-      '</div>';
+      '<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column">' +
+          '<div style="font-size:1.75rem;margin-bottom:.75rem">📅</div>' +
+          '<div style="font-family:Nunito,sans-serif;font-size:1.1rem;font-weight:800;color:var(--dark);margin-bottom:.4rem">Skapa ett arrangemang</div>' +
+          '<p style="font-size:13.5px;color:var(--muted);line-height:1.65;flex:1;margin-bottom:1.25rem">Lägg upp ett cup eller event med datum och platser. Importera sedan deltagarlistan och skicka personliga bokningslänkar.</p>' +
+          '<button onclick="openNew()" style="background:var(--green);color:#fff;border:none;border-radius:100px;padding:11px 24px;font-family:Outfit,sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">Skapa arrangemang →</button>' +
+        '</div>' +
+
+        '</div>';
     loadQuickSections();
     return;
   }
