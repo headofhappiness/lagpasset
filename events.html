@@ -258,6 +258,7 @@ async function render(events){
       partCount = parts.length;
     } catch(e){}
     const section = ev.section || 'Arrangemang';
+    const safeData = JSON.stringify({ id: ev.id, name: ev.name||'', section: ev.section||'', start: ev.date_start||'', end: ev.date_end||'' }).replace(/'/g, '&#39;');
     cards += '<div class="event-card-wrap" style="position:relative">' +
       '<a class="event-card" href="admin.html?event=' + ev.id + '">' +
       '<span class="tag">' + section + '</span>' +
@@ -265,8 +266,8 @@ async function render(events){
       '<div class="date">' + fmtRange(ev.date_start, ev.date_end) + '</div>' +
       '<div class="stats"><span><strong>' + shiftCount + '</strong> pass</span><span><strong>' + partCount + '</strong> deltagare</span></div>' +
       '</a>' +
-      '<button onclick="editEvent(\'' + ev.id + '\',\'' + (ev.name||'').replace(/'/g,'\\\'') + '\',\'' + (ev.section||'') + '\',\'' + (ev.date_start||'') + '\',\'' + (ev.date_end||'') + '\')" ' +
-      'style="position:absolute;top:.75rem;right:.75rem;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit;z-index:1" ' +
+      '<button onclick="editEventFromData(this)" data-ev=\'' + safeData + '\' ' +
+      'style="position:absolute;top:.75rem;right:.75rem;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit;z-index:1;touch-action:manipulation" ' +
       'title="Redigera arrangemang">✏️</button>' +
       '</div>';
   }
@@ -280,6 +281,13 @@ function closeNew(){
   document.getElementById('createMsg').style.display = 'none';
   document.getElementById('createBtn').disabled = false;
   document.getElementById('createBtn').textContent = 'Skapa →';
+}
+
+function editEventFromData(btn){
+  try {
+    const d = JSON.parse(btn.getAttribute('data-ev'));
+    editEvent(d.id, d.name, d.section, d.start, d.end);
+  } catch(e){ console.error('editEventFromData fel:', e); }
 }
 
 function editEvent(id, name, section, start, end){
