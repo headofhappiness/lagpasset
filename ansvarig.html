@@ -260,7 +260,7 @@ async function load(){
 function render(){
   document.getElementById('loadingState').style.display='none';
   document.getElementById('main').style.display='block';
-  document.getElementById('navClub').textContent = (EVENT && EVENT.club_name) ? EVENT.club_name : 'Åsa IF';
+  document.getElementById('navClub').textContent = (EVENT && EVENT.club_name) ? EVENT.club_name : 'Föreningen';
   document.getElementById('navEvent').textContent = (EVENT && EVENT.name) || 'Eventet';
   document.getElementById('stationName').textContent = STATION;
   document.getElementById('heroSub').textContent = 'Du är ansvarig för ' + STATION + '.' + (ANSVARIG && ANSVARIG.name ? ' (' + ANSVARIG.name + ')' : '');
