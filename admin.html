@@ -324,19 +324,19 @@ setVH(); window.addEventListener('resize',setVH);
       <!-- ① Tre nyckeltal -->
       <div class="grid-3" style="margin-bottom:1.1rem">
         <div class="stat-card green">
-          <div class="stat-num">81%</div>
+          <div class="stat-num" id="statPct">–</div>
           <div class="stat-label">Total beläggning</div>
           <div class="progress-wrap">
-            <div class="progress-bar"><div class="progress-fill" style="width:81%"></div></div>
-            <div class="progress-label"><span>105 bokade</span><span>129 totalt</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="statBar" style="width:0%"></div></div>
+            <div class="progress-label"><span id="statBooked">–</span><span id="statTotal">–</span></div>
           </div>
         </div>
         <div class="stat-card amber">
-          <div class="stat-num">24</div>
+          <div class="stat-num" id="statLeft">–</div>
           <div class="stat-label">Platser kvar att fylla</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num">22</div>
+          <div class="stat-num" id="statDays">–</div>
           <div class="stat-label">Dagar till event</div>
         </div>
       </div>
@@ -631,7 +631,7 @@ setVH(); window.addEventListener('resize',setVH);
 Har du frågor, kontakta oss på kansli@asaif.com.
 
 Hälsningar,
-Åsa IF</textarea>
+</textarea>
         </div>
 
         <label class="checkbox-row" style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;cursor:pointer">
@@ -1669,6 +1669,26 @@ function closeSidebar(){
 // DASHBOARD
 // ═══════════════════════════════════════
 function renderDashboard(){
+  // ① Uppdatera stat-korten med riktig data
+  const totalSlots = DB.shifts.reduce((s,sh) => s + (sh.slots||0), 0);
+  const totalBooked = DB.bookings.length;
+  const pct = totalSlots > 0 ? Math.round(totalBooked / totalSlots * 100) : 0;
+  const left = Math.max(0, totalSlots - totalBooked);
+  const daysEl = document.getElementById('statDays');
+  if(daysEl && EVENT && EVENT.date_start){
+    const diff = Math.ceil((new Date(EVENT.date_start) - new Date()) / 86400000);
+    daysEl.textContent = Math.max(0, diff);
+  } else if(daysEl){ daysEl.textContent = '–'; }
+  const pctEl = document.getElementById('statPct');
+  const barEl = document.getElementById('statBar');
+  const bookedEl = document.getElementById('statBooked');
+  const totalEl = document.getElementById('statTotal');
+  const leftEl = document.getElementById('statLeft');
+  if(pctEl) pctEl.textContent = totalSlots > 0 ? pct + '%' : '0%';
+  if(barEl) barEl.style.width = pct + '%';
+  if(bookedEl) bookedEl.textContent = totalBooked + ' bokade';
+  if(totalEl) totalEl.textContent = totalSlots + ' totalt';
+  if(leftEl) leftEl.textContent = left;
   // ② Behöver din uppmärksamhet
   renderAttention();
   // ③ Stationsbeläggning
@@ -1698,17 +1718,7 @@ function renderDashboard(){
       </tr>`;
     }).join('');
   } else {
-    tbody.innerHTML = TEAMS.map(t=>{
-      const rem = t.quota - t.booked;
-      const badgeCls = rem===0?'badge-green':rem<=3?'badge-amber':'badge-red';
-      return `<tr>
-        <td class="td-name">${t.name}</td>
-        <td>${t.quota}</td>
-        <td><strong style="color:var(--green)">${t.booked}</strong></td>
-        <td>${rem}</td>
-        <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
-      </tr>`;
-    }).join('');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem;font-style:italic">Inga deltagare importerade ännu.</td></tr>';
   }
 }
 
@@ -4235,6 +4245,12 @@ async function init() {
   fillEventSettings();
   if(typeof fillProfile === 'function') fillProfile();
   if(typeof applyClubBranding === 'function') applyClubBranding();
+  // Säkerställ att rätt klubbnamn visas (aldrig demo-namn i live-läge)
+  if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
+    const _nameEl = document.getElementById('sidebarClubName');
+    if(_nameEl && CLUB && CLUB.name) _nameEl.textContent = CLUB.name;
+    else if(_nameEl && !CLUB) _nameEl.textContent = '';
+  }
   // Loggan tar tillbaka till arrangemangsväljaren
   const _logo = document.getElementById('logoLink');
   if(_logo) _logo.href = (typeof IS_DEMO !== 'undefined' && IS_DEMO) ? 'events_demo.html?valj=1' : 'events.html';
