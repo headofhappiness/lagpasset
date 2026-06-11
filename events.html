@@ -118,9 +118,10 @@ input,select,textarea{font-size:16px !important}
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeNew()">Avbryt</button>
-      <button class="btn btn-primary" onclick="createEvent()">Skapa →</button>
+      <button class="btn btn-ghost" onclick="closeNew()" style="touch-action:manipulation">Avbryt</button>
+      <button class="btn btn-primary" id="createBtn" onclick="createEvent()" style="touch-action:manipulation">Skapa →</button>
     </div>
+    <div id="createMsg" style="display:none;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem;background:#fdecea;color:#c0392b"></div>
   </div>
 </div>
 
@@ -274,7 +275,12 @@ async function render(events){
 }
 
 function openNew(){ document.getElementById('modalNew').classList.add('open'); }
-function closeNew(){ document.getElementById('modalNew').classList.remove('open'); }
+function closeNew(){
+  document.getElementById('modalNew').classList.remove('open');
+  document.getElementById('createMsg').style.display = 'none';
+  document.getElementById('createBtn').disabled = false;
+  document.getElementById('createBtn').textContent = 'Skapa →';
+}
 
 function editEvent(id, name, section, start, end){
   document.getElementById('editId').value = id;
@@ -317,7 +323,15 @@ async function createEvent(){
   const section = document.getElementById('newSection').value;
   const start = document.getElementById('newStart').value;
   const end = document.getElementById('newEnd').value;
-  if(!name || !start){ alert('Fyll i namn och första dag.'); return; }
+  const msg = document.getElementById('createMsg');
+  const btn = document.getElementById('createBtn');
+  msg.style.display = 'none';
+  if(!name || !start){
+    msg.textContent = 'Fyll i namn och första dag.';
+    msg.style.display = 'block';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Skapar...';
   try {
     const row = { name: name, section: section, date_start: start, date_end: end || start };
     if(CLUB_ID) row.club_id = CLUB_ID;
@@ -330,7 +344,9 @@ async function createEvent(){
     }
   } catch(e){
     console.error(e);
-    alert('Kunde inte skapa arrangemanget. (Tips: kolla att events-tabellen har en "section"-kolumn.)');
+    msg.textContent = 'Kunde inte skapa arrangemanget: ' + (e.message || 'okänt fel');
+    msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Skapa →';
   }
 }
 
