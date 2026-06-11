@@ -528,5 +528,39 @@ init();
   </div>
 </div>
 
+
+<script>
+// ── Ny version-banner ─────────────────────────────────────
+(function(){
+  let _initialTag = null;
+
+  async function checkVersion(){
+    try {
+      const res = await fetch(location.pathname + '?_=' + Date.now(), {
+        method: 'HEAD', cache: 'no-store'
+      });
+      const tag = res.headers.get('ETag') || res.headers.get('Last-Modified');
+      if(!tag) return;
+      if(!_initialTag){ _initialTag = tag; return; }
+      if(tag !== _initialTag) showUpdateBanner();
+    } catch(e){}
+  }
+
+  function showUpdateBanner(){
+    if(document.getElementById('lpUpdateBanner')) return;
+    const b = document.createElement('div');
+    b.id = 'lpUpdateBanner';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#1a8c3a;color:#fff;text-align:center;padding:10px 1rem;font-size:14px;font-weight:600;cursor:pointer;font-family:"Outfit",sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.2)';
+    b.innerHTML = '🔄 En uppdatering av LagPasset finns tillgänglig. <u>Klicka här för att ladda om.</u>';
+    b.onclick = () => location.reload();
+    document.body.prepend(b);
+  }
+
+  // Kolla direkt vid sidladdning för att sätta baseline
+  checkVersion();
+  // Kolla sedan var 5:e minut
+  setInterval(checkVersion, 5 * 60 * 1000);
+})();
+</script>
 </body>
 </html>
