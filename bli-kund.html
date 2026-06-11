@@ -84,11 +84,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
         <div class="option-cta">Välj tid som passar →</div>
       </div>
     </a>
-    <a href="mailto:lisa@headofhappiness.se?subject=Intress%20Lagpasset&body=Hej%20Lisa%2C%0A%0AJag%20%C3%A4r%20intresserad%20av%20Lagpasset.%0A%0AF%C3%B6rening%3A%20%0AKontakt%3A%20%0ATelefon%3A%20%0A%0AH%C3%A4lsningar" class="option-card">
+    <a href="mailto:hej@lagpasset.se?subject=Intress%20Lagpasset&body=Hej%20Lisa%2C%0A%0AJag%20%C3%A4r%20intresserad%20av%20Lagpasset.%0A%0AF%C3%B6rening%3A%20%0AKontakt%3A%20%0ATelefon%3A%20%0A%0AH%C3%A4lsningar" class="option-card">
       <div class="option-icon">📧</div>
       <div class="option-body">
         <div class="option-title">Skicka ett mejl direkt</div>
-        <div class="option-desc">Öppnar ett förifyllt mejl till lisa@headofhappiness.se. Fyll i er förenings namn och kontaktinfo – vi återkommer snabbt.</div>
+        <div class="option-desc">Öppnar ett förifyllt mejl till hej@lagpasset.se. Fyll i er förenings namn och kontaktinfo – vi återkommer snabbt.</div>
         <div class="option-cta">Öppna mejl →</div>
       </div>
     </a>
@@ -171,7 +171,7 @@ function sendForm(){
     (phone ? 'Telefon: ' + phone + '\n' : '') + 'E-post: ' + email + '\n' +
     (msg ? '\nMeddelande:\n' + msg + '\n' : '') + '\nHälsningar,\n' + name
   );
-  window.location.href = 'mailto:lisa@headofhappiness.se?subject=' + subject + '&body=' + body;
+  window.location.href = 'mailto:hej@lagpasset.se?subject=' + subject + '&body=' + body;
   document.getElementById('submitBtn').disabled = true;
   msgEl.className = 'msg ok';
   msgEl.textContent = '✓ Öppnar din mejlapp – se att mejlet skickas, så hör vi av oss!';
