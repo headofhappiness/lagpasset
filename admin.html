@@ -4119,8 +4119,8 @@ async function renderSections(){
   try {
     const rows = await sbFetch('sections', '?club_id=eq.' + CLUB.id + '&order=name.asc');
     if(!rows.length && !_sectionsLoaded){
-      wrap.innerHTML = '<span style="font-size:13px;color:var(--muted);font-style:italic">Inga sektioner ännu. </span>' +
-        '<button onclick="seedDefaultSections()" style="background:none;border:none;color:var(--green);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:underline">Lägg till standardsektioner →</button>';
+      // Inga sektioner ännu — seeda standardlistan automatiskt och tyst
+      await seedDefaultSections();
       return;
     }
     wrap.innerHTML = rows.map(r =>
