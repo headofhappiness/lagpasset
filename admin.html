@@ -1279,6 +1279,9 @@ const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 async function adminLogout(){ await _sbAuth.auth.signOut(); window.location.href = 'login.html'; }
 const _eventParam = (new URLSearchParams(window.location.search)).get('event');
 const _demoName = (new URLSearchParams(window.location.search)).get('namn');
+if(!_eventParam && !window.location.pathname.includes('admin_demo')){
+  window.location.href = 'events.html';
+}
 const EVENT_ID = _eventParam || '00000000-0000-0000-0000-000000000002';
 
 async function sbFetch(table, params) {
