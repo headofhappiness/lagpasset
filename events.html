@@ -118,7 +118,7 @@ input,select,textarea{font-size:16px !important}
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeNew()" style="touch-action:manipulation">Avbryt</button>
-      <button class="btn btn-primary" id="createBtn" onclick="createEvent()" style="touch-action:manipulation">Skapa →</button>
+      <button class="btn btn-primary" id="createBtn" onclick="submitNewEvent()" style="touch-action:manipulation">Skapa →</button>
     </div>
     <div id="createMsg" style="display:none;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem;background:#fdecea;color:#c0392b"></div>
   </div>
@@ -447,7 +447,7 @@ async function saveEventEdit(){
   }
 }
 
-async function createEvent(){
+async function submitNewEvent(){
   const name = document.getElementById('newName').value.trim();
   const section = document.getElementById('newSection').value;
   const start = document.getElementById('newStart').value;
