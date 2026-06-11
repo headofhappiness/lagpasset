@@ -104,15 +104,7 @@ input,select,textarea{font-size:16px !important}
     <div class="form-group">
       <label class="form-label">Sektion</label>
       <input id="newSection" list="sectionSuggestions" placeholder="Ex. Fotboll" autocomplete="off">
-      <datalist id="sectionSuggestions">
-        <option value="Fotboll">
-        <option value="Innebandy">
-        <option value="Pingis">
-        <option value="Basket">
-        <option value="Handboll">
-        <option value="Tennis">
-        <option value="Hela föreningen">
-      </datalist>
+      <datalist id="sectionSuggestions"></datalist>
     </div>
     <div class="inline-2">
       <div class="form-group">
@@ -219,6 +211,7 @@ async function load(){
     } else {
       events = [];
     }
+    await loadSectionSuggestions();
     render(events);
   } catch(e){
     console.error(e);
@@ -297,6 +290,18 @@ function filterSection(section, btn){
       wrap.style.display = 'none';
     }
   });
+}
+
+
+async function loadSectionSuggestions(){
+  if(!CLUB_ID) return;
+  try {
+    const rows = await sb('sections?club_id=eq.' + CLUB_ID + '&order=name.asc&select=name');
+    const dl = document.getElementById('sectionSuggestions');
+    if(dl && rows.length){
+      dl.innerHTML = rows.map(r => `<option value="${r.name}">`).join('');
+    }
+  } catch(e){ /* tyst fel — datalist är ett bonus-feature */ }
 }
 
 function openNew(){ document.getElementById('modalNew').classList.add('open'); }

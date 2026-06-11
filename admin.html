@@ -877,6 +877,26 @@ Hälsningar,
         </table></div>
       </div>
 
+      <div class="card" style="margin-bottom:1.25rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;gap:.5rem;flex-wrap:wrap">
+          <div>
+            <div class="card-title">Föreningens sektioner</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px">Sektionerna används som kategorier på era arrangemang. Lägg till och ta bort fritt.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openAddSection()">+ Ny sektion</button>
+        </div>
+        <div id="sectionPills" style="display:flex;flex-wrap:wrap;gap:.5rem;min-height:32px">
+          <span style="font-size:13px;color:var(--muted);font-style:italic">Laddar...</span>
+        </div>
+        <div id="addSectionRow" style="display:none;margin-top:.85rem;display:none">
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <input type="text" id="newSectionInput" placeholder="Ex. Herr 1" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px" onkeydown="if(event.key==='Enter')saveNewSection()">
+            <button class="btn btn-primary btn-sm" onclick="saveNewSection()">Lägg till</button>
+            <button class="btn btn-ghost btn-sm" onclick="closeAddSection()">Avbryt</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
           <div>
@@ -1623,7 +1643,7 @@ function showSection(id){
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='pool'){ renderPoolTable(); renderResourceRequests(); }
-  if(id==='settings'){ renderContactsTable(); renderFaqList(); }
+  if(id==='settings'){ renderContactsTable(); renderFaqList(); renderSections(); }
   if(id==='shifts'){ renderStationRows(); }
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) setTimeout(closeSidebar, 50);
@@ -4085,6 +4105,102 @@ async function sendReminderNow(){
 }
 
 // INIT
+
+// ═══════════════════════════════════════
+// SEKTIONER
+// ═══════════════════════════════════════
+const DEFAULT_SECTIONS = ['Fotboll','Innebandy','Pingis','Basket','Handboll','Tennis','Hela föreningen'];
+let _sectionsLoaded = false;
+
+async function renderSections(){
+  const wrap = document.getElementById('sectionPills');
+  if(!wrap) return;
+  if(!CLUB || !CLUB.id){ wrap.innerHTML = '<span style="font-size:13px;color:var(--muted)">Ingen förening kopplad.</span>'; return; }
+  try {
+    const rows = await sbFetch('sections', '?club_id=eq.' + CLUB.id + '&order=name.asc');
+    if(!rows.length && !_sectionsLoaded){
+      wrap.innerHTML = '<span style="font-size:13px;color:var(--muted);font-style:italic">Inga sektioner ännu. </span>' +
+        '<button onclick="seedDefaultSections()" style="background:none;border:none;color:var(--green);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:underline">Lägg till standardsektioner →</button>';
+      return;
+    }
+    wrap.innerHTML = rows.map(r =>
+      `<span style="display:inline-flex;align-items:center;gap:.35rem;background:var(--green-light);color:var(--green);border-radius:100px;padding:4px 12px;font-size:13px;font-weight:600">
+        ${r.name}
+        <button onclick="deleteSection('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:14px;line-height:1;padding:0;opacity:.7" title="Ta bort">×</button>
+      </span>`
+    ).join('');
+    _sectionsLoaded = true;
+  } catch(e){
+    wrap.innerHTML = '<span style="font-size:13px;color:var(--muted)">Kunde inte ladda sektioner.</span>';
+  }
+}
+
+async function seedDefaultSections(){
+  if(!CLUB || !CLUB.id) return;
+  try {
+    const rows = DEFAULT_SECTIONS.map(name => ({ club_id: CLUB.id, name }));
+    const res = await fetch(SUPABASE_URL + '/rest/v1/sections', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(rows)
+    });
+    if(!res.ok) throw new Error(await res.text());
+    _sectionsLoaded = true;
+    await renderSections();
+    await loadClubSections();
+    showToast('Standardsektioner tillagda');
+  } catch(e){ showToast('Kunde inte lägga till sektioner', 'error'); }
+}
+
+async function deleteSection(id){
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/sections?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    if(!res.ok) throw new Error(await res.text());
+    await renderSections();
+    await loadClubSections();
+  } catch(e){ showToast('Kunde inte ta bort sektionen', 'error'); }
+}
+
+function openAddSection(){
+  const row = document.getElementById('addSectionRow');
+  if(row){ row.style.display = 'block'; setTimeout(()=>document.getElementById('newSectionInput').focus(),50); }
+}
+function closeAddSection(){
+  const row = document.getElementById('addSectionRow');
+  if(row){ row.style.display = 'none'; document.getElementById('newSectionInput').value = ''; }
+}
+
+async function saveNewSection(){
+  const input = document.getElementById('newSectionInput');
+  const name = input ? input.value.trim() : '';
+  if(!name){ showToast('Ange ett namn.', 'error'); return; }
+  if(!CLUB || !CLUB.id) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/sections', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify([{ club_id: CLUB.id, name }])
+    });
+    if(!res.ok) throw new Error(await res.text());
+    closeAddSection();
+    _sectionsLoaded = true;
+    await renderSections();
+    await loadClubSections();
+    showToast(name + ' tillagd');
+  } catch(e){ showToast('Kunde inte spara sektionen', 'error'); }
+}
+
+let CLUB_SECTIONS = [];
+async function loadClubSections(){
+  if(!CLUB || !CLUB.id) return;
+  try {
+    CLUB_SECTIONS = await sbFetch('sections', '?club_id=eq.' + CLUB.id + '&order=name.asc');
+  } catch(e){ CLUB_SECTIONS = []; }
+}
+
 async function init() {
   // Session-check — kräver inloggning om inte demo
   if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
