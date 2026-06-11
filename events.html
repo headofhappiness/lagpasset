@@ -386,7 +386,6 @@ async function quickAddSection(){
       return;
     }
     input.value = '';
-    document.getElementById('quickSectionAdd').style.display = 'none';
     await loadQuickSections();
   } catch(e){
     if(wrap) wrap.innerHTML = '<span style="color:#c0392b;font-size:13px">Fel: ' + e.message + '</span>';
