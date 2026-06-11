@@ -300,8 +300,8 @@ function buildWelcomeHtml(adminName, clubName, email){
     ['4','Skicka ut bokningslänkarna','Klicka Skicka länk – varje deltagare väljer sitt pass i mobilen och ni ser beläggningen i realtid.'],
   ];
   var stepsHtml = steps.map(function(s){
-    return '<div style="display:flex;gap:.7rem;margin-bottom:.75rem;align-items:flex-start">'+
-      '<div style="width:22px;height:22px;min-width:22px;border-radius:50%;background:'+green+';color:#fff;font-size:12px;font-weight:800;text-align:center;line-height:22px;flex-shrink:0;margin-top:2px">'+s[0]+'</div>'+
+    return '<div style="display:flex;margin-bottom:.75rem;align-items:flex-start">'+
+      '<div style="width:22px;height:22px;min-width:22px;border-radius:50%;background:'+green+';color:#fff;font-size:12px;font-weight:800;text-align:center;line-height:22px;flex-shrink:0;margin-top:2px;margin-right:12px">'+s[0]+'</div>'+
       '<div><div style="font-size:13px;font-weight:700;color:'+dark+';margin-bottom:1px">'+s[1]+'</div>'+
       '<div style="font-size:12px;color:'+muted+';line-height:1.5">'+s[2]+'</div></div></div>';
   }).join('');
