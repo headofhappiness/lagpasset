@@ -257,7 +257,7 @@ setVH(); window.addEventListener('resize',setVH);
   <div class="sidebar-logo">
     <a id="logoLink" href="events.html" title="Byt arrangemang" style="display:flex;align-items:center;cursor:pointer;flex-shrink:0"><img src="logo-white.png" alt="LagPasset" style="height:24px;width:auto;display:block"></a>
     <div id="sidebarClubLogo" style="margin-left:auto;display:none;align-items:center"></div>
-    <div class="club-name" id="sidebarClubName" style="margin-left:auto;text-align:right;line-height:1.2">Åsa IF</div>
+    <div class="club-name" id="sidebarClubName" style="margin-left:auto;text-align:right;line-height:1.2"></div>
   </div>
   <div class="sidebar-event" id="sidebarEvent" style="display:none">📅 <span id="sidebarEventName"></span></div>
   <nav class="nav-items">
@@ -289,7 +289,7 @@ setVH(); window.addEventListener('resize',setVH);
   </nav>
   <div class="sidebar-footer" style="display:flex;flex-direction:column;align-items:flex-start;gap:.4rem">
     <img src="logo-white.png" alt="LagPasset" style="height:15px;width:auto;opacity:.6">
-    <span>Lagpasset.se · v1.0</span>
+    <span>Lagpasset.se</span>
   </div>
 </aside>
 
@@ -832,7 +832,7 @@ Hälsningar,
         <div class="inline-2">
           <div class="form-group">
             <label class="form-label">Föreningsnamn</label>
-            <input type="text" id="clubName" value="Åsa IF">
+            <input type="text" id="clubName">
           </div>
           <div class="form-group">
             <label class="form-label">Kontakt-e-post</label>
@@ -2669,7 +2669,7 @@ function printStations(stationList){
       .sort((a,b) => (a.date + a.time_start).localeCompare(b.date + b.time_start));
     html += '<div class="station-page">';
     html += '<h1>' + station + '</h1>';
-    html += '<div class="sub">Åsacupen 2026 · Åsa IF</div>';
+    html += (EVENT && EVENT.name) ? '<div class="sub">' + (EVENT.name) + (CLUB && CLUB.name ? ' · ' + CLUB.name : '') + '</div>' : '';
 
     shifts.forEach(s => {
       const bookings = DB.bookings.filter(b => b.shift_id === s.id);
