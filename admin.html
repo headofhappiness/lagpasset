@@ -1863,7 +1863,7 @@ function renderAttention(){
   const bookedIds = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
   const _isDemoMode = typeof IS_DEMO !== 'undefined' && IS_DEMO;
   const _partSource = _isDemoMode ? CHILDREN : DB.participants;
-  const remaining = _partSource.length ? (_isDemoMode ? _partSource.filter(p => !p.booked).length : _partSource.filter(p => !bookedIds.has(p.id)).length) : 24;
+  const remaining = _isDemoMode ? (_partSource.filter(p => !p.booked).length) : (_partSource.filter(p => !bookedIds.has(p.id)).length);
   if(remaining > 0){
     // Räkna ut när automatisk påminnelse går ut
     let reminderInfo = '';
@@ -1966,8 +1966,8 @@ function renderChildTable(){
 
   // I demo: visa alltid hårdkodad fake-data, aldrig riktig DB-data
   const forceDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
-  const source = (!forceDemo && DB.participants.length) ? DB.participants : CHILDREN;
-  const useDB = !forceDemo && DB.participants.length > 0;
+  const source = forceDemo ? CHILDREN : DB.participants;
+  const useDB = !forceDemo;
 
   const filtered = source.filter(c=>{
     const name = useDB ? c.name : c.name;
