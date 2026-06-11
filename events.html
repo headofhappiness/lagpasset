@@ -279,7 +279,7 @@ async function render(events){
   if(sections.length > 1){
     filterHtml = '<div class="section-filters">' +
       '<button class="sf-btn active" onclick="filterSection(null,this)">Alla</button>' +
-      sections.map(s => '<button class="sf-btn" onclick="filterSection('' + s + '',this)">' + s + '</button>').join('') +
+      sections.map(s => '<button class="sf-btn" onclick="filterSection(\'' + s.replace(/'/g, "\\'") + '\',this)">' + s + '</button>').join('') +
       '</div>';
   }
   document.getElementById('eventList').innerHTML = filterHtml + '<div class="event-grid" id="eventGrid">' + cards + '</div>';
