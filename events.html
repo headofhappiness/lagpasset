@@ -124,7 +124,44 @@ input,select,textarea{font-size:16px !important}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Redigera event-modal -->
+<div class="modal-overlay" id="modalEdit">
+  <div class="modal">
+    <div class="modal-title">Redigera arrangemang</div>
+    <input type="hidden" id="editId">
+    <div class="form-group">
+      <label class="form-label">Namn</label>
+      <input type="text" id="editName" placeholder="Ex. Åsacupen 2026">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sektion</label>
+      <select id="editSection">
+        <option>Fotboll</option>
+        <option>Innebandy</option>
+        <option>Pingis</option>
+        <option>Hela föreningen</option>
+        <option>Annat</option>
+      </select>
+    </div>
+    <div class="inline-2">
+      <div class="form-group">
+        <label class="form-label">Första dag</label>
+        <input type="date" id="editStart">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sista dag</label>
+        <input type="date" id="editEnd">
+      </div>
+    </div>
+    <div id="editEventMsg" style="display:none;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-bottom:.5rem"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEdit()">Avbryt</button>
+      <button class="btn btn-primary" id="editSaveBtn" onclick="saveEventEdit()">Spara →</button>
+    </div>
+  </div>
+</div>
+
+
 <script>
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
@@ -220,12 +257,17 @@ async function render(events){
       partCount = parts.length;
     } catch(e){}
     const section = ev.section || 'Arrangemang';
-    cards += '<a class="event-card" href="admin.html?event=' + ev.id + '">' +
+    cards += '<div class="event-card-wrap" style="position:relative">' +
+      '<a class="event-card" href="admin.html?event=' + ev.id + '">' +
       '<span class="tag">' + section + '</span>' +
       '<h3>' + (ev.name || 'Namnlöst event') + '</h3>' +
       '<div class="date">' + fmtRange(ev.date_start, ev.date_end) + '</div>' +
       '<div class="stats"><span><strong>' + shiftCount + '</strong> pass</span><span><strong>' + partCount + '</strong> deltagare</span></div>' +
-      '</a>';
+      '</a>' +
+      '<button onclick="editEvent(\'' + ev.id + '\',\'' + (ev.name||'').replace(/'/g,'\\\'') + '\',\'' + (ev.section||'') + '\',\'' + (ev.date_start||'') + '\',\'' + (ev.date_end||'') + '\')" ' +
+      'style="position:absolute;top:.75rem;right:.75rem;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit;z-index:1" ' +
+      'title="Redigera arrangemang">✏️</button>' +
+      '</div>';
   }
   cards += '<div class="event-card new" onclick="openNew()"><div class="plus">+</div><div>Skapa nytt arrangemang</div></div>';
   document.getElementById('eventList').innerHTML = '<div class="section-label">Aktiva arrangemang</div><div class="event-grid">' + cards + '</div>';
@@ -233,6 +275,42 @@ async function render(events){
 
 function openNew(){ document.getElementById('modalNew').classList.add('open'); }
 function closeNew(){ document.getElementById('modalNew').classList.remove('open'); }
+
+function editEvent(id, name, section, start, end){
+  document.getElementById('editId').value = id;
+  document.getElementById('editName').value = name;
+  document.getElementById('editSection').value = section || 'Fotboll';
+  document.getElementById('editStart').value = start;
+  document.getElementById('editEnd').value = end;
+  document.getElementById('editEventMsg').style.display = 'none';
+  document.getElementById('editSaveBtn').disabled = false;
+  document.getElementById('editSaveBtn').textContent = 'Spara →';
+  document.getElementById('modalEdit').classList.add('open');
+}
+function closeEdit(){ document.getElementById('modalEdit').classList.remove('open'); }
+
+async function saveEventEdit(){
+  const id = document.getElementById('editId').value;
+  const name = document.getElementById('editName').value.trim();
+  const section = document.getElementById('editSection').value;
+  const start = document.getElementById('editStart').value;
+  const end = document.getElementById('editEnd').value;
+  const msg = document.getElementById('editEventMsg');
+  const btn = document.getElementById('editSaveBtn');
+  if(!name || !start){ msg.style.cssText='display:block;background:#fdecea;color:#c0392b'; msg.textContent='Namn och startdatum krävs.'; return; }
+  btn.disabled = true; btn.textContent = 'Sparar...';
+  try {
+    await sb('events?id=eq.' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({ name, section, date_start: start, date_end: end || start })
+    });
+    closeEdit();
+    load();
+  } catch(e){
+    msg.style.cssText='display:block;background:#fdecea;color:#c0392b'; msg.textContent='Kunde inte spara: ' + (e.message||'okänt fel');
+    btn.disabled = false; btn.textContent = 'Spara →';
+  }
+}
 
 async function createEvent(){
   const name = document.getElementById('newName').value.trim();
