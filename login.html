@@ -66,6 +66,10 @@ input:focus{outline:none;border-color:var(--green)}
 <script>
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
+
+// Läs hash INNAN Supabase-klienten skapas — klienten rensar den direkt vid initiering
+const _hadMagicLink = window.location.hash.includes('access_token');
+
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function show(id){ document.getElementById('checking').classList.add('hidden'); document.getElementById(id).classList.remove('hidden'); }
@@ -115,30 +119,27 @@ async function sendLink(){
   btn.disabled = false; btn.textContent = 'Skicka inloggningslänk';
 }
 
-// Vid sidladdning: redan inloggad (eller just klickat magic link)?
-let _expectingSignIn = false; // sätts bara true om vi aktivt processar en magic link
+// Vid sidladdning: visa alltid formuläret om inte magic link detekterades
+let _expectingSignIn = _hadMagicLink;
 
 (async function(){
-  // Om ?logout=1 → logga ut och visa formuläret
   if(new URLSearchParams(location.search).get('logout') === '1'){
     await sb.auth.signOut();
     history.replaceState({}, '', 'login.html');
     show('loginForm');
     return;
   }
-  // Auto-redirect BARA om det finns en magic link i URL-hashen
-  // Navigerar man hit manuellt (även med aktiv session) visas alltid formuläret
-  const hasMagicLink = location.hash && location.hash.includes('access_token');
-  if(hasMagicLink){
-    _expectingSignIn = true;
+  if(_hadMagicLink){
+    // Magic link klickad — vänta på session (onAuthStateChange hanterar routing)
     const { data:{ session } } = await sb.auth.getSession();
     if(session && session.user){ await routeUser(session.user); return; }
+    // Session inte klar än — onAuthStateChange tar över
+    return;
   }
+  // Manuell navigation — visa alltid formuläret oavsett aktiv session
   show('loginForm');
 })();
 
-// onAuthStateChange används bara för att fånga upp magic link-flödet
-// SIGNED_IN triggar även vid session-restore — vi ignorerar det om vi inte väntar på det
 sb.auth.onAuthStateChange((event, session) => {
   if(event === 'SIGNED_IN' && session && session.user && _expectingSignIn){
     routeUser(session.user);
