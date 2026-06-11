@@ -1374,8 +1374,8 @@ async function saveEventSettings(){
   const name = document.getElementById('setEventName').value.trim();
   const start = document.getElementById('setEventStart').value;
   const end = document.getElementById('setEventEnd').value;
-  if(!name || !start){ alert('Fyll i eventnamn och första eventdag.'); return; }
-  if(end && end < start){ alert('Sista eventdagen kan inte vara före första.'); return; }
+  if(!name || !start){ showToast('Fyll i eventnamn och första eventdag.', 'error'); return; }
+  if(end && end < start){ showToast('Sista eventdagen kan inte vara före första.', 'error'); return; }
   const deadline = document.getElementById('setDeadline').value || null;
   const reminderDays = parseInt(document.getElementById('setReminderDays').value) || 5;
   const participation = document.getElementById('setParticipation').value;
@@ -1419,7 +1419,7 @@ function showLogoPreview(dataUrl){
 function handleLogoUpload(event){
   const file = event.target.files[0];
   if(!file) return;
-  if(file.size > 1024*1024){ alert('Filen är för stor (max 1 MB). Välj en mindre bild.'); return; }
+  if(file.size > 1024*1024){ showToast('Filen är för stor (max 1 MB).', 'error'); return; }
   const reader = new FileReader();
   reader.onload = function(e){
     // Krymp bilden via canvas så base64 hålls liten (max 400px)
@@ -2305,9 +2305,9 @@ async function createShift(){
   const contactPhone = document.getElementById('nsContactPhone').value.trim();
   const notes = document.getElementById('nsNotes').value.trim();
 
-  if(!title){ alert('Ange ett passnamn.'); return; }
-  if(!date){ alert('Välj en dag. (Ange eventets datum i Inställningar om listan är tom.)'); return; }
-  if(!start || !end){ alert('Ange start- och sluttid.'); return; }
+  if(!title){ showToast('Ange ett passnamn.', 'error'); return; }
+  if(!date){ showToast('Välj en dag för passet.', 'error'); return; }
+  if(!start || !end){ showToast('Ange start- och sluttid.', 'error'); return; }
 
   const payload = {
     event_id: EVENT_ID, title, date, time_start: start, time_end: end, slots,
@@ -2396,7 +2396,7 @@ function requestFillPool(reqId){
     const cands = DB.shifts.filter(s => s.title.toLowerCase() === r.station.toLowerCase());
     shift = cands.find(s => (s.slots - DB.bookings.filter(b => b.shift_id === s.id).length) > 0) || cands[0];
   }
-  if(!shift){ alert('Hittade inget pass i kategorin "' + r.station + '" att fylla.'); return; }
+  if(!shift){ showToast('Hittade inget pass att fylla i den kategorin.', 'error'); return; }
   openFillPool(shift.id);
   window._pendingResourceReq = reqId;
 }
@@ -2445,7 +2445,7 @@ function openFillPool(shiftId){
 async function confirmFillPool(){
   const manual = document.getElementById('fillPoolManual').value.trim();
   const name = manual || fillPoolSelected;
-  if(!name){ alert('Välj en person ur poolen eller skriv in ett namn.'); return; }
+  if(!name){ showToast('Välj en person eller skriv in ett namn.', 'error'); return; }
   try {
     const result = await sbInsert('bookings', {
       shift_id: fillPoolShiftId,
@@ -2492,7 +2492,7 @@ async function addPoolMember(){
   const team = document.getElementById('poolTeam').value.trim();
   const can = document.getElementById('poolCan').value.trim();
   const phone = document.getElementById('poolPhone').value.trim();
-  if(!name){ alert('Ange ett namn.'); return; }
+  if(!name){ showToast('Ange ett namn.', 'error'); return; }
   try {
     const result = await sbInsert('pool_members', {
       event_id: EVENT_ID,
@@ -2590,7 +2590,7 @@ async function addContact(){
   const name = document.getElementById('contactPersonName').value.trim();
   const email = document.getElementById('contactPersonEmail').value.trim();
   const phone = document.getElementById('contactPersonPhone').value.trim();
-  if(!area || !name){ alert('Ange ansvarsområde och namn.'); return; }
+  if(!area || !name){ showToast('Ange ansvarsområde och namn.', 'error'); return; }
   try {
     const result = await sbInsert('contacts', {
       event_id: EVENT_ID,
@@ -2639,7 +2639,7 @@ function smartPrint(){
 
 function doPrint(){
   const checked = Array.from(document.querySelectorAll('#printOptions input:checked')).map(c => c.value);
-  if(checked.length === 0){ alert('Välj minst ett arbetsställe.'); return; }
+  if(checked.length === 0){ showToast('Välj minst ett arbetsställe.', 'error'); return; }
   closeModal('modalPrint');
   printStations(checked);
 }
@@ -2701,7 +2701,7 @@ function printStations(stationList){
   html += '</body></html>';
 
   const w = window.open('', '_blank');
-  if(!w){ alert('Tillåt popup-fönster för att skriva ut.'); return; }
+  if(!w){ showToast('Tillåt popup-fönster i webbläsaren för att skriva ut.', 'error'); return; }
   w.document.write(html);
   w.document.close();
   // Skriv ut och stäng fönstret automatiskt efteråt
@@ -2728,8 +2728,8 @@ async function saveChild(){
   const email=document.getElementById('newChildEmail').value.trim();
   const kid=document.getElementById('newChildKid').value.trim();
   const shiftId=document.getElementById('newChildShift').value;
-  if(!name){alert('Ange personens namn.');return;}
-  if(!email){alert('Ange en e-postadress.');return;}
+  if(!name){showToast('Ange personens namn.', 'error'); return;}
+  if(!email){showToast('Ange en e-postadress.', 'error'); return;}
   try {
     let participant;
     if(editingChildId){
@@ -2859,7 +2859,7 @@ function renderLagChips(){
 
 async function sendTestEmail(){
   const addr = document.getElementById('testEmailAddr').value.trim();
-  if(!addr || !addr.includes('@')){ alert('Ange en giltig e-postadress.'); return; }
+  if(!addr || !addr.includes('@')){ showToast('Ange en giltig e-postadress.', 'error'); return; }
   const subject = document.getElementById('emailSubject').value.trim() || 'Testmejl från Lagpasset';
   const body = document.getElementById('emailBody').value.trim() || 'Detta är ett testmejl.';
   if(typeof IS_DEMO !== 'undefined' && IS_DEMO){
@@ -2910,14 +2910,14 @@ async function sendEmail(){
   }
   const subject = document.getElementById('emailSubject').value.trim();
   const body = document.getElementById('emailBody').value.trim();
-  if(!subject || !body){ alert('Fyll i ämnesrad och meddelande.'); return; }
+  if(!subject || !body){ showToast('Fyll i ämnesrad och meddelande.', 'error'); return; }
 
   const includeLink = document.getElementById('includeBookingLink') && document.getElementById('includeBookingLink').checked;
 
   const recipients = getEmailRecipients()
     .filter(p => p.email && p.token)
     .map(p => ({ name: p.name, email: p.email, token: p.token }));
-  if(recipients.length === 0){ alert('Inga mottagare med e-post hittades.'); return; }
+  if(recipients.length === 0){ showToast('Inga mottagare med e-post hittades.', 'error'); return; }
   if(!confirm('Skicka mejlet till ' + recipients.length + ' deltagare?')) return;
 
   const baseUrl = window.location.origin + '/guest.html';
@@ -2951,7 +2951,7 @@ async function sendEmail(){
     showToast('Kunde inte skicka mejlen', 'error');
   }
 }
-function previewEmail(){ alert('Förhandsgranskning: mejlet öppnas i ett nytt fönster (i produktion).'); }
+function previewEmail(){ showToast('Förhandsgranskning ej tillgänglig ännu.'); }
 
 // ── Utskickslogg ──
 // Automatiska typer = systemet skickar själv; övriga = admin skickar manuellt
@@ -3044,7 +3044,7 @@ async function sendLinks(){
     .filter(p => p.email && p.token)
     .map(p => ({ name: p.name, email: p.email, token: p.token }));
 
-  if(recipients.length === 0){ alert('Inga mottagare med e-post och länk hittades.'); return; }
+  if(recipients.length === 0){ showToast('Inga mottagare med e-post och länk hittades.', 'error'); return; }
   if(!confirm('Skicka personlig länk till ' + recipients.length + ' deltagare?')) return;
 
   const baseUrl = window.location.origin + '/guest.html';
@@ -3616,7 +3616,7 @@ function useTemplate(type) {
 
 function editAutoTemplate(which){
   const titles = { confirm: 'Tack för bokat pass (automatiskt)', reminder: 'Automatisk påminnelse' };
-  alert('Här kan du redigera mallen "' + titles[which] + '".\n\nMalltexten sparas i databasen (kommer i nästa steg). Tills vidare används en standardtext.');
+  showToast('Mallar kan redigeras i nästa version.');
 }
 
 // På/av för automatisk påminnelse (sparas lokalt i webbläsaren)
@@ -3867,11 +3867,11 @@ function handleImportDrop(e) {
 function handleImportFile(file) {
   if (!file) return;
   if (!file.name.match(/\.(csv|txt)$/i)) {
-    alert('Välj en CSV-fil (.csv). Exportera från Excel via Arkiv → Spara som → CSV.');
+    showToast('Välj en CSV-fil (.csv).', 'error');
     return;
   }
   if (typeof Papa === 'undefined') {
-    alert('CSV-parsern laddades inte. Kontrollera din internetanslutning och försök igen.');
+    showToast('CSV-parsern laddades inte. Kontrollera anslutningen.', 'error');
     return;
   }
   Papa.parse(file, {
@@ -3879,7 +3879,7 @@ function handleImportFile(file) {
     skipEmptyLines: true,
     complete: function(results) {
       const rows = results.data;
-      if (!rows.length) { alert('Filen verkar tom.'); return; }
+      if (!rows.length) { showToast('Filen verkar tom.', 'error'); return; }
       const headers = rows[0].map(h => String(h).trim());
       _importData = rows.slice(1).filter(r => r.some(c => String(c).trim()));
       _importCols = _detectCols(headers);
@@ -3894,7 +3894,7 @@ function handleImportFile(file) {
          !_importCols.epost ? '⚠️ Kolumn för e-post saknas – välj nedan.' :
          '✓ Namn och e-post identifierade.');
     },
-    error: function(err) { alert('Kunde inte läsa filen: ' + err.message); }
+    error: function(err) { showToast('Kunde inte läsa filen: ' + err.message, 'error'); }
   });
 }
 
@@ -3936,7 +3936,7 @@ function _genToken() {
 
 async function runImport() {
   if (_importCols.namn === undefined || _importCols.epost === undefined) {
-    alert('Välj minst kolumnerna för Namn och E-post innan du importerar.');
+    showToast('Välj minst kolumnerna för Namn och E-post.', 'error');
     return;
   }
   const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
@@ -3959,7 +3959,7 @@ async function runImport() {
   const invalid = _importData.length - rows.length;
 
   if (!rows.length) {
-    alert('Inga giltiga rader hittades. Kontrollera att Namn och E-post är korrekt mappade.');
+    showToast('Inga giltiga rader hittades. Kontrollera kolumnmappningen.', 'error');
     btn.disabled = false; btn.textContent = 'Importera →';
     return;
   }
