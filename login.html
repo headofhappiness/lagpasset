@@ -116,26 +116,33 @@ async function sendLink(){
 }
 
 // Vid sidladdning: redan inloggad (eller just klickat magic link)?
+let _expectingSignIn = false; // sätts bara true om vi aktivt processar en magic link
+
 (async function(){
-  // Om ?logout=1 → logga ut aktiv session och visa formuläret direkt
+  // Om ?logout=1 → logga ut och visa formuläret
   if(new URLSearchParams(location.search).get('logout') === '1'){
     await sb.auth.signOut();
     history.replaceState({}, '', 'login.html');
     show('loginForm');
     return;
   }
-  // Auto-redirect BARA om man kommer från magic link (hash i URL:en)
-  // Navigerar man hit manuellt visas alltid formuläret
+  // Auto-redirect BARA om det finns en magic link i URL-hashen
+  // Navigerar man hit manuellt (även med aktiv session) visas alltid formuläret
   const hasMagicLink = location.hash && location.hash.includes('access_token');
   if(hasMagicLink){
+    _expectingSignIn = true;
     const { data:{ session } } = await sb.auth.getSession();
     if(session && session.user){ await routeUser(session.user); return; }
   }
   show('loginForm');
 })();
 
+// onAuthStateChange används bara för att fånga upp magic link-flödet
+// SIGNED_IN triggar även vid session-restore — vi ignorerar det om vi inte väntar på det
 sb.auth.onAuthStateChange((event, session) => {
-  if(event === 'SIGNED_IN' && session && session.user){ routeUser(session.user); }
+  if(event === 'SIGNED_IN' && session && session.user && _expectingSignIn){
+    routeUser(session.user);
+  }
 });
 </script>
 </body>
