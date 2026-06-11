@@ -323,21 +323,18 @@ async function loadQuickSections(){
     const wrap = document.getElementById('quickSectionPills');
     if(!wrap) return;
     if(!rows.length){
-      wrap.innerHTML = '<span style="font-size:13px;color:var(--muted);font-style:italic">Inga sektioner ännu.</span>';
-      if(seedBtn) seedBtn.style.display = '';
+      wrap.innerHTML = '<span style="font-size:13px;color:var(--muted);font-style:italic">Inga sektioner ännu — skriv in din första ovan.</span>';
       return;
     }
-    if(seedBtn) seedBtn.style.display = 'none';
     wrap.innerHTML = rows.map(r =>
-      `<span style="display:inline-flex;align-items:center;gap:.3rem;background:var(--green-light);color:var(--green);border-radius:100px;padding:3px 10px;font-size:12.5px;font-weight:600">
+      `<span style="display:inline-flex;align-items:center;gap:.3rem;background:var(--green-light);color:var(--green);border-radius:100px;padding:4px 12px;font-size:13px;font-weight:600">
         ${r.name}
-        <button onclick="quickDeleteSection('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:13px;line-height:1;padding:0;opacity:.7">×</button>
+        <button onclick="quickDeleteSection('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:14px;line-height:1;padding:0;opacity:.7" title="Ta bort">×</button>
       </span>`
     ).join('');
-    // Uppdatera datalist
     const dl = document.getElementById('sectionSuggestions');
     if(dl) dl.innerHTML = rows.map(r => `<option value="${r.name}">`).join('');
-  } catch(e){}
+  } catch(e){ console.error('loadQuickSections fel:', e); }
 }
 
 
@@ -372,9 +369,16 @@ async function quickAddSection(){
   const input = document.getElementById('quickSectionInput');
   const name = input ? input.value.trim() : '';
   const wrap = document.getElementById('quickSectionPills');
-  if(!name){ if(wrap) wrap.innerHTML = '<span style="color:#c0392b;font-size:13px">Ange ett namn.</span>'; return; }
-  if(!CLUB_ID){ if(wrap) wrap.innerHTML = '<span style="color:#c0392b;font-size:13px">Ingen förening kopplad (CLUB_ID saknas). Ladda om sidan.</span>'; return; }
+  if(!name){ return; }
+  if(!CLUB_ID){ if(wrap) wrap.innerHTML = '<span style="color:#c0392b;font-size:13px">Ingen förening kopplad. Ladda om sidan.</span>'; return; }
   try {
+    // Kolla om sektionen redan finns
+    const existing = await sb('sections?club_id=eq.' + CLUB_ID + '&name=eq.' + encodeURIComponent(name) + '&select=id');
+    if(existing && existing.length > 0){
+      if(wrap) wrap.innerHTML += '<span style="color:#c0392b;font-size:13px;display:block;margin-top:.4rem">"' + name + '" finns redan.</span>';
+      setTimeout(() => loadQuickSections(), 1500);
+      return;
+    }
     const res = await fetch(SUPABASE_URL + '/rest/v1/sections', {
       method:'POST',
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
