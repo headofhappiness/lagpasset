@@ -1281,12 +1281,9 @@ const _eventParam = (new URLSearchParams(window.location.search)).get('event');
 const _demoName = (new URLSearchParams(window.location.search)).get('namn');
 const DEMO_EVENT_ID = '00000000-0000-0000-0000-000000000002';
 const _isLiveMode = !window.location.pathname.includes('admin_demo');
-// I live-läge: redirect om inget event-ID ELLER om demo-event-ID används av misstag
-if(_isLiveMode && (!_eventParam || _eventParam === DEMO_EVENT_ID)){
-  window.location.href = 'events.html';
-  throw new Error('Omdirigerar till events.html'); // Stoppar all vidare JS-exekvering
-}
-const EVENT_ID = _eventParam || DEMO_EVENT_ID;
+const _needsRedirect = _isLiveMode && (!_eventParam || _eventParam === DEMO_EVENT_ID);
+if(_needsRedirect){ window.location.href = 'events.html'; }
+const EVENT_ID = _needsRedirect ? DEMO_EVENT_ID : (_eventParam || DEMO_EVENT_ID);
 
 async function sbFetch(table, params) {
   params = params || '';
@@ -4282,7 +4279,7 @@ async function init() {
   renderChildTable();
   renderContactsSettings();
 }
-init();
+if(!_needsRedirect){ init(); }
 </script>
 
 <!-- BOTTOM NAV för mobil -->
