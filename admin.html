@@ -1101,7 +1101,7 @@ Hälsningar,
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddFaq')">Avbryt</button>
-      <button class="btn btn-primary" onclick="demoBlock&&demoBlock();closeModal('modalAddFaq')">Spara</button>
+      <button class="btn btn-primary" onclick="closeModal('modalAddFaq')">Spara</button>
     </div>
   </div>
 </div>
@@ -1841,7 +1841,6 @@ function sendReminderNow(){
   const months = ['jan','feb','mars','apr','maj','juni','juli','aug','sep','okt','nov','dec'];
   const stamp = `${now.getDate()} ${months[now.getMonth()]} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   reminderHistory.unshift({date:stamp, count:24, type:'Manuell'});
-  if(typeof demoBlock === 'function'){ demoBlock(); }
   const log = document.getElementById('reminderLog');
   const arrow = document.getElementById('reminderLogArrow');
   if(log){ log.style.display='flex'; arrow.textContent='\u25be'; renderReminderLog(); }
@@ -2085,7 +2084,7 @@ function renderFaqList(){
           <div style="font-size:13.5px;font-weight:600;color:var(--dark)">${f.q}</div>
           <div style="font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5">${f.a}</div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="demoBlock&&demoBlock()" style="flex-shrink:0">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="if(typeof IS_DEMO!=='undefined'&&IS_DEMO)demoBlock&&demoBlock()" style="flex-shrink:0">✏️</button>
       </div>
     </div>`
   ).join('');
@@ -3122,7 +3121,7 @@ function closeDemoWelcome(){
 }
 
 // Block all save/send actions in demo
-function previewEmail(){ demoBlock(); }
+function previewEmail(){ if(typeof IS_DEMO!=="undefined"&&IS_DEMO){ demoBlock(); } else { showToast("Förhandsgranskning ej tillgänglig i live-läge."); } }
 
 // Sidebar club label
 document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
