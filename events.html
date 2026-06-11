@@ -11,7 +11,7 @@
   --bg:#f4f7f4;--surface:#fff;--border:#dde8dd;
   --green:#1a8c3a;--green-light:#e8f7ec;--green-pale:rgba(26,140,58,.06);
   --dark:#111c13;--text:#1e2e20;--muted:#6a8a6e;
-  --red:#c0392b;--amber:#e8a020;--amber-light:#fff8e8;
+  --red:#c0392b;--amber:#e8a020;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font-size:15px;min-height:100vh}
@@ -21,15 +21,35 @@ body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;font
 .topbar .club{font-size:13px;color:rgba(200,240,200,.75);font-weight:500}
 .topbar a{font-size:13px;color:rgba(230,255,230,.7);text-decoration:none}
 .topbar a:hover{color:#fff}
-.wrap{max-width:880px;margin:0 auto;padding:2.5rem 1.5rem}
-h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(--dark)}
-.sub{color:var(--muted);margin-top:.35rem;margin-bottom:2rem}
-.section-label{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}
-.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;margin-bottom:2.5rem}
-.section-filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
-.sf-btn{border:1.5px solid var(--border);background:#fff;border-radius:100px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:"Outfit",sans-serif;transition:all .15s}
+.wrap{max-width:920px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+/* Page header */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.75rem;flex-wrap:wrap}
+.page-header h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(--dark)}
+.page-header .sub{color:var(--muted);margin-top:.25rem;font-size:14.5px}
+.btn-new{background:var(--green);color:#fff;border:none;border-radius:100px;padding:10px 22px;font-family:"Outfit",sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation;white-space:nowrap}
+.btn-new:hover{background:#15752e}
+
+/* Sections row */
+.sections-box{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.75rem}
+.sections-label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
+.sections-manage{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:.6rem;min-height:28px}
+.sec-pill{display:inline-flex;align-items:center;gap:.3rem;background:var(--green-light);color:var(--green);border-radius:100px;padding:4px 12px;font-size:13px;font-weight:600}
+.sec-pill button{background:none;border:none;cursor:pointer;color:var(--green);font-size:14px;line-height:1;padding:0;opacity:.7}
+.sec-pill button:hover{opacity:1}
+.sections-add{display:flex;gap:.5rem;align-items:center;margin-top:.5rem}
+.sections-add input{flex:1;max-width:220px;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px}
+.sections-add button{background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;touch-action:manipulation}
+
+/* Filter row */
+.filter-row{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.sf-btn{border:1.5px solid var(--border);background:#fff;border-radius:100px;padding:5px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:"Outfit",sans-serif;transition:all .15s;touch-action:manipulation}
 .sf-btn:hover{border-color:var(--green);color:var(--green)}
 .sf-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* Event grid */
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+.event-card-wrap{position:relative}
 .event-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;cursor:pointer;transition:all .15s;text-decoration:none;color:inherit;display:flex;flex-direction:column}
 .event-card:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,140,58,.1)}
 .event-card .tag{align-self:flex-start;font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--green-light);color:var(--green);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.03em}
@@ -37,10 +57,9 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
 .event-card .date{font-size:13.5px;color:var(--muted)}
 .event-card .stats{margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border);display:flex;gap:1.25rem;font-size:13px;color:var(--muted)}
 .event-card .stats strong{color:var(--dark);font-weight:700}
-.event-card.new{border-style:dashed;align-items:center;justify-content:center;text-align:center;color:var(--muted);min-height:150px}
-.event-card.new:hover{color:var(--green)}
-.event-card.new .plus{font-size:1.75rem;margin-bottom:.35rem}
+.edit-event-btn{position:absolute;top:.75rem;right:.75rem;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit;z-index:1;touch-action:manipulation}
 .loading{color:var(--muted);font-style:italic;padding:2rem 0}
+.empty-msg{color:var(--muted);font-size:15px;padding:2rem 0}
 
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(17,28,19,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem}
@@ -55,23 +74,20 @@ h1{font-family:"Nunito",sans-serif;font-size:1.75rem;font-weight:800;color:var(-
 .btn-primary{background:var(--green);color:#fff}
 .btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border)}
 .modal-footer{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.25rem}
-
-/* ── Inputs: 16px hindrar iOS-zoom ── */
 input,select,textarea{font-size:16px !important}
 
-/* ── Mobil ── */
 @media(max-width:600px){
-  .wrap{padding:1.5rem 1rem}
-  h1{font-size:1.4rem}
-  .sub{font-size:14px;margin-bottom:1.5rem}
+  .wrap{padding:1.25rem 1rem 3rem}
+  .page-header h1{font-size:1.4rem}
   .topbar{padding:.7rem 1rem}
-  .topbar .club{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar .club{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .event-grid{grid-template-columns:1fr}
   .modal-overlay{align-items:flex-end;padding:0}
   .modal{border-radius:18px 18px 0 0;max-width:100%;padding:1.5rem 1.25rem 2rem;max-height:90vh;overflow-y:auto}
   .inline-2{grid-template-columns:1fr}
   .modal-footer{flex-direction:column-reverse}
   .modal-footer .btn{width:100%;text-align:center;border-radius:10px}
+  .sections-add input{max-width:100%}
 }
 </style>
 </head>
@@ -85,15 +101,37 @@ input,select,textarea{font-size:16px !important}
 </div>
 
 <div class="wrap">
-  <h1>Mina arrangemang</h1>
-  <p class="sub">Välj ett arrangemang för att hantera pass och bemanning – eller skapa ett nytt.</p>
+  <!-- Sidhuvud -->
+  <div class="page-header">
+    <div>
+      <h1>Mina arrangemang</h1>
+      <p class="sub">Välj ett arrangemang för att hantera pass och bemanning.</p>
+    </div>
+    <button class="btn-new" onclick="openNew()">+ Nytt arrangemang</button>
+  </div>
 
+  <!-- Sektionsruta — alltid synlig -->
+  <div class="sections-box">
+    <div class="sections-label">Föreningens sektioner</div>
+    <div class="sections-manage" id="sectionPills">
+      <span style="font-size:13px;color:var(--muted);font-style:italic">Laddar...</span>
+    </div>
+    <div class="sections-add">
+      <input type="text" id="sectionInput" placeholder="Lägg till sektion..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSection();}">
+      <button onclick="addSection()">Lägg till</button>
+    </div>
+  </div>
+
+  <!-- Filterrad — visas bara om det finns events och 2+ sektioner -->
+  <div class="filter-row" id="filterRow" style="display:none"></div>
+
+  <!-- Eventlista -->
   <div id="eventList">
     <div class="loading">Laddar arrangemang…</div>
   </div>
 </div>
 
-<!-- Nytt event-modal -->
+<!-- Nytt arrangemang-modal -->
 <div class="modal-overlay" id="modalNew">
   <div class="modal">
     <div class="modal-title">Nytt arrangemang</div>
@@ -124,14 +162,14 @@ input,select,textarea{font-size:16px !important}
   </div>
 </div>
 
-<!-- Redigera event-modal -->
+<!-- Redigera arrangemang-modal -->
 <div class="modal-overlay" id="modalEdit">
   <div class="modal">
     <div class="modal-title">Redigera arrangemang</div>
     <input type="hidden" id="editId">
     <div class="form-group">
       <label class="form-label">Namn</label>
-      <input type="text" id="editName" placeholder="Ex. Åsacupen 2026">
+      <input type="text" id="editName">
     </div>
     <div class="form-group">
       <label class="form-label">Sektion</label>
@@ -147,7 +185,7 @@ input,select,textarea{font-size:16px !important}
         <input type="date" id="editEnd">
       </div>
     </div>
-    <div id="editEventMsg" style="display:none;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-bottom:.5rem"></div>
+    <div id="editEventMsg" style="display:none;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-bottom:.5rem;background:#fdecea;color:#c0392b"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeEdit()">Avbryt</button>
       <button class="btn btn-primary" id="editSaveBtn" onclick="saveEventEdit()">Spara →</button>
@@ -155,17 +193,15 @@ input,select,textarea{font-size:16px !important}
   </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
 const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Club-id från URL (?club=<uuid>) som login.html skickar med,
-// eller från Supabase-sessionen som fallback.
 const _clubParam = new URLSearchParams(window.location.search).get('club');
 let CLUB_ID = _clubParam || null;
+let _allEvents = [];
+let _activeFilter = null;
 
 async function sb(path, opts){
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({
@@ -185,9 +221,77 @@ function fmtRange(start, end){
   return s.getDate() + ' ' + months[s.getMonth()] + '–' + e.getDate() + ' ' + months[e.getMonth()] + ' ' + s.getFullYear();
 }
 
+// ── Sektioner ────────────────────────────────────────────
+async function loadSections(){
+  if(!CLUB_ID) return;
+  try {
+    const rows = await sb('sections?club_id=eq.' + CLUB_ID + '&order=name.asc&select=id,name');
+    const wrap = document.getElementById('sectionPills');
+    if(!wrap) return;
+    if(!rows.length){
+      wrap.innerHTML = '<span style="font-size:13px;color:var(--muted);font-style:italic">Inga sektioner ännu.</span>';
+    } else {
+      wrap.innerHTML = rows.map(r =>
+        '<span class="sec-pill">' + r.name +
+        ' <button onclick="deleteSection(\'' + r.id + '\')" title="Ta bort">×</button></span>'
+      ).join('');
+    }
+    // Uppdatera datalist
+    const dl = document.getElementById('sectionSuggestions');
+    if(dl) dl.innerHTML = rows.map(r => '<option value="' + r.name + '">').join('');
+    // Uppdatera filterrad
+    renderFilterRow(rows);
+  } catch(e){ console.error('loadSections:', e); }
+}
+
+function renderFilterRow(sections){
+  const row = document.getElementById('filterRow');
+  if(!row) return;
+  if(sections.length < 2 || !_allEvents.length){ row.style.display = 'none'; return; }
+  row.style.display = 'flex';
+  row.innerHTML = '<button class="sf-btn' + (!_activeFilter ? ' active' : '') + '" onclick="filterSection(null,this)">Alla</button>' +
+    sections.map(s => '<button class="sf-btn' + (_activeFilter === s.name ? ' active' : '') + '" onclick="filterSection(\'' + s.name.replace(/'/g, "\\'") + '\',this)">' + s.name + '</button>').join('');
+}
+
+function filterSection(section, btn){
+  _activeFilter = section;
+  document.querySelectorAll('.sf-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.event-card-wrap').forEach(wrap => {
+    wrap.style.display = (!section || wrap.dataset.section === section) ? '' : 'none';
+  });
+}
+
+async function addSection(){
+  const input = document.getElementById('sectionInput');
+  const name = input ? input.value.trim() : '';
+  if(!name || !CLUB_ID) return;
+  try {
+    const existing = await sb('sections?club_id=eq.' + CLUB_ID + '&name=eq.' + encodeURIComponent(name) + '&select=id');
+    if(existing && existing.length){ input.value = ''; return; }
+    await fetch(SUPABASE_URL + '/rest/v1/sections', {
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify([{ club_id: CLUB_ID, name }])
+    });
+    input.value = '';
+    await loadSections();
+  } catch(e){ console.error('addSection:', e); }
+}
+
+async function deleteSection(id){
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/sections?id=eq.' + id, {
+      method:'DELETE',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    await loadSections();
+  } catch(e){ console.error('deleteSection:', e); }
+}
+
+// ── Events ────────────────────────────────────────────────
 async function load(){
   try {
-    // Hämta club_id från session om det inte finns i URL
     if(!CLUB_ID){
       const { data:{ session } } = await sbClient.auth.getSession();
       if(session){
@@ -198,58 +302,26 @@ async function load(){
         if(rows.length && rows[0].club_id) CLUB_ID = rows[0].club_id;
       }
     }
-
     if(CLUB_ID){
       const clubs = await sb('clubs?id=eq.' + CLUB_ID + '&select=name');
       if(clubs.length) document.getElementById('clubName').textContent = clubs[0].name;
     }
-
-    // Hämta event för föreningen
-    let events;
-    if(CLUB_ID){
-      events = await sb('events?club_id=eq.' + CLUB_ID + '&order=date_start.desc&select=*');
-    } else {
-      events = [];
-    }
-    await loadSectionSuggestions();
-    render(events);
+    const events = CLUB_ID ? await sb('events?club_id=eq.' + CLUB_ID + '&order=date_start.desc&select=*') : [];
+    _allEvents = events || [];
+    await loadSections();
+    await renderEvents(_allEvents);
   } catch(e){
     console.error(e);
-    document.getElementById('eventList').innerHTML = '<div class="loading">Kunde inte ladda arrangemang. Försök igen senare.</div>';
+    document.getElementById('eventList').innerHTML = '<div class="loading">Kunde inte ladda. Försök igen.</div>';
   }
 }
 
-async function render(events){
-  // Tom-state: ny förening utan event ännu
-  if(!events || events.length === 0){
-    document.getElementById('eventList').innerHTML =
-      '<h2 style="font-family:Nunito,sans-serif;font-size:1.4rem;font-weight:800;color:var(--dark);margin-bottom:.35rem">Välkommen till LagPasset!</h2>' +
-      '<p style="color:var(--muted);font-size:14.5px;margin-bottom:2rem">Kom igång genom att skapa ditt första arrangemang, eller lägg upp föreningens sektioner.</p>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;max-width:760px">' +
-
-        '<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column">' +
-          '<div style="font-size:1.75rem;margin-bottom:.75rem">🏷️</div>' +
-          '<div style="font-family:Nunito,sans-serif;font-size:1.1rem;font-weight:800;color:var(--dark);margin-bottom:.4rem">Föreningens sektioner</div>' +
-          '<p style="font-size:13.5px;color:var(--muted);line-height:1.65;margin-bottom:.85rem">Kategorier för era arrangemang – t.ex. Fotboll eller Innebandy. Ta bort med × och lägg till nya.</p>' +
-          '<div id="quickSectionPills" style="display:flex;flex-wrap:wrap;gap:.4rem;min-height:28px;margin-bottom:.85rem"></div>' +
-          '<div style="display:flex;gap:.5rem">' +
-            '<input type="text" id="quickSectionInput" placeholder="Lägg till sektion..." style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px">' +
-            '<button onclick="quickAddSection()" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation">Lägg till</button>' +
-          '</div>' +
-        '</div>' +
-
-      '<div style="background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:1.5rem;display:flex;flex-direction:column">' +
-          '<div style="font-size:1.75rem;margin-bottom:.75rem">📅</div>' +
-          '<div style="font-family:Nunito,sans-serif;font-size:1.1rem;font-weight:800;color:var(--dark);margin-bottom:.4rem">Skapa ett arrangemang</div>' +
-          '<p style="font-size:13.5px;color:var(--muted);line-height:1.65;flex:1;margin-bottom:1.25rem">Lägg upp ett cup eller event med datum och platser. Importera sedan deltagarlistan och skicka personliga bokningslänkar.</p>' +
-          '<button onclick="openNew()" style="background:var(--green);color:#fff;border:none;border-radius:100px;padding:11px 24px;font-family:Outfit,sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">Skapa arrangemang →</button>' +
-        '</div>' +
-
-        '</div>';
-    loadQuickSections();
+async function renderEvents(events){
+  const list = document.getElementById('eventList');
+  if(!events || !events.length){
+    list.innerHTML = '<p class="empty-msg">Inga arrangemang ännu. Klicka "+ Nytt arrangemang" för att komma igång.</p>';
     return;
   }
-  // Räkna pass + deltagare per event
   let cards = '';
   for(const ev of events){
     let shiftCount = 0, partCount = 0;
@@ -259,143 +331,22 @@ async function render(events){
       const parts = await sb('participants?event_id=eq.' + ev.id + '&select=id');
       partCount = parts.length;
     } catch(e){}
-    const section = ev.section || 'Arrangemang';
-    const safeData = JSON.stringify({ id: ev.id, name: ev.name||'', section: ev.section||'', start: ev.date_start||'', end: ev.date_end||'' }).replace(/'/g, '&#39;');
-    cards += '<div class="event-card-wrap" style="position:relative" data-section="' + (ev.section||'Arrangemang') + '">' +
+    const section = ev.section || '';
+    const safeData = JSON.stringify({ id:ev.id, name:ev.name||'', section:ev.section||'', start:ev.date_start||'', end:ev.date_end||'' }).replace(/'/g,'&#39;');
+    cards += '<div class="event-card-wrap" data-section="' + section + '">' +
       '<a class="event-card" href="admin.html?event=' + ev.id + '">' +
-      '<span class="tag">' + section + '</span>' +
-      '<h3>' + (ev.name || 'Namnlöst event') + '</h3>' +
+      (section ? '<span class="tag">' + section + '</span>' : '') +
+      '<h3>' + (ev.name || 'Namnlöst arrangemang') + '</h3>' +
       '<div class="date">' + fmtRange(ev.date_start, ev.date_end) + '</div>' +
       '<div class="stats"><span><strong>' + shiftCount + '</strong> pass</span><span><strong>' + partCount + '</strong> deltagare</span></div>' +
       '</a>' +
-      '<button onclick="editEventFromData(this)" data-ev=\'' + safeData + '\' ' +
-      'style="position:absolute;top:.75rem;right:.75rem;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit;z-index:1;touch-action:manipulation" ' +
-      'title="Redigera arrangemang">✏️</button>' +
+      '<button class="edit-event-btn" onclick="editEventFromData(this)" data-ev=\'' + safeData + '\'>✏️</button>' +
       '</div>';
   }
-  cards += '<div class="event-card new" onclick="openNew()"><div class="plus">+</div><div>Skapa nytt arrangemang</div></div>';
-  // Bygg sektionsfilter om det finns mer än en sektion
-  const sections = [...new Set(events.map(e => e.section || 'Arrangemang'))].filter(Boolean);
-  let filterHtml = '';
-  if(sections.length > 1){
-    filterHtml = '<div class="section-filters">' +
-      '<button class="sf-btn active" onclick="filterSection(null,this)">Alla</button>' +
-      sections.map(s => '<button class="sf-btn" onclick="filterSection(\'' + s.replace(/'/g, "\\'") + '\',this)">' + s + '</button>').join('') +
-      '</div>';
-  }
-  document.getElementById('eventList').innerHTML = filterHtml + '<div class="event-grid" id="eventGrid">' + cards + '</div>';
+  list.innerHTML = '<div class="event-grid">' + cards + '</div>';
 }
 
-function filterSection(section, btn){
-  // Uppdatera aktiv knapp
-  document.querySelectorAll('.sf-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  // Visa/dölj kort
-  document.querySelectorAll('.event-card-wrap').forEach(wrap => {
-    if(!section || wrap.dataset.section === section){
-      wrap.style.display = '';
-    } else {
-      wrap.style.display = 'none';
-    }
-  });
-}
-
-
-async function loadSectionSuggestions(){
-  if(!CLUB_ID) return;
-  try {
-    const rows = await sb('sections?club_id=eq.' + CLUB_ID + '&order=name.asc&select=name');
-    const dl = document.getElementById('sectionSuggestions');
-    if(dl && rows.length){
-      dl.innerHTML = rows.map(r => `<option value="${r.name}">`).join('');
-    }
-  } catch(e){ /* tyst fel — datalist är ett bonus-feature */ }
-}
-
-
-// ── Sektioner direkt på events.html ──────────────────────
-const DEFAULT_SECTIONS_EV = ['Fotboll','Innebandy','Pingis','Basket','Handboll','Tennis','Hela föreningen'];
-
-async function loadQuickSections(){
-  if(!CLUB_ID) return;
-  try {
-    const rows = await sb('sections?club_id=eq.' + CLUB_ID + '&order=name.asc&select=id,name');
-    const wrap = document.getElementById('quickSectionPills');
-    if(!wrap) return;
-    if(!rows.length){
-      wrap.innerHTML = '<span style="font-size:13px;color:var(--muted);font-style:italic">Inga sektioner ännu — skriv in din första ovan.</span>';
-      return;
-    }
-    wrap.innerHTML = rows.map(r =>
-      `<span style="display:inline-flex;align-items:center;gap:.3rem;background:var(--green-light);color:var(--green);border-radius:100px;padding:4px 12px;font-size:13px;font-weight:600">
-        ${r.name}
-        <button onclick="quickDeleteSection('${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:14px;line-height:1;padding:0;opacity:.7" title="Ta bort">×</button>
-      </span>`
-    ).join('');
-    const dl = document.getElementById('sectionSuggestions');
-    if(dl) dl.innerHTML = rows.map(r => `<option value="${r.name}">`).join('');
-  } catch(e){ console.error('loadQuickSections fel:', e); }
-}
-
-
-async function quickDeleteSection(id){
-  try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/sections?id=eq.' + id, {
-      method:'DELETE',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
-    });
-    if(!res.ok) throw new Error(await res.text());
-    await loadQuickSections();
-  } catch(e){ console.error(e); }
-}
-
-function toggleQuickSectionAdd(){
-  const row = document.getElementById('quickSectionAdd');
-  if(!row) return;
-  const visible = row.style.display !== 'none';
-  row.style.display = visible ? 'none' : 'block';
-  if(!visible){
-    setTimeout(()=>{
-      const inp = document.getElementById('quickSectionInput');
-      if(inp){
-        inp.focus();
-        inp.onkeydown = (e)=>{ if(e.key==='Enter') quickAddSection(); };
-      }
-    },50);
-  }
-}
-
-async function quickAddSection(){
-  const input = document.getElementById('quickSectionInput');
-  const name = input ? input.value.trim() : '';
-  const wrap = document.getElementById('quickSectionPills');
-  if(!name){ return; }
-  if(!CLUB_ID){ if(wrap) wrap.innerHTML = '<span style="color:#c0392b;font-size:13px">Ingen förening kopplad. Ladda om sidan.</span>'; return; }
-  try {
-    // Kolla om sektionen redan finns
-    const existing = await sb('sections?club_id=eq.' + CLUB_ID + '&name=eq.' + encodeURIComponent(name) + '&select=id');
-    if(existing && existing.length > 0){
-      if(wrap) wrap.innerHTML += '<span style="color:#c0392b;font-size:13px;display:block;margin-top:.4rem">"' + name + '" finns redan.</span>';
-      setTimeout(() => loadQuickSections(), 1500);
-      return;
-    }
-    const res = await fetch(SUPABASE_URL + '/rest/v1/sections', {
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body: JSON.stringify([{ club_id: CLUB_ID, name }])
-    });
-    if(!res.ok){
-      const errText = await res.text();
-      if(wrap) wrap.innerHTML = '<span style="color:#c0392b;font-size:13px">Fel: ' + errText + '</span>';
-      return;
-    }
-    input.value = '';
-    await loadQuickSections();
-  } catch(e){
-    if(wrap) wrap.innerHTML = '<span style="color:#c0392b;font-size:13px">Fel: ' + e.message + '</span>';
-  }
-}
-
+// ── Nytt arrangemang ──────────────────────────────────────
 function openNew(){ document.getElementById('modalNew').classList.add('open'); }
 function closeNew(){
   document.getElementById('modalNew').classList.remove('open');
@@ -404,23 +355,47 @@ function closeNew(){
   document.getElementById('createBtn').textContent = 'Skapa →';
 }
 
+async function submitNewEvent(){
+  const name = document.getElementById('newName').value.trim();
+  const section = document.getElementById('newSection').value;
+  const start = document.getElementById('newStart').value;
+  const end = document.getElementById('newEnd').value;
+  const msg = document.getElementById('createMsg');
+  const btn = document.getElementById('createBtn');
+  msg.style.display = 'none';
+  if(!name || !start){ msg.textContent = 'Fyll i namn och första dag.'; msg.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Skapar...';
+  try {
+    const row = { name, section, date_start: start, date_end: end || start };
+    if(CLUB_ID) row.club_id = CLUB_ID;
+    await sb('events', { method:'POST', body: JSON.stringify(row) });
+    closeNew();
+    document.getElementById('newName').value = '';
+    document.getElementById('newSection').value = '';
+    document.getElementById('newStart').value = '';
+    document.getElementById('newEnd').value = '';
+    await load();
+  } catch(e){
+    msg.textContent = 'Kunde inte skapa: ' + (e.message || 'okänt fel');
+    msg.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Skapa →';
+  }
+}
+
+// ── Redigera arrangemang ──────────────────────────────────
 function editEventFromData(btn){
   try {
     const d = JSON.parse(btn.getAttribute('data-ev'));
-    editEvent(d.id, d.name, d.section, d.start, d.end);
-  } catch(e){ console.error('editEventFromData fel:', e); }
-}
-
-function editEvent(id, name, section, start, end){
-  document.getElementById('editId').value = id;
-  document.getElementById('editName').value = name;
-  document.getElementById('editSection').value = section || 'Fotboll';
-  document.getElementById('editStart').value = start;
-  document.getElementById('editEnd').value = end;
-  document.getElementById('editEventMsg').style.display = 'none';
-  document.getElementById('editSaveBtn').disabled = false;
-  document.getElementById('editSaveBtn').textContent = 'Spara →';
-  document.getElementById('modalEdit').classList.add('open');
+    document.getElementById('editId').value = d.id;
+    document.getElementById('editName').value = d.name;
+    document.getElementById('editSection').value = d.section;
+    document.getElementById('editStart').value = d.start;
+    document.getElementById('editEnd').value = d.end;
+    document.getElementById('editEventMsg').style.display = 'none';
+    document.getElementById('editSaveBtn').disabled = false;
+    document.getElementById('editSaveBtn').textContent = 'Spara →';
+    document.getElementById('modalEdit').classList.add('open');
+  } catch(e){ console.error(e); }
 }
 function closeEdit(){ document.getElementById('modalEdit').classList.remove('open'); }
 
@@ -432,62 +407,27 @@ async function saveEventEdit(){
   const end = document.getElementById('editEnd').value;
   const msg = document.getElementById('editEventMsg');
   const btn = document.getElementById('editSaveBtn');
-  if(!name || !start){ msg.style.cssText='display:block;background:#fdecea;color:#c0392b'; msg.textContent='Namn och startdatum krävs.'; return; }
-  btn.disabled = true; btn.textContent = 'Sparar...';
+  if(!name || !start){ msg.style.display='block'; msg.textContent='Namn och startdatum krävs.'; return; }
+  btn.disabled=true; btn.textContent='Sparar...';
   try {
-    await sb('events?id=eq.' + id, {
-      method: 'PATCH',
-      body: JSON.stringify({ name, section, date_start: start, date_end: end || start })
-    });
+    await sb('events?id=eq.' + id, { method:'PATCH', body: JSON.stringify({ name, section, date_start: start, date_end: end || start }) });
     closeEdit();
-    load();
-  } catch(e){
-    msg.style.cssText='display:block;background:#fdecea;color:#c0392b'; msg.textContent='Kunde inte spara: ' + (e.message||'okänt fel');
-    btn.disabled = false; btn.textContent = 'Spara →';
-  }
-}
-
-async function submitNewEvent(){
-  const name = document.getElementById('newName').value.trim();
-  const section = document.getElementById('newSection').value;
-  const start = document.getElementById('newStart').value;
-  const end = document.getElementById('newEnd').value;
-  const msg = document.getElementById('createMsg');
-  const btn = document.getElementById('createBtn');
-  msg.style.display = 'none';
-  if(!name || !start){
-    msg.textContent = 'Fyll i namn och första dag.';
-    msg.style.display = 'block';
-    return;
-  }
-  btn.disabled = true; btn.textContent = 'Skapar...';
-  try {
-    const row = { name: name, section: section, date_start: start, date_end: end || start };
-    if(CLUB_ID) row.club_id = CLUB_ID;
-    const created = await sb('events', { method:'POST', body: JSON.stringify(row) });
-    closeNew();
     await load();
   } catch(e){
-    console.error(e);
-    msg.textContent = 'Kunde inte skapa arrangemanget: ' + (e.message || 'okänt fel');
-    msg.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Skapa →';
+    msg.style.display='block'; msg.textContent='Kunde inte spara: ' + (e.message||'okänt fel');
+    btn.disabled=false; btn.textContent='Spara →';
   }
 }
 
-// Logga ut
+// ── Auth ──────────────────────────────────────────────────
 async function signOut(){
   await sbClient.auth.signOut();
   window.location.href = 'login.html';
 }
 
-// Session-check — kräver inloggning
 (async function(){
   const { data:{ session } } = await sbClient.auth.getSession();
-  if(!session){
-    window.location.href = 'login.html';
-    return;
-  }
+  if(!session){ window.location.href = 'login.html'; return; }
   load();
 })();
 </script>
@@ -496,19 +436,15 @@ async function signOut(){
 // ── Ny version-banner ─────────────────────────────────────
 (function(){
   let _initialTag = null;
-
   async function checkVersion(){
     try {
-      const res = await fetch(location.pathname + '?_=' + Date.now(), {
-        method: 'HEAD', cache: 'no-store'
-      });
+      const res = await fetch(location.pathname + '?_=' + Date.now(), { method:'HEAD', cache:'no-store' });
       const tag = res.headers.get('ETag') || res.headers.get('Last-Modified');
       if(!tag) return;
       if(!_initialTag){ _initialTag = tag; return; }
       if(tag !== _initialTag) showUpdateBanner();
     } catch(e){}
   }
-
   function showUpdateBanner(){
     if(document.getElementById('lpUpdateBanner')) return;
     const b = document.createElement('div');
@@ -518,10 +454,7 @@ async function signOut(){
     b.onclick = () => location.reload();
     document.body.prepend(b);
   }
-
-  // Kolla direkt vid sidladdning för att sätta baseline
   checkVersion();
-  // Kolla sedan var 5:e minut
   setInterval(checkVersion, 5 * 60 * 1000);
 })();
 </script>
