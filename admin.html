@@ -4222,16 +4222,19 @@ async function loadClubSections(){
 }
 
 async function init() {
+  console.log('[LP] init() startar, _eventParam=', _eventParam, 'IS_DEMO=', IS_DEMO);
   // Session-check — kräver inloggning om inte demo
   if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
     const { data:{ session } } = await _sbAuth.auth.getSession();
     if(!session){
+      console.log('[LP] REDIRECT: ingen session → login.html');
       window.location.href = 'login.html';
       return;
     }
   }
   // Riktig admin: om inget event valts, gå till event-väljaren först
   if(!_eventParam && typeof IS_DEMO !== 'undefined' && !IS_DEMO){
+    console.log('[LP] REDIRECT: ingen _eventParam i init() → events.html', '_eventParam=', _eventParam);
     window.location.href = 'events.html';
     return;
   }
