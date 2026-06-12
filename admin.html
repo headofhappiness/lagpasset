@@ -1778,6 +1778,13 @@ function getStationStats(){
 }
 
 function renderStationOverview(){
+  const el = document.getElementById('stationOverview');
+  if(!el) return;
+  const isDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  if(!isDemo && !DB.shifts.length){
+    el.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:.5rem 0">Inga pass inlagda ännu. Gå till Pass & beläggning för att lägga till.</p>';
+    return;
+  }
   renderStationRowsInto('stationOverview', true);
 }
 
@@ -2109,7 +2116,8 @@ function renderFaqList(){
 // ═══════════════════════════════════════
 function renderShiftTable(){
   if(!document.getElementById('shiftTable')) return;
-  const shifts = DB.shifts.length ? DB.shifts : SHIFTS_DATA;
+  const isDemo2112 = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  const shifts = (isDemo2112 && !DB.shifts.length) ? SHIFTS_DATA : DB.shifts;
   const useDB = DB.shifts.length > 0;
 
   document.getElementById('shiftTable').innerHTML = shifts.map(s=>{
