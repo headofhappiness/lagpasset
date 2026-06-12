@@ -1282,7 +1282,10 @@ const _demoName = (new URLSearchParams(window.location.search)).get('namn');
 const DEMO_EVENT_ID = '00000000-0000-0000-0000-000000000002';
 const _isLiveMode = !window.location.pathname.includes('admin_demo');
 const _needsRedirect = _isLiveMode && (!_eventParam || _eventParam === DEMO_EVENT_ID);
-if(_needsRedirect){ window.location.href = 'events.html'; }
+if(_needsRedirect){ 
+  console.log('[LagPasset] Redirect: _eventParam=', _eventParam, '_isLiveMode=', _isLiveMode);
+  window.location.href = 'events.html'; 
+}
 const EVENT_ID = _needsRedirect ? DEMO_EVENT_ID : (_eventParam || DEMO_EVENT_ID);
 
 async function sbFetch(table, params) {
