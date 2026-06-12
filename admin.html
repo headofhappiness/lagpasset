@@ -1790,6 +1790,12 @@ function renderStationOverview(){
 
 // Stationsrader för Passschema (med antal tillfällen + platser)
 function renderStationRows(){
+  const isDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  if(!isDemo && !DB.shifts.length){
+    const el = document.getElementById('stationRows');
+    if(el) el.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:1rem 0">Inga pass inlagda ännu. Klicka på "+ Nytt pass" för att komma igång.</p>';
+    return;
+  }
   renderStationRowsInto('stationRows', false);
 }
 
