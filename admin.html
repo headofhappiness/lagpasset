@@ -3121,6 +3121,7 @@ const IS_DEMO = false;
 (function(){ const b = document.getElementById('demoBanner'); if(b && !IS_DEMO) b.remove(); })();
 
 function demoBlock(){
+  if(typeof IS_DEMO === 'undefined' || !IS_DEMO) return; // Kör aldrig i live-läge
   const t = document.getElementById('demoToast');
   t.style.display = 'block';
   clearTimeout(demoBlock._timer);
