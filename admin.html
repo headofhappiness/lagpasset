@@ -3135,9 +3135,12 @@ function closeDemoWelcome(){
 // Block all save/send actions in demo
 function previewEmail(){ if(typeof IS_DEMO!=="undefined"&&IS_DEMO){ demoBlock(); } else { showToast("Förhandsgranskning ej tillgänglig i live-läge."); } }
 
-// Sidebar club label
-document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
-  document.getElementById('demoBanner').classList.add('active');
+// Visa demo-banner och klubbnamn bara i demo-läge
+if(typeof IS_DEMO !== 'undefined' && IS_DEMO){
+  document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
+  const _demoBanner = document.getElementById('demoBanner');
+  if(_demoBanner) _demoBanner.classList.add('active');
+}
 
 // ── Instruktioner per passtyp ──
 const defaultInstructions = {
