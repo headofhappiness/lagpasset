@@ -647,9 +647,9 @@ Hälsningar,
         <div style="margin-top:1.25rem;padding-top:1.1rem;border-top:1px dashed var(--border)">
           <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.35rem">🧪 TESTA FÖRST PÅ DIG SJÄLV</div>
           <p style="font-size:12.5px;color:var(--muted);margin-bottom:.6rem">Skicka en kopia av meddelandet ovan (med ämnesrad, text och ev. passval-knapp precis som mottagarna får det) till en valfri adress – så ser du hur det blir innan du skickar till alla.</p>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
-            <input type="email" id="testEmailAddr" placeholder="din@email.se" style="flex:1;min-width:180px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px">
-            <button class="btn btn-ghost btn-sm" onclick="sendTestEmail()">Skicka testmejl →</button>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <input type="email" id="testEmailAddr" placeholder="din@email.se" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box">
+            <button class="btn btn-ghost btn-sm" onclick="sendTestEmail()" style="align-self:flex-start">Skicka testmejl →</button>
           </div>
         </div>
       </div>
