@@ -4821,8 +4821,7 @@ function parsePassSchema(text, defaultStation, manualTeam){
     let timeEndRaw = (m[4]||'').trim();
     // Rensa "ca ", "ca.", punkt etc, extrahera HH:MM
     const timeMatch = timeEndRaw.match(/(\d{1,2}:\d{2})/);
-    const timeEnd = timeMatch ? timeMatch[1] : null;
-    if(!timeEnd) continue; // kan inte spara utan sluttid
+    const timeEnd = timeMatch ? timeMatch[1] : '23:59'; // fallback för "det är klart" etc
     allMatches.push({ startDay, timeStart, timeEnd, index: m.index, endIndex: m.index + m[0].length });
   }
 
@@ -4848,22 +4847,29 @@ function parsePassSchema(text, defaultStation, manualTeam){
       if(d < eventStart || d > eventEnd) outsideEvent = true;
     }
 
-    // Räkna platser
-    const slotLines = section.split('\n').filter(line => /^\s*\d+\b/.test(line.trim()));
-    const dataLines = slotLines.filter(l => !/namn|telefon|lag/i.test(l));
-    const slots = Math.max(1, dataLines.length);
+    // Räkna platser - hanterar | 1 | tabellformat och vanliga numrerade rader
+    const tableDataRows = section.split('\n').filter(l => /^\s*\|\s*\d+\s*\|/.test(l));
+    const plainDataRows = section.split('\n').filter(l => /^\s*\d+\b/.test(l.trim()) && !/namn|telefon|lag/i.test(l));
+    const slots = Math.max(1, tableDataRows.length || plainDataRows.length);
 
-    // Lag per sektion: ta det vanligaste laget i sektionens tabellrader
+    // Lag per sektion: extrahera lag från tabellrader | n | | | LAG | |
     let team = defaultTeam;
-    const sectionTeamFreq = {};
-    const sectionTeamRe = new RegExp(LAG_RE.source, 'gm');
-    let stm;
-    while((stm = sectionTeamRe.exec(section)) !== null){
-      const t = stm[1];
-      if(!LAG_EXCLUDE.has(t) && t.length >= 2 && t.length <= 5) sectionTeamFreq[t] = (sectionTeamFreq[t]||0)+1;
+    const lagFromTable = [];
+    section.split('\n').forEach(line => {
+      // Matcha | 1 | (tom) | (tom) | P19 | (tom) | - lag är 4:e pipe-fält
+      const pipeParts = line.split('|').map(p => p.trim()).filter((p,i) => i > 0);
+      if(pipeParts.length >= 4 && /^\d+$/.test(pipeParts[0])){
+        const lagCandidate = pipeParts[3];
+        if(lagCandidate && lagCandidate.length >= 2 && lagCandidate.length <= 5 && !LAG_EXCLUDE.has(lagCandidate) && /^[A-ZÅÄÖ]/.test(lagCandidate)){
+          lagFromTable.push(lagCandidate);
+        }
+      }
+    });
+    if(lagFromTable.length > 0){
+      const lagFreq = {};
+      lagFromTable.forEach(t => lagFreq[t] = (lagFreq[t]||0)+1);
+      team = Object.keys(lagFreq).sort((a,b)=>lagFreq[b]-lagFreq[a])[0];
     }
-    const sectionBest = Object.keys(sectionTeamFreq).sort((a,b)=>sectionTeamFreq[b]-sectionTeamFreq[a])[0];
-    if(sectionBest) team = sectionBest;
 
     shifts.push({
       station, date, rawDay: cur.startDay,
