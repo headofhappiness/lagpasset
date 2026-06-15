@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <link rel="icon" type="image/png" href="favicon.png">
-<title>Demo – Lagpasset admin</title>
+<title>LagPasset Admin</title>
 <meta name="description" content="Klicka runt i en demo av Lagpasset och se hur enkelt föreningen hanterar föräldrapass.">
 <meta property="og:title" content="Lagpasset – Se admindemon">
 <meta property="og:description" content="Se hur föreningen hanterar föräldrapass – klicka runt fritt, inget sparas.">
@@ -2166,6 +2166,7 @@ function renderFaqList(){
       allItems.push({...s, enabled: false, suggested: true});
     }
   });
+  _faqAllItems = allItems;
   el.innerHTML = allItems.map((f,i)=>{
     const on = f.enabled !== false;
     const isSugg = f.suggested && !source.find(x=>x.q===f.q);
@@ -2177,8 +2178,8 @@ function renderFaqList(){
           <div style="font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5">${f.a}</div>
         </div>
         <div style="display:flex;gap:.35rem;flex-shrink:0;align-items:center">
-          <button onclick="toggleFaq(${i},${JSON.stringify(allItems).replace(/'/g,"&apos;")})" style="background:${on?'var(--green)':'#ccc'};color:#fff;border:none;border-radius:100px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer">${on?'PÅ':'AV'}</button>
-          <button onclick="editFaq(${i},${JSON.stringify(allItems).replace(/'/g,"&apos;")})" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:14px">✏️</button>
+          <button onclick="toggleFaq(${i})" style="background:${on?'var(--green)':'#ccc'};color:#fff;border:none;border-radius:100px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer">${on?'PÅ':'AV'}</button>
+          <button onclick="editFaq(${i})" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:14px">✏️</button>
           <button onclick="deleteFaq(${i})" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:14px;color:var(--muted)">×</button>
         </div>
       </div>
@@ -4357,6 +4358,8 @@ async function init() {
     const se = document.getElementById('sidebarEvent');
     if(sen) sen.textContent = _displayName;
     if(se) se.style.display = 'flex';
+    // Uppdatera sidtiteln
+    if(!IS_DEMO) document.title = _displayName + ' – LagPasset';
   }
   if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
   // Visa Logga ut-knapp i riktig admin (ej demo)
@@ -4600,8 +4603,8 @@ async function saveFaqToDB(faqArray){
   } catch(e){ showToast('Kunde inte spara FAQ: ' + e.message, 'error'); }
 }
 
-function toggleFaq(idx, allItemsStr){
-  const allItems = typeof allItemsStr === 'string' ? JSON.parse(allItemsStr) : allItemsStr;
+function toggleFaq(idx){
+  const allItems = _faqAllItems;
   const item = {...allItems[idx], enabled: allItems[idx].enabled === false, suggested: undefined};
   delete item.suggested;
   const updated = [...DB.faq];
@@ -4611,8 +4614,8 @@ function toggleFaq(idx, allItemsStr){
   saveFaqToDB(updated);
 }
 
-function editFaq(idx, allItemsStr){
-  const allItems = typeof allItemsStr === 'string' ? JSON.parse(allItemsStr) : allItemsStr;
+function editFaq(idx){
+  const allItems = _faqAllItems;
   const f = allItems[idx];
   document.getElementById('faqQ').value = f.q || '';
   document.getElementById('faqA').value = f.a || '';
