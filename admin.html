@@ -477,7 +477,7 @@ setVH(); window.addEventListener('resize',setVH);
         </div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
           <button class="btn btn-ghost" onclick="smartPrint()">🖨️ Skriv ut lista</button>
-          <button class="btn btn-ghost" id="btnAiImport" onclick="openModal('modalImportAI')">🤖 AI-import</button>
+          <button class="btn btn-ghost" id="btnAiImport" onclick="openImportModal()">📂 Importera passlistor</button>
           <button class="btn btn-primary" id="btnNyttPass" onclick="openModal('modalAddShift')">+ Nytt pass</button>
         </div>
       </div>
@@ -1178,26 +1178,56 @@ Hälsningar,
 
 <!-- AI-import -->
 <div class="modal-overlay" id="modalImportAI">
-  <div class="modal">
+  <div class="modal" style="max-width:620px">
     <div class="modal-header">
-      <div class="modal-title">🤖 AI-import av gammalt schema</div>
+      <div class="modal-title">📂 Importera passlistor</div>
       <button class="modal-close" onclick="closeModal('modalImportAI')">✕</button>
     </div>
-    <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1.1rem">Ladda upp förra årets Word-dokument eller klistra in texten. AI:n läser av pass, tider, lag och platser och föreslår ett schema – ni granskar och godkänner.</p>
-    <div class="form-group">
-      <label class="form-label">Ladda upp dokument (Word / PDF)</label>
-      <div style="border:2px dashed var(--border);border-radius:10px;padding:1.5rem;text-align:center;color:var(--muted);font-size:14px;cursor:pointer">
-        Dra och släpp filen här, eller <span style="color:var(--green);text-decoration:underline;cursor:pointer">klicka för att välja</span>
+    <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:1rem">Ladda upp er passlista som Word (.docx) eller Excel (.xlsx). Systemet läser av stationsnamn, datum, tider och antal platser automatiskt.</p>
+
+    <!-- Eventdatum (för att mappa Fredag/Lördag/Söndag) -->
+    <div id="importDateHint" style="background:var(--green-light);border-radius:8px;padding:.65rem 1rem;font-size:13px;color:var(--green);margin-bottom:1rem">
+      📅 Eventet <strong id="importEventName">–</strong> körs <strong id="importEventDates">–</strong>. Fredag/Lördag/Söndag mappas automatiskt.
+    </div>
+
+    <!-- Upload-zon -->
+    <div id="importDropZone" onclick="document.getElementById('importFileInput').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--green)'"
+      ondragleave="this.style.borderColor='var(--border)'"
+      ondrop="event.preventDefault();this.style.borderColor='var(--border)';handleImportFile(event.dataTransfer.files[0])"
+      style="border:2px dashed var(--border);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:.15s">
+      <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
+      <div style="font-weight:600;color:var(--dark);margin-bottom:.25rem">Dra och släpp filen här</div>
+      <div style="font-size:13px;color:var(--muted)">eller klicka för att välja &nbsp;·&nbsp; .docx eller .xlsx</div>
+      <input type="file" id="importFileInput" accept=".docx,.xlsx,.csv" style="display:none" onchange="handleImportFile(this.files[0])">
+    </div>
+
+    <!-- Status -->
+    <div id="importStatus" style="display:none;margin-top:.85rem;font-size:13px;color:var(--muted)"></div>
+
+    <!-- Preview-tabell -->
+    <div id="importPreview" style="display:none;margin-top:1rem">
+      <div style="font-weight:700;color:var(--dark);margin-bottom:.5rem">Hittade pass — granska innan du sparar:</div>
+      <div style="max-height:260px;overflow-y:auto;border:1.5px solid var(--border);border-radius:8px">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead style="background:var(--bg);position:sticky;top:0">
+            <tr>
+              <th style="padding:6px 10px;text-align:left;font-weight:600">Station</th>
+              <th style="padding:6px 10px;text-align:left;font-weight:600">Datum</th>
+              <th style="padding:6px 10px;text-align:left;font-weight:600">Tid</th>
+              <th style="padding:6px 10px;text-align:center;font-weight:600">Platser</th>
+              <th style="padding:6px 10px"></th>
+            </tr>
+          </thead>
+          <tbody id="importPreviewBody"></tbody>
+        </table>
       </div>
+      <div id="importError" style="display:none;color:var(--red);font-size:13px;margin-top:.5rem"></div>
     </div>
-    <div style="text-align:center;color:var(--muted);font-size:13px;margin:.5rem 0">— eller —</div>
-    <div class="form-group" style="margin-bottom:.5rem">
-      <label class="form-label">Klistra in text direkt</label>
-      <textarea rows="5" placeholder="Klistra in innehållet från Word-dokumentet här..."></textarea>
-    </div>
-    <div class="modal-footer">
+
+    <div class="modal-footer" style="margin-top:1rem">
       <button class="btn btn-ghost" onclick="closeModal('modalImportAI')">Avbryt</button>
-      <button class="btn btn-primary">Analysera med AI →</button>
+      <button class="btn btn-primary" id="importSaveBtn" onclick="saveImportedShifts()" style="display:none">Spara <span id="importSaveCount">0</span> pass →</button>
     </div>
   </div>
 </div>
@@ -1268,6 +1298,8 @@ Hälsningar,
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5/papaparse.min.js"></script>
 <script>
 // ═══════════════════════════════════════
@@ -4350,7 +4382,184 @@ function confirmResolve(val){
 
 </script>
 <script>
-// ── Ny version-banner ─────────────────────────────────────
+// ── Passimport (Word/Excel) ───────────────────────────────
+let _importedShifts = [];
+
+function openImportModal(){
+  // Fyll in eventinfo i modalen
+  const nameEl = document.getElementById('importEventName');
+  const datesEl = document.getElementById('importEventDates');
+  if(EVENT){
+    if(nameEl) nameEl.textContent = EVENT.name || '–';
+    if(datesEl && EVENT.date_start){
+      const fmt = d => { const o = new Date(d); return o.getDate()+'/'+(o.getMonth()+1); };
+      datesEl.textContent = fmt(EVENT.date_start) + (EVENT.date_end && EVENT.date_end !== EVENT.date_start ? '–'+fmt(EVENT.date_end) : '') + ' 2026';
+    }
+  }
+  // Återställ modal
+  document.getElementById('importStatus').style.display = 'none';
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importSaveBtn').style.display = 'none';
+  document.getElementById('importFileInput').value = '';
+  _importedShifts = [];
+  openModal('modalImportAI');
+}
+
+async function handleImportFile(file){
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const statusEl = document.getElementById('importStatus');
+  statusEl.style.display = 'block';
+  statusEl.textContent = '⏳ Läser ' + file.name + '...';
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importSaveBtn').style.display = 'none';
+
+  try {
+    let text = '';
+    if(ext === 'docx'){
+      const arr = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({arrayBuffer: arr});
+      text = result.value;
+    } else if(ext === 'xlsx' || ext === 'xls'){
+      const arr = await file.arrayBuffer();
+      const wb = XLSX.read(arr, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      text = XLSX.utils.sheet_to_csv(ws);
+    } else if(ext === 'csv'){
+      text = await file.text();
+    } else {
+      statusEl.textContent = '❌ Filtypen stöds inte. Använd .docx eller .xlsx.';
+      return;
+    }
+
+    // Stationsnamn: försök från dokumenttext, annars filnamn
+    const stationFromFile = file.name.replace(/[_\-]\d+.*$/,'').replace(/\.\w+$/,'').trim();
+
+    // Parsnings-logik för Åsacupen-format
+    const shifts = parsePassSchema(text, stationFromFile);
+
+    if(!shifts.length){
+      statusEl.textContent = '⚠️ Hittade inga pass. Kontrollera att dokumentet har rätt format (Fredag/Lördag/Söndag + tider).';
+      return;
+    }
+
+    _importedShifts = shifts;
+    statusEl.textContent = '✓ Hittade ' + shifts.length + ' pass i "' + file.name + '"';
+    renderImportPreview(shifts);
+  } catch(e){
+    console.error(e);
+    statusEl.textContent = '❌ Kunde inte läsa filen: ' + e.message;
+  }
+}
+
+function parsePassSchema(text, defaultStation){
+  const shifts = [];
+  // Mappa dagnamn till datum baserat på EVENT.date_start
+  const dayMap = {};
+  if(EVENT && EVENT.date_start){
+    const start = new Date(EVENT.date_start);
+    const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+    for(let i = 0; i < 7; i++){
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const name = dayNames[d.getDay()];
+      if(!dayMap[name]) dayMap[name] = d.toISOString().slice(0,10);
+    }
+  } else {
+    // Fallback: anta Åsacupen 26-28 juni
+    dayMap['Fredag'] = '2026-06-26';
+    dayMap['Lördag'] = '2026-06-27';
+    dayMap['Söndag'] = '2026-06-28';
+  }
+
+  // Hitta stationsnamn i texten (rubrik efter "Åsacupen"-intro)
+  let station = defaultStation;
+  const stationMatch = text.match(/^(Parkering|Servering|Infotält|Bygg\s*&?\s*Riv|Nattvakt|Bemanning|Registrering|Cafeteria|Kiosk|Information)/mi);
+  if(stationMatch) station = stationMatch[1].replace(/\s+/g,' ').trim();
+
+  // Matcha pass-block: "Fredag 10:00-12:00" eller "Lördag10:15-12:30"
+  const passPattern = /(Fredag|Lördag|Söndag|Måndag|Tisdag|Onsdag|Torsdag)\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})([^\n]*)/gi;
+  let match;
+  while((match = passPattern.exec(text)) !== null){
+    const day = match[1];
+    const timeStart = match[2];
+    const timeEnd = match[3];
+    const note = match[4].replace(/\(.*?\)/g,'').trim();
+    const date = dayMap[day] || null;
+
+    // Räkna antal platser: sök framåt efter tabellrader (1, 2, 3...)
+    const afterMatch = text.slice(match.index + match[0].length, match.index + match[0].length + 500);
+    const slotRows = afterMatch.match(/^\s*\d+\s*$/gm);
+    const slots = slotRows ? slotRows.length : 2; // default 2 platser
+
+    shifts.push({ station, date, time_start: timeStart, time_end: timeEnd, slots, note: note || '' });
+  }
+  return shifts;
+}
+
+function renderImportPreview(shifts){
+  const tbody = document.getElementById('importPreviewBody');
+  const dayNames = { '2026-06-26':'Fre', '2026-06-27':'Lör', '2026-06-28':'Sön' };
+  tbody.innerHTML = shifts.map((s,i) => {
+    const dayLabel = s.date ? (dayNames[s.date] || s.date.slice(5)) : '?';
+    return `<tr style="border-top:1px solid var(--border)">
+      <td style="padding:6px 10px">${s.station}</td>
+      <td style="padding:6px 10px">${dayLabel} ${s.date ? s.date.slice(5).replace('-','/') : '?'}</td>
+      <td style="padding:6px 10px">${s.time_start}–${s.time_end}</td>
+      <td style="padding:6px 10px;text-align:center">${s.slots}</td>
+      <td style="padding:6px 4px;text-align:center"><button onclick="removeImportRow(${i})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" title="Ta bort">×</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('importSaveCount').textContent = shifts.length;
+  document.getElementById('importPreview').style.display = 'block';
+  document.getElementById('importSaveBtn').style.display = '';
+}
+
+function removeImportRow(idx){
+  _importedShifts.splice(idx, 1);
+  if(!_importedShifts.length){
+    document.getElementById('importPreview').style.display = 'none';
+    document.getElementById('importSaveBtn').style.display = 'none';
+  } else {
+    renderImportPreview(_importedShifts);
+  }
+}
+
+async function saveImportedShifts(){
+  if(!_importedShifts.length) return;
+  const btn = document.getElementById('importSaveBtn');
+  const errEl = document.getElementById('importError');
+  btn.disabled = true; btn.textContent = 'Sparar...';
+  errEl.style.display = 'none';
+  let saved = 0, failed = 0;
+  for(const s of _importedShifts){
+    try {
+      await sbInsert('shifts', {
+        event_id: EVENT_ID,
+        category: s.station,
+        date: s.date,
+        time_start: s.time_start,
+        time_end: s.time_end,
+        slots: s.slots,
+        note: s.note || ''
+      });
+      saved++;
+    } catch(e){ console.error(e); failed++; }
+  }
+  if(failed){
+    errEl.textContent = saved + ' pass sparade, ' + failed + ' misslyckades.';
+    errEl.style.display = 'block';
+  } else {
+    closeModal('modalImportAI');
+    showToast(saved + ' pass importerade! ✓', 'success');
+    await loadFromDB();
+    renderDashboard();
+    renderStationRows();
+  }
+  btn.disabled = false;
+  btn.textContent = 'Spara ' + _importedShifts.length + ' pass →';
+}
+// ─────────────────────────────────────────────────────────
 (function(){
   let _initialTag = null;
 
