@@ -4683,6 +4683,12 @@ function parsePassSchema(text, defaultStation){
   const stationMatch = text.match(/^(Parkering|Servering|Infotält|Bygg[\s&]+Riv|Nattvakt|Bemanning|Registrering|Cafeteria|Kiosk|Information)/mi);
   if(stationMatch) station = stationMatch[1].replace(/\s+/g,' ').trim();
 
+  // Extrahera dominerande lag från hela dokumentet (robustare än per-sektion)
+  const allTeamMatches = text.match(/\n([A-ZÅÄÖ]\d{1,3})\n/g) || [];
+  const teamFreq = {};
+  allTeamMatches.forEach(t => { const c = t.trim(); teamFreq[c] = (teamFreq[c]||0)+1; });
+  const defaultTeam = Object.keys(teamFreq).sort((a,b)=>teamFreq[b]-teamFreq[a])[0] || '';
+
   // Hitta ALLA passrubriker och deras positioner
   const passPattern = /(Fredag|Lördag|Söndag|Måndag|Tisdag|Onsdag|Torsdag)\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})([^\n]*)/gi;
   const allMatches = [];
@@ -4706,18 +4712,10 @@ function parsePassSchema(text, defaultStation){
     const dataLines = slotLines.filter(l => !/namn|telefon|lag/i.test(l));
     const slots = Math.max(1, dataLines.length);
 
-    // Extrahera lag — sök efter mönster som P19, F16, H21 i sektionen
-    let team = '';
-    // Sök efter lagmönster: P19, F16, H21 etc - letter + digits
-    const teamMatch = section.match(/(?:^|\s)([A-ZÅÄÖ]\d{1,3})(?:\s|$)/m);
-    if(teamMatch) team = teamMatch[1].trim();
-    // Fallback: sök i hela sektionen
-    if(!team){
-      const tm2 = section.match(/([A-ZÅÄÖ]\d{1,3})/);
-      if(tm2 && tm2[1] !== 'P' && !['Fre','Lör','Sön','Mån','Tis','Ons','Tor'].includes(tm2[1])){
-        team = tm2[1];
-      }
-    }
+    // Extrahera lag per sektion, fallback till dokumentets dominerande lag
+    let team = defaultTeam;
+    const sectionTeam = section.match(/\n([A-ZÅÄÖ]\d{1,3})\n/);
+    if(sectionTeam) team = sectionTeam[1].trim();
     // Fallback: sista ordet på en tabellrad om det liknar ett lagnamn
     if(!team){
       for(const line of dataLines){
