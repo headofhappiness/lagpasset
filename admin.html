@@ -4811,7 +4811,7 @@ function parsePassSchema(text, defaultStation, manualTeam){
   // "Lördag - Söndag 21:00-02:00"  (tvådagspass → tar första dagen)
   // "Lördag  02:00-07:00"           (extra mellanslag)
   // Sluttid: antingen HH:MM eller text som "det är klart" / "ca 18:00"
-  const passPattern = /(Måndag|Tisdag|Onsdag|Torsdag|Fredag|Lördag|Söndag)(?:\s*[-–]\s*(?:Måndag|Tisdag|Onsdag|Torsdag|Fredag|Lördag|Söndag))?\s+(\d{1,2}:\d{2})\s*[-–*]\s*([\d:ca\.\s]+|det är klart)/gi;
+  const passPattern = /\*{0,2}(Måndag|Tisdag|Onsdag|Torsdag|Fredag|Lördag|Söndag)(?:\s*[-–]\s*(?:Måndag|Tisdag|Onsdag|Torsdag|Fredag|Lördag|Söndag))?\s+(\d{1,2}:\d{2})\s*[-–*]\s*([\d:ca\.\s]+|det är klart)/gi;
   const allMatches = [];
   let m;
   while((m = passPattern.exec(text)) !== null){
