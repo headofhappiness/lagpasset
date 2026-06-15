@@ -417,8 +417,6 @@ setVH(); window.addEventListener('resize',setVH);
           <input type="text" id="childSearch" placeholder="Sök på namn…" style="max-width:220px;margin-bottom:0" oninput="renderChildTable()">
           <select id="childTeamFilter" style="max-width:160px;margin-bottom:0" onchange="renderChildTable()">
             <option value="">Alla lag</option>
-            <option>FJ – Flickjuniorer</option><option>P09</option><option>P10</option>
-            <option>P11</option><option>P12</option><option>P13</option><option>F11</option><option>F13</option>
           </select>
           <select id="childStatusFilter" style="max-width:180px;margin-bottom:0" onchange="renderChildTable()">
             <option value="">Alla statusar</option>
@@ -2068,6 +2066,14 @@ function renderChildTable(){
   const forceDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
   const source = forceDemo ? CHILDREN : DB.participants;
   const useDB = !forceDemo;
+
+  // Uppdatera lag-dropdown dynamiskt från DB
+  const sel = document.getElementById('childTeamFilter');
+  if(sel && !forceDemo){
+    const teams = [...new Set(DB.participants.map(p=>p.team).filter(Boolean))].sort();
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Alla lag</option>' + teams.map(t=>`<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join('');
+  }
 
   const filtered = source.filter(c=>{
     const name = useDB ? c.name : c.name;
