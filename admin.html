@@ -4706,8 +4706,10 @@ async function handleImportFile(file){
 }
 
 function showDateMapping(shifts){
-  // Hitta unika dagar i dokumentet
-  const uniqueDays = [...new Set(shifts.map(s => s.rawDay).filter(Boolean))];
+  // Hitta unika dagar i dokumentet, sorterade i veckordning mån-sön
+  const weekOrder = ['Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag','Söndag'];
+  const uniqueDays = [...new Set(shifts.map(s => s.rawDay).filter(Boolean))]
+    .sort((a,b) => weekOrder.indexOf(a) - weekOrder.indexOf(b));
   if(!uniqueDays.length){
     // Inga dagar att mappa - visa direkt
     renderImportPreview(shifts);
@@ -4715,14 +4717,18 @@ function showDateMapping(shifts){
   }
 
   // Bygg datumväljare för varje dag
+  // Använd lokal datumtolkning (lägg till T12:00 för att undvika UTC-förskjutning)
   const eventDates = [];
   if(EVENT && EVENT.date_start){
-    const start = new Date(EVENT.date_start);
-    const end = new Date(EVENT.date_end || EVENT.date_start);
     const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+    const [sy,sm,sd] = EVENT.date_start.split('-').map(Number);
+    const [ey,em,ed] = (EVENT.date_end || EVENT.date_start).split('-').map(Number);
+    const start = new Date(sy, sm-1, sd);
+    const end = new Date(ey, em-1, ed);
     for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
+      const iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
       eventDates.push({
-        value: d.toISOString().slice(0,10),
+        value: iso,
         label: dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1)
       });
     }
@@ -4773,11 +4779,14 @@ function parsePassSchema(text, defaultStation, manualTeam){
   const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   const dayMap = {};
   if(EVENT && EVENT.date_start){
-    const start = new Date(EVENT.date_start);
+    // Parsa datum lokalt för att undvika UTC-förskjutning
+    const [sy,sm,sd] = EVENT.date_start.split('-').map(Number);
+    const start = new Date(sy, sm-1, sd); // lokal midnatt
     for(let i = -3; i < 14; i++){
-      const d = new Date(start); d.setDate(start.getDate() + i);
+      const d = new Date(sy, sm-1, sd + i);
       const name = dayNames[d.getDay()];
-      if(!dayMap[name]) dayMap[name] = d.toISOString().slice(0,10);
+      const iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      if(!dayMap[name]) dayMap[name] = iso;
     }
   } else {
     dayMap['Torsdag']='2026-06-26'; dayMap['Fredag']='2026-06-27';
@@ -4966,6 +4975,10 @@ async function saveImportedShifts(){
         skipped++; continue;
       }
       const importTeam = document.getElementById('importTeamToggle')?.checked !== false;
+      if(!s.date){
+        console.warn('Pass utan datum hoppas över:', s.station, s.rawDay, s.time_start);
+        failed++; continue;
+      }
       await sbInsert('shifts', {
         event_id: EVENT_ID,
         title: s.station,
