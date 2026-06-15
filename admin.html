@@ -2047,8 +2047,13 @@ function renderChildTable(){
 function renderPoolTable(){
   const el = document.getElementById('poolTable');
   if(!el) return;
-  const source = DB.pool.length ? DB.pool : POOL;
+  const isDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  const source = isDemo ? (DB.pool.length ? DB.pool : POOL) : DB.pool;
   const useDB = DB.pool.length > 0;
+  if(!isDemo && !source.length){
+    el.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem;font-style:italic">Inga poolmedlemmar ännu. Klicka \"+ Lägg till i poolen\" för att lägga till.</td></tr>';
+    return;
+  }
   el.innerHTML = source.map(p=>{
     const name = p.name;
     const team = p.team || '–';
