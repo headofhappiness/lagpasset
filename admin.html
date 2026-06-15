@@ -2099,10 +2099,10 @@ function renderPoolTable(){
     const phone = p.phone || '–';
     const can = useDB ? (p.notes || 'Alla pass') : p.can;
     const assignedBadge = useDB
-      ? '<button class="btn btn-ghost btn-sm">Tilldela pass +</button>'
+      ? `<button onclick="openAssignPool('${p.id}')" class="btn btn-ghost btn-sm">Tilldela pass +</button>`
       : (p.assigned && p.assigned !== '–'
           ? '<span class="badge badge-green">' + p.assigned + '</span>'
-          : '<button class="btn btn-ghost btn-sm">Tilldela pass +</button>');
+          : `<button onclick="openAssignPool('${p.id}')" class="btn btn-ghost btn-sm">Tilldela pass +</button>`);
     return `<tr>
       <td>
         <div style="display:flex;align-items:center;gap:.6rem">
@@ -2113,7 +2113,13 @@ function renderPoolTable(){
       <td class="td-muted">${team}</td>
       <td style="font-size:12.5px;color:var(--text)">${can}</td>
       <td class="td-muted" style="font-size:13px">${phone}</td>
-      <td>${assignedBadge}</td>
+      <td>
+        <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap">
+          ${assignedBadge}
+          ${useDB ? `<button onclick="editPoolMember('${p.id}')" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:13px" title="Redigera">✏️</button>
+          <button onclick="deletePoolMember('${p.id}')" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--muted)" title="Ta bort">×</button>` : ''}
+        </div>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -2634,7 +2640,89 @@ async function addPoolMember(){
   }
 }
 
-// ── Lägg till kontaktperson ──
+function editPoolMember(id){
+  const p = DB.pool.find(x => x.id === id);
+  if(!p) return;
+  document.getElementById('poolName').value = p.name || '';
+  document.getElementById('poolTeam').value = p.team || '';
+  document.getElementById('poolCan').value = p.notes || '';
+  document.getElementById('poolPhone').value = p.phone || '';
+  // Byt knapp-text och lägg till id
+  const saveBtn = document.querySelector('#modalAddPool .btn-primary');
+  if(saveBtn){ saveBtn.textContent = 'Spara ändringar'; saveBtn.onclick = () => savePoolEdit(id); }
+  openModal('modalAddPool');
+}
+
+function openAssignPool(memberId){
+  if(!DB.shifts.length){
+    showToast('Lägg till pass under Pass & beläggning först.', 'error');
+    return;
+  }
+  const member = DB.pool.find(x => x.id === memberId);
+  if(!member) return;
+  const availableShifts = DB.shifts.filter(s => {
+    const booked = DB.bookings.filter(b => b.shift_id === s.id).length;
+    return booked < (s.slots || 1);
+  });
+  if(!availableShifts.length){
+    showToast('Inga lediga pass just nu.', 'error');
+    return;
+  }
+  const options = availableShifts.map(s =>
+    '<option value="' + s.id + '">' + (s.category||'') + ' · ' + (s.date ? s.date.slice(5).replace('-','/') : '') + ' ' + (s.time_start||'') + '–' + (s.time_end||'') + ' (' + ((s.slots||1) - DB.bookings.filter(b=>b.shift_id===s.id).length) + ' kvar)</option>'
+  ).join('');
+  document.getElementById('confirmMsg').innerHTML = '<div style="font-size:14px;margin-bottom:.75rem">Välj pass för <strong>' + member.name + '</strong>:</div><select id="assignShiftSelect" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px"><option value="">– Välj pass –</option>' + options + '</select>';
+  document.getElementById('confirmOkBtn').textContent = 'Tilldela';
+  document.getElementById('confirmModal').style.display = 'flex';
+  _confirmResolve = async (ok) => {
+    document.getElementById('confirmModal').style.display = 'none';
+    _confirmResolve = null;
+    if(!ok) return;
+    const shiftId = document.getElementById('assignShiftSelect').value;
+    if(!shiftId){ showToast('Inget pass valt.', 'error'); return; }
+    try {
+      await sbInsert('bookings', { shift_id: shiftId, pool_member_id: memberId, event_id: EVENT_ID });
+      await loadFromDB();
+      renderPoolTable();
+      showToast('Pass tilldelat ✓');
+    } catch(e){ showToast('Kunde inte tilldela: ' + e.message, 'error'); }
+  };
+}
+
+async function savePoolEdit(id){
+  const name = document.getElementById('poolName').value.trim();
+  const team = document.getElementById('poolTeam').value.trim();
+  const can = document.getElementById('poolCan').value.trim();
+  const phone = document.getElementById('poolPhone').value.trim();
+  if(!name){ showToast('Ange ett namn.', 'error'); return; }
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/pool_members?id=eq.' + id, {
+      method: 'PATCH',
+      headers: {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({ name, team: team||null, phone: phone||null, notes: can||null })
+    });
+    const idx = DB.pool.findIndex(x=>x.id===id);
+    if(idx>=0) DB.pool[idx] = {...DB.pool[idx], name, team, phone, notes:can};
+    closeModal('modalAddPool');
+    renderPoolTable();
+    showToast('Uppdaterad ✓');
+    // Återställ knappen
+    const saveBtn = document.querySelector('#modalAddPool .btn-primary');
+    if(saveBtn){ saveBtn.textContent = 'Lägg till'; saveBtn.onclick = null; saveBtn.setAttribute('onclick','addToPool()'); }
+  } catch(e){ showToast('Kunde inte spara: ' + e.message, 'error'); }
+}
+
+async function deletePoolMember(id){
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/pool_members?id=eq.' + id, {
+      method: 'DELETE',
+      headers: {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    DB.pool = DB.pool.filter(x=>x.id!==id);
+    renderPoolTable();
+    showToast('Borttagen ✓');
+  } catch(e){ showToast('Kunde inte ta bort: ' + e.message, 'error'); }
+}
 // ── Stations-länk till ansvarig ──
 function ansvarigLinkUrl(token){
   return new URL('ansvarig.html' + (token ? '?token=' + token : ''), location.href).href;
