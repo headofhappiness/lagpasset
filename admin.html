@@ -274,7 +274,7 @@ setVH(); window.addEventListener('resize',setVH);
       <span class="nav-icon">🙋</span> Medlemmar
     </a>
     <a class="nav-item" onclick="showSection('pool')" href="#">
-      <span class="nav-icon">🌟</span> Frivilligpool
+      <span class="nav-icon">🌟</span> Resurspool
     </a>
     <div class="nav-section">Kommunikation</div>
     <a class="nav-item" onclick="showSection('email')" href="#">
@@ -440,7 +440,7 @@ setVH(); window.addEventListener('resize',setVH);
     <div class="section" id="sec-pool">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
         <div>
-          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bemanningspool</h2>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Resurspool</h2>
           <p style="font-size:13px;color:var(--muted);margin-top:2px">Ungdomar och frivilliga som kan ta pass som annars blir tomma.</p>
         </div>
         <button class="btn btn-primary" onclick="openNewPoolModal()">+ Lägg till i poolen</button>
@@ -1020,11 +1020,11 @@ Hälsningar,
   </div>
 </div>
 
-<!-- Lägg till i bemanningspool -->
+<!-- Lägg till i resurspool -->
 <div class="modal-overlay" id="modalAddPool">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Lägg till i bemanningspool</div>
+      <div class="modal-title">Lägg till i resurspool</div>
       <button class="modal-close" onclick="closeModal('modalAddPool')">✕</button>
     </div>
     <div class="form-group">
@@ -1299,7 +1299,7 @@ Hälsningar,
       <div class="modal-title">Fyll från pool</div>
       <button class="modal-close" onclick="closeModal('modalFillPool')">✕</button>
     </div>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:1rem" id="fillPoolSub">Välj en person ur bemanningspoolen att tilldela detta pass.</p>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:1rem" id="fillPoolSub">Välj en person ur resurspoolen att tilldela detta pass.</p>
     <div id="fillPoolList" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem"></div>
     <div style="border-top:1px solid var(--border);padding-top:1rem">
       <div class="form-group" style="margin-bottom:.5rem">
@@ -1698,7 +1698,7 @@ function showSection(id){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
-  const titles={dashboard:'Översikt',children:'Bemanning',pool:'Bemanningspool',shifts:'Pass & beläggning',email:"Mejla bemanning",feedback:'Feedback',settings:'Inställningar'};
+  const titles={dashboard:'Översikt',children:'Bemanning',pool:'Resurspool',shifts:'Pass & beläggning',email:"Mejla bemanning",feedback:'Feedback',settings:'Inställningar'};
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='pool'){ renderPoolTable(); renderResourceRequests(); }
@@ -2629,7 +2629,7 @@ async function confirmFillPool(){
   }
 }
 
-// ── Lägg till i bemanningspool ──
+// ── Lägg till i resurspool ──
 async function addPoolMember(){
   const name = document.getElementById('poolName').value.trim();
   const team = document.getElementById('poolTeam').value.trim();
@@ -4706,13 +4706,18 @@ function parsePassSchema(text, defaultStation){
     const dataLines = slotLines.filter(l => !/namn|telefon|lag/i.test(l));
     const slots = Math.max(1, dataLines.length);
 
-    // Extrahera lag — sista kolumnen i tabellrader (t.ex. "P19")
+    // Extrahera lag — sök efter mönster som P19, F16, H21 i sektionen
     let team = '';
-    for(const line of dataLines){
-      const parts = line.trim().split(/\t+/);
-      const lastPart = parts[parts.length - 1].trim();
-      if(lastPart && /^[A-ZÅÄÖ][A-Za-zåäö0-9\s]+$/.test(lastPart) && lastPart !== 'Lag'){
-        team = lastPart; break;
+    const teamMatch = section.match(/\b([A-ZÅÄÖ]\d{1,2})\b/);
+    if(teamMatch) team = teamMatch[1];
+    // Fallback: sista ordet på en tabellrad om det liknar ett lagnamn
+    if(!team){
+      for(const line of dataLines){
+        const words = line.trim().split(/\s+/);
+        const last = words[words.length - 1];
+        if(last && /^[A-ZÅÄÖ][A-Za-z0-9]{1,5}$/.test(last) && last !== 'Lag'){
+          team = last; break;
+        }
       }
     }
 
