@@ -4801,24 +4801,25 @@ async function saveImportedShifts(){
   let saved = 0, failed = 0, skipped = 0;
   for(const s of _importedShifts){
     try {
-      // Kolla om passet redan finns
-      const exists = DB.shifts.some(x =>
+      // Kolla om passet redan finns (matchar på titel + tid, inte datum)
+      // Normalisera tid: "10:00:00" → "10:00"
+      const norm = t => t ? t.slice(0,5) : '';
+      const existingShift = DB.shifts.find(x =>
         x.title === s.station &&
-        x.date === s.date &&
-        x.time_start === s.time_start &&
-        x.time_end === s.time_end
+        norm(x.time_start) === norm(s.time_start) &&
+        norm(x.time_end) === norm(s.time_end)
       );
-      if(exists){
-        // Uppdatera lag om det saknas
+      if(existingShift){
+        // Uppdatera lag om det saknas på befintligt pass
         const importTeam2 = document.getElementById('importTeamToggle')?.checked !== false;
-        if(importTeam2 && s.team && !exists.team){
+        if(importTeam2 && s.team && !existingShift.team){
           try {
-            await fetch(SUPABASE_URL + '/rest/v1/shifts?id=eq.' + exists.id, {
+            await fetch(SUPABASE_URL + '/rest/v1/shifts?id=eq.' + existingShift.id, {
               method:'PATCH',
               headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
               body: JSON.stringify({team: s.team})
             });
-            exists.team = s.team;
+            existingShift.team = s.team;
           } catch(e){}
         }
         skipped++; continue;
