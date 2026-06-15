@@ -4708,8 +4708,16 @@ function parsePassSchema(text, defaultStation){
 
     // Extrahera lag — sök efter mönster som P19, F16, H21 i sektionen
     let team = '';
-    const teamMatch = section.match(/\b([A-ZÅÄÖ]\d{1,2})\b/);
-    if(teamMatch) team = teamMatch[1];
+    // Sök efter lagmönster: P19, F16, H21 etc - letter + digits
+    const teamMatch = section.match(/(?:^|\s)([A-ZÅÄÖ]\d{1,3})(?:\s|$)/m);
+    if(teamMatch) team = teamMatch[1].trim();
+    // Fallback: sök i hela sektionen
+    if(!team){
+      const tm2 = section.match(/([A-ZÅÄÖ]\d{1,3})/);
+      if(tm2 && tm2[1] !== 'P' && !['Fre','Lör','Sön','Mån','Tis','Ons','Tor'].includes(tm2[1])){
+        team = tm2[1];
+      }
+    }
     // Fallback: sista ordet på en tabellrad om det liknar ett lagnamn
     if(!team){
       for(const line of dataLines){
@@ -4763,9 +4771,17 @@ async function saveImportedShifts(){
   const errEl = document.getElementById('importError');
   btn.disabled = true; btn.textContent = 'Sparar...';
   errEl.style.display = 'none';
-  let saved = 0, failed = 0;
+  let saved = 0, failed = 0, skipped = 0;
   for(const s of _importedShifts){
     try {
+      // Kolla om passet redan finns
+      const exists = DB.shifts.some(x =>
+        x.title === s.station &&
+        x.date === s.date &&
+        x.time_start === s.time_start &&
+        x.time_end === s.time_end
+      );
+      if(exists){ skipped++; continue; }
       const importTeam = document.getElementById('importTeamToggle')?.checked !== false;
       await sbInsert('shifts', {
         event_id: EVENT_ID,
@@ -4784,7 +4800,7 @@ async function saveImportedShifts(){
     errEl.style.display = 'block';
   } else {
     closeModal('modalImportAI');
-    showToast(saved + ' pass importerade! ✓', 'success');
+    showToast(saved + ' pass importerade!' + (skipped ? ' ' + skipped + ' dubblett(er) hoppades över.' : ' ✓'), 'success');
     await loadFromDB();
     renderDashboard();
     renderStationRows();
