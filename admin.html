@@ -1809,7 +1809,7 @@ function getStationStats(){
       const key = s.title;
       const taken = DB.bookings.filter(b=>b.shift_id===s.id).length;
       const total = s.slots;
-      if(!stations[key]) stations[key] = {name:key, icon:iconMap[key]||'📌', cat:key.toLowerCase().replace(/[åä]/g,'a').replace(/ö/g,'o').replace(/\s+/g,'-'), total:0, taken:0, shifts:0, weakest:null};
+      if(!stations[key]) stations[key] = {name:key, icon:iconMap[key]||'📌', cat:key, total:0, taken:0, shifts:0, weakest:null};
       stations[key].total += total;
       stations[key].taken += taken;
       stations[key].shifts += 1;
@@ -3641,8 +3641,8 @@ function openCategory(cat) {
   let title = cat;
   let days = ['Alla'];
   if(DB.shifts.length > 0){
-    // cat är nu title-baserat (t.ex. "servering" eller "Servering")
-    const dbShifts = DB.shifts.filter(s => s.title.toLowerCase() === cat.toLowerCase() || s.title.toLowerCase().replace(/\s+/g,'-') === cat);
+    // cat är nu exakt titel från DB
+    const dbShifts = DB.shifts.filter(s => s.title === cat);
     if(dbShifts.length > 0){
       title = dbShifts[0].title;
       // Bygg dag-tabs från faktiska datum
@@ -3712,7 +3712,8 @@ function peopleForShift(s, taken){
 function renderShiftDetail(cat, day) {
   // Använd DB-data om tillgänglig, annars hårdkodad
   if (DB.shifts.length > 0) {
-    const dbShifts = DB.shifts.filter(s => s.title.toLowerCase() === cat.toLowerCase() || s.title.toLowerCase().replace(/ /g,'-') === cat.toLowerCase());
+    // cat är exakt titel
+    const dbShifts = DB.shifts.filter(s => s.title === cat);
     const filtered = day === 'Alla' ? dbShifts : dbShifts.filter(s => {
       const d = new Date(s.date);
       const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
