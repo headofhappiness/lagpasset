@@ -1309,9 +1309,20 @@ Hälsningar,
     <p style="font-size:14px;color:var(--muted);margin-bottom:1rem" id="fillPoolSub">Välj en person ur resurspoolen att tilldela detta pass.</p>
     <div id="fillPoolList" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem"></div>
     <div style="border-top:1px solid var(--border);padding-top:1rem">
+      <div class="form-label" style="margin-bottom:.5rem;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em">Eller skriv in manuellt</div>
       <div class="form-group" style="margin-bottom:.5rem">
-        <label class="form-label">…eller skriv in ett namn manuellt</label>
+        <label class="form-label">Namn</label>
         <input type="text" id="fillPoolManual" placeholder="Ex. Kalle Svensson">
+      </div>
+      <div class="inline-2" style="max-width:100%">
+        <div class="form-group" style="margin-bottom:.5rem">
+          <label class="form-label">E-post (valfritt)</label>
+          <input type="email" id="fillPoolEmail" placeholder="kalle@exempel.se">
+        </div>
+        <div class="form-group" style="margin-bottom:.5rem">
+          <label class="form-label">Telefon (valfritt)</label>
+          <input type="tel" id="fillPoolPhone" placeholder="070-xxx xx xx">
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2594,6 +2605,8 @@ function openFillPool(shiftId){
 
 async function confirmFillPool(){
   const manual = document.getElementById('fillPoolManual').value.trim();
+  const email = (document.getElementById('fillPoolEmail')||{}).value?.trim() || null;
+  const phone = (document.getElementById('fillPoolPhone')||{}).value?.trim() || null;
   const name = manual || fillPoolSelected;
   if(!name){ showToast('Välj en person eller skriv in ett namn.', 'error'); return; }
   try {
@@ -2601,7 +2614,9 @@ async function confirmFillPool(){
       shift_id: fillPoolShiftId,
       participant_id: null,
       booked_by_admin: true,
-      display_name: name
+      display_name: name,
+      email: email,
+      phone: phone
     });
     if(result && result.length) DB.bookings.push(result[0]);
     closeModal('modalFillPool');
@@ -4793,7 +4808,21 @@ async function saveImportedShifts(){
         x.time_start === s.time_start &&
         x.time_end === s.time_end
       );
-      if(exists){ skipped++; continue; }
+      if(exists){
+        // Uppdatera lag om det saknas
+        const importTeam2 = document.getElementById('importTeamToggle')?.checked !== false;
+        if(importTeam2 && s.team && !exists.team){
+          try {
+            await fetch(SUPABASE_URL + '/rest/v1/shifts?id=eq.' + exists.id, {
+              method:'PATCH',
+              headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+              body: JSON.stringify({team: s.team})
+            });
+            exists.team = s.team;
+          } catch(e){}
+        }
+        skipped++; continue;
+      }
       const importTeam = document.getElementById('importTeamToggle')?.checked !== false;
       await sbInsert('shifts', {
         event_id: EVENT_ID,
