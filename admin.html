@@ -501,9 +501,14 @@ setVH(); window.addEventListener('resize',setVH);
 
         <!-- Pass-vy -->
         <div id="shiftPassView">
-          <div class="tabs" id="dayTabs" style="margin-bottom:1rem"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+          <div class="tabs" id="dayTabs"></div>
+          <button id="btnDeleteSelected" class="btn btn-sm" onclick="deleteSelectedShifts()" style="display:none;background:#fdecea;color:#c0392b;border:1.5px solid #f5c6c2;font-size:12.5px">🗑 Radera markerade</button>
+        </div>
           <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-              <thead><tr><th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag</th><th>Ansvarig</th><th></th></tr></thead>
+              <thead><tr>
+                <th style="width:36px;padding:.5rem .6rem"><input type="checkbox" id="selectAllShifts" title="Markera alla" onchange="toggleSelectAllShifts(this.checked)" style="width:15px;height:15px;accent-color:var(--green);cursor:pointer"></th>
+                <th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag</th><th>Ansvarig</th><th></th></tr></thead>
               <tbody id="shiftDetailTable"></tbody>
             </table>
           </div>
@@ -519,7 +524,7 @@ setVH(); window.addEventListener('resize',setVH);
               </div>
               <div style="display:flex;gap:.5rem">
                 <button class="btn btn-ghost btn-sm" onclick="toggleEditInstructions()">✏️ Redigera</button>
-                <button class="btn btn-ghost btn-sm" onclick="mailInstructions()" style="color:var(--green);border-color:rgba(26,140,58,.3)">📧 Mejla till volontärerna</button>
+                <button class="btn btn-ghost btn-sm" onclick="mailInstructions()" style="color:var(--green);border-color:rgba(26,140,58,.3)">📧 Mejla till bemanningen</button>
               </div>
             </div>
 
@@ -538,7 +543,7 @@ setVH(); window.addEventListener('resize',setVH);
             </div>
           </div>
 
-          <div class="msg info" id="instructionMailSent" style="display:none">📧 Instruktioner skickade till alla Servering-volontärer!</div>
+          <div class="msg info" id="instructionMailSent" style="display:none">📧 Instruktioner skickade till alla Servering-bemanning!</div>
         </div>
       </div>
     </div>
@@ -1202,12 +1207,12 @@ Hälsningar,
       onclick="document.getElementById('importPassFileInput').click()"
       ondragover="event.preventDefault();this.style.borderColor='var(--green)'"
       ondragleave="this.style.borderColor='var(--border)'"
-      ondrop="event.preventDefault();this.style.borderColor='var(--border)';handleImportFile(event.dataTransfer.files[0])"
+      ondrop="event.preventDefault();this.style.borderColor='var(--border)';handleImportFiles(event.dataTransfer.files)"
       style="border:2px dashed var(--border);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:.15s">
       <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
-      <div style="font-weight:600;color:var(--dark);margin-bottom:.25rem">Dra och släpp filen här</div>
-      <div style="font-size:13px;color:var(--muted)">eller klicka för att välja &nbsp;·&nbsp; .docx eller .xlsx</div>
-      <input type="file" id="importPassFileInput" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.csv" style="display:none" onchange="handleImportFile(this.files[0])">
+      <div style="font-weight:600;color:var(--dark);margin-bottom:.25rem">Dra och släpp filer här</div>
+      <div style="font-size:13px;color:var(--muted)">eller klicka för att välja &nbsp;·&nbsp; .docx eller .xlsx &nbsp;·&nbsp; flera filer OK</div>
+      <input type="file" id="importPassFileInput" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.csv" style="display:none" multiple onchange="handleImportFiles(this.files)">
     </div>
 
     <!-- Status -->
@@ -2327,6 +2332,64 @@ function renderShiftDetailInline(shiftId){
   }
   html += '</div>';
   content.innerHTML = html;
+}
+
+function onShiftCheckChange(){
+  const cbs = document.querySelectorAll('.shift-select-cb');
+  const checked = document.querySelectorAll('.shift-select-cb:checked');
+  const selectAll = document.getElementById('selectAllShifts');
+  const btn = document.getElementById('btnDeleteSelected');
+  if(selectAll) selectAll.checked = checked.length === cbs.length && cbs.length > 0;
+  if(selectAll) selectAll.indeterminate = checked.length > 0 && checked.length < cbs.length;
+  if(btn) btn.style.display = checked.length > 0 ? '' : 'none';
+  if(btn && checked.length > 0) btn.textContent = '🗑 Radera ' + checked.length + ' markerade';
+}
+
+function toggleSelectAllShifts(checked){
+  document.querySelectorAll('.shift-select-cb').forEach(cb => cb.checked = checked);
+  onShiftCheckChange();
+}
+
+async function deleteSelectedShifts(){
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO){ demoBlock(); return; }
+  const checked = [...document.querySelectorAll('.shift-select-cb:checked')];
+  if(!checked.length) return;
+
+  const withBookings = checked.filter(cb => cb.dataset.hasBookings === '1');
+  const empty = checked.filter(cb => cb.dataset.hasBookings !== '1');
+
+  if(!empty.length){
+    showToast('Valda pass har bokningar – avboka dem först.', 'error');
+    return;
+  }
+
+  let msg = 'Radera ' + empty.length + ' tomma pass?';
+  if(withBookings.length > 0){
+    msg += '\n\n⚠️ ' + withBookings.length + ' pass har bokningar och hoppas över – avboka dem först om du vill radera dem.';
+  }
+  if(!await showConfirm(msg, 'Radera')) return;
+
+  let deleted = 0;
+  const errors = [];
+  for(const cb of empty){
+    const id = cb.dataset.shiftId;
+    try {
+      await sbDelete('shifts', id);
+      DB.shifts = DB.shifts.filter(s => s.id !== id);
+      DB.bookings = DB.bookings.filter(b => b.shift_id !== id);
+      deleted++;
+    } catch(e){
+      errors.push(id);
+    }
+  }
+
+  renderShiftDetail(currentStationTitle, 'Alla');
+  renderDashboard();
+  if(errors.length){
+    showToast(deleted + ' pass raderade · ' + errors.length + ' misslyckades', 'error');
+  } else {
+    showToast(deleted + ' pass raderade');
+  }
 }
 
 async function deleteShift(id){
@@ -3513,7 +3576,7 @@ function saveInstructions() {
 function mailInstructions() {
   const data = categoryData[currentInstructionCat];
   document.getElementById('instructionMailSent').style.display = 'block';
-  document.getElementById('instructionMailSent').textContent = '📧 Instruktioner skickade till alla ' + data.title + '-volontärer!';
+  document.getElementById('instructionMailSent').textContent = '📧 Instruktioner skickade till alla ' + data.title + '-bemanning!';
   setTimeout(() => { document.getElementById('instructionMailSent').style.display = 'none'; }, 3000);
 }
 
@@ -3699,7 +3762,8 @@ function renderShiftDetail(cat, day) {
         </div>`
       ).join('');
       return `
-      <tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer">
+      <tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer" data-shift-id="${s.id}">
+        <td style="padding:.5rem .6rem" onclick="event.stopPropagation()"><input type="checkbox" class="shift-select-cb" data-shift-id="${s.id}" data-has-bookings="${taken > 0 ? '1' : '0'}" onchange="onShiftCheckChange()" style="width:15px;height:15px;accent-color:var(--green);cursor:pointer"></td>
         <td><strong>${s.title}</strong>${s.location ? '<br><span style="font-size:11px;color:var(--muted)">'+s.location+'</span>' : ''} <span id="${rowId}-arrow" style="color:var(--muted);font-size:11px">▸</span></td>
         <td>${dag}</td>
         <td>${tid}</td>
@@ -4581,54 +4645,64 @@ function openImportModal(){
   openModal('modalImportAI');
 }
 
-async function handleImportFile(file){
-  if(!file) return;
-  const ext = file.name.split('.').pop().toLowerCase();
+async function handleImportFiles(files){
+  if(!files || !files.length) return;
   const statusEl = document.getElementById('importStatus');
   statusEl.style.display = 'block';
-  statusEl.textContent = '⏳ Läser ' + file.name + '...';
   document.getElementById('importPreview').style.display = 'none';
   document.getElementById('importSaveBtn').style.display = 'none';
 
-  try {
-    let text = '';
-    if(ext === 'docx'){
-      const arr = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({arrayBuffer: arr});
-      text = result.value;
-    } else if(ext === 'xlsx' || ext === 'xls'){
-      const arr = await file.arrayBuffer();
-      const wb = XLSX.read(arr, {type:'array'});
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      text = XLSX.utils.sheet_to_csv(ws);
-    } else if(ext === 'csv'){
-      text = await file.text();
-    } else {
-      statusEl.textContent = '❌ Filtypen stöds inte. Använd .docx eller .xlsx.';
-      return;
+  const allShifts = [];
+  const errors = [];
+  const manualTeam = (document.getElementById('importTeamManual')||{}).value||'';
+
+  for(const file of Array.from(files)){
+    const ext = file.name.split('.').pop().toLowerCase();
+    statusEl.textContent = '⏳ Läser ' + file.name + '...';
+    try {
+      let text = '';
+      if(ext === 'docx'){
+        const arr = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({arrayBuffer: arr});
+        text = result.value;
+      } else if(ext === 'xlsx' || ext === 'xls'){
+        const arr = await file.arrayBuffer();
+        const wb = XLSX.read(arr, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        text = XLSX.utils.sheet_to_csv(ws);
+      } else if(ext === 'csv'){
+        text = await file.text();
+      } else {
+        errors.push(file.name + ': filtypen stöds inte');
+        continue;
+      }
+      const stationFromFile = file.name.replace(/[_\-]\d+.*$/,'').replace(/\.\w+$/,'').trim();
+      const shifts = parsePassSchema(text, stationFromFile, manualTeam);
+      if(!shifts.length){
+        errors.push(file.name + ': hittade inga pass');
+      } else {
+        allShifts.push(...shifts);
+      }
+    } catch(e){
+      console.error(e);
+      errors.push(file.name + ': ' + e.message);
     }
-
-    // Stationsnamn: försök från dokumenttext, annars filnamn
-    const stationFromFile = file.name.replace(/[_\-]\d+.*$/,'').replace(/\.\w+$/,'').trim();
-
-    // Parsnings-logik för Åsacupen-format
-    const manualTeam = (document.getElementById('importTeamManual')||{}).value||'';
-    const shifts = parsePassSchema(text, stationFromFile, manualTeam);
-
-    if(!shifts.length){
-      statusEl.textContent = '⚠️ Hittade inga pass. Kontrollera att dokumentet har rätt format (Fredag/Lördag/Söndag + tider).';
-      return;
-    }
-
-    _importedShifts = shifts;
-    statusEl.textContent = '✓ Hittade ' + shifts.length + ' pass i "' + file.name + '"';
-    showDateMapping(shifts);
-  } catch(e){
-    console.error(e);
-    statusEl.textContent = '❌ Kunde inte läsa filen: ' + e.message;
   }
+
+  if(!allShifts.length){
+    statusEl.textContent = '⚠️ Hittade inga pass.' + (errors.length ? ' Fel: ' + errors.join('; ') : ' Kontrollera att dokumentet har rätt format.');
+    return;
+  }
+
+  _importedShifts = allShifts;
+  const fileWord = files.length > 1 ? files.length + ' filer' : '"' + files[0].name + '"';
+  statusEl.textContent = '✓ Hittade ' + allShifts.length + ' pass från ' + fileWord + (errors.length ? ' · ⚠️ ' + errors.join('; ') : '');
+  showDateMapping(allShifts);
 }
 
+async function handleImportFile(file){
+  handleImportFiles(file ? [file] : []);
+}
 
 function showDateMapping(shifts){
   // Hitta unika dagar i dokumentet
