@@ -1088,20 +1088,22 @@ Hälsningar,
 <div class="modal-overlay" id="modalAddFaq">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">Lägg till vanlig fråga</div>
+      <div class="modal-title">Lägg till / redigera fråga</div>
       <button class="modal-close" onclick="closeModal('modalAddFaq')">✕</button>
     </div>
     <div class="form-group">
       <label class="form-label">Fråga</label>
-      <input type="text" placeholder="Ex. Vad ska jag ha på mig?">
+      <input type="text" id="faqQ" placeholder="Ex. Vad ska jag ha på mig?">
     </div>
     <div class="form-group">
       <label class="form-label">Svar</label>
-      <textarea style="width:100%;min-height:90px;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Outfit',sans-serif;font-size:14px;resize:vertical" placeholder="Skriv svaret som medlemmen får se..."></textarea>
+      <textarea id="faqA" style="width:100%;min-height:90px;padding:12px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'Outfit',sans-serif;font-size:14px;resize:vertical" placeholder="Skriv svaret som medlemmen får se..."></textarea>
     </div>
+    <input type="hidden" id="faqEditIdx" value="">
+    <input type="hidden" id="faqAllItems" value="">
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddFaq')">Avbryt</button>
-      <button class="btn btn-primary" onclick="closeModal('modalAddFaq')">Spara</button>
+      <button class="btn btn-primary" onclick="saveFaqFromModal()">Spara</button>
     </div>
   </div>
 </div>
@@ -1398,7 +1400,12 @@ async function loadEvent(){
     const events = await sbFetch('events', '?id=eq.' + EVENT_ID);
     if(events.length) EVENT = events[0];
     // Ladda föreningen kopplad till eventet
-    if(EVENT && EVENT.club_id){
+    // Ladda FAQ från event
+  if(EVENT && EVENT.faq){
+    try { DB.faq = typeof EVENT.faq === 'string' ? JSON.parse(EVENT.faq) : (EVENT.faq || []); }
+    catch(e){ DB.faq = []; }
+  } else { DB.faq = []; }
+  if(EVENT && EVENT.club_id){
       try {
         const clubs = await sbFetch('clubs', '?id=eq.' + EVENT.club_id);
         if(clubs.length) CLUB = clubs[0];
@@ -1542,7 +1549,7 @@ function applyClubBranding(){
   }
 }
 
-let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [], resourceRequests: [] };
+let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [], resourceRequests: [], faq: [] };
 let editingShiftId = null;
 
 async function loadFromDB() {
@@ -2143,17 +2150,40 @@ function renderFaqList(){
   const el = document.getElementById('faqList');
   if(!el) return;
   if(FAQ.length===0){ el.innerHTML='<div style="font-size:13px;color:var(--muted);font-style:italic">Inga frågor tillagda ännu.</div>'; return; }
-  el.innerHTML = FAQ.map(f=>
-    `<div style="border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem">
+  // Bygg kombinerad lista: DB-frågor + förslag som saknas
+  const SUGGESTED_FAQ = [
+    {q:'Vad ska jag ha på mig?', a:'Klä dig efter väder – du står mestadels utomhus. Föreningen bjuder på väst eller förkläde vid serveringspass.'},
+    {q:'Var checkar jag in?', a:'Anmäl dig vid infotältet vid arenans huvudentré minst 10 minuter innan ditt pass börjar.'},
+    {q:'Hur länge är ett pass?', a:'De flesta pass är 2–4 timmar. Exakt tid står på ditt valda pass.'},
+    {q:'Vad gör jag om jag blir sjuk?', a:'Använd knappen Anmäl förhinder på din passbokning så larmas ansvarig direkt och passet kan fyllas av någon annan.'},
+  ];
+  const isDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  const source = isDemo ? FAQ : DB.faq;
+  const allItems = [...source];
+  // Lägg till förslag som inte finns i DB ännu
+  SUGGESTED_FAQ.forEach(s => {
+    if(!allItems.find(f => f.q === s.q)){
+      allItems.push({...s, enabled: false, suggested: true});
+    }
+  });
+  el.innerHTML = allItems.map((f,i)=>{
+    const on = f.enabled !== false;
+    const isSugg = f.suggested && !source.find(x=>x.q===f.q);
+    return `<div style="border:1.5px solid ${on?'var(--green)':'var(--border)'};border-radius:10px;padding:.7rem .9rem;opacity:${on?1:.65}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
         <div style="flex:1">
+          ${isSugg?'<span style="font-size:10px;background:#f0f0f0;border-radius:100px;padding:2px 7px;color:var(--muted);margin-bottom:4px;display:inline-block">Förslag</span><br>':''}
           <div style="font-size:13.5px;font-weight:600;color:var(--dark)">${f.q}</div>
           <div style="font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5">${f.a}</div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="if(typeof IS_DEMO!=='undefined'&&IS_DEMO)demoBlock&&demoBlock()" style="flex-shrink:0">✏️</button>
+        <div style="display:flex;gap:.35rem;flex-shrink:0;align-items:center">
+          <button onclick="toggleFaq(${i},${JSON.stringify(allItems).replace(/'/g,"&apos;")})" style="background:${on?'var(--green)':'#ccc'};color:#fff;border:none;border-radius:100px;padding:3px 10px;font-size:12px;font-weight:700;cursor:pointer">${on?'PÅ':'AV'}</button>
+          <button onclick="editFaq(${i},${JSON.stringify(allItems).replace(/'/g,"&apos;")})" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:14px">✏️</button>
+          <button onclick="deleteFaq(${i})" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:3px 8px;cursor:pointer;font-size:14px;color:var(--muted)">×</button>
+        </div>
       </div>
-    </div>`
-  ).join('');
+    </div>`;
+  }).join('');
 }
 
 
@@ -4559,6 +4589,63 @@ async function saveImportedShifts(){
   btn.disabled = false;
   btn.textContent = 'Spara ' + _importedShifts.length + ' pass →';
 }
+// ── FAQ-hantering ─────────────────────────────────────────
+async function saveFaqToDB(faqArray){
+  try {
+    await sbUpdate('events', EVENT_ID, { faq: faqArray });
+    DB.faq = faqArray;
+    if(EVENT) EVENT.faq = faqArray;
+    renderFaq();
+    showToast('FAQ sparad ✓');
+  } catch(e){ showToast('Kunde inte spara FAQ: ' + e.message, 'error'); }
+}
+
+function toggleFaq(idx, allItemsStr){
+  const allItems = typeof allItemsStr === 'string' ? JSON.parse(allItemsStr) : allItemsStr;
+  const item = {...allItems[idx], enabled: allItems[idx].enabled === false, suggested: undefined};
+  delete item.suggested;
+  const updated = [...DB.faq];
+  const existing = updated.findIndex(f => f.q === item.q);
+  if(existing >= 0) updated[existing] = item;
+  else updated.push(item);
+  saveFaqToDB(updated);
+}
+
+function editFaq(idx, allItemsStr){
+  const allItems = typeof allItemsStr === 'string' ? JSON.parse(allItemsStr) : allItemsStr;
+  const f = allItems[idx];
+  document.getElementById('faqQ').value = f.q || '';
+  document.getElementById('faqA').value = f.a || '';
+  document.getElementById('faqEditIdx').value = idx;
+  document.getElementById('faqAllItems').value = JSON.stringify(allItems);
+  openModal('modalAddFaq');
+}
+
+function deleteFaq(idx){
+  const updated = DB.faq.filter((_,i) => i !== idx);
+  saveFaqToDB(updated);
+}
+
+function saveFaqFromModal(){
+  const q = (document.getElementById('faqQ').value || '').trim();
+  const a = (document.getElementById('faqA').value || '').trim();
+  if(!q || !a){ showToast('Fyll i fråga och svar.', 'error'); return; }
+  const allItemsRaw = document.getElementById('faqAllItems').value;
+  const idx = parseInt(document.getElementById('faqEditIdx').value);
+  let allItems = [];
+  try { allItems = JSON.parse(allItemsRaw); } catch(e){}
+  const newItem = { q, a, enabled: true };
+  let updated = [...DB.faq];
+  if(!isNaN(idx) && allItems[idx]){
+    const existing = updated.findIndex(f => f.q === allItems[idx].q);
+    if(existing >= 0) updated[existing] = newItem;
+    else updated.push(newItem);
+  } else { updated.push(newItem); }
+  saveFaqToDB(updated);
+  closeModal('modalAddFaq');
+}
+// ─────────────────────────────────────────────────────────
+
 // ─────────────────────────────────────────────────────────
 (function(){
   let _initialTag = null;
