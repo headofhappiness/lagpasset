@@ -4657,43 +4657,47 @@ function applyDateMapping(){
 
 function parsePassSchema(text, defaultStation){
   const shifts = [];
-  // Mappa dagnamn till datum baserat på EVENT.date_start
-  const dayMap = {};
   const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  const dayMap = {};
   if(EVENT && EVENT.date_start){
-    // Sök ±7 dagar runt eventet för att hitta matchande veckodagar
     const start = new Date(EVENT.date_start);
     for(let i = -3; i < 10; i++){
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
+      const d = new Date(start); d.setDate(start.getDate() + i);
       const name = dayNames[d.getDay()];
       if(!dayMap[name]) dayMap[name] = d.toISOString().slice(0,10);
     }
   } else {
-    dayMap['Fredag'] = '2026-06-26';
-    dayMap['Lördag'] = '2026-06-27';
-    dayMap['Söndag'] = '2026-06-28';
+    dayMap['Fredag']='2026-06-26'; dayMap['Lördag']='2026-06-27'; dayMap['Söndag']='2026-06-28';
   }
 
-  // Hitta stationsnamn i texten (rubrik efter "Åsacupen"-intro)
+  // Stationsnamn från dokumenttext eller filnamn
   let station = defaultStation;
-  const stationMatch = text.match(/^(Parkering|Servering|Infotält|Bygg\s*&?\s*Riv|Nattvakt|Bemanning|Registrering|Cafeteria|Kiosk|Information)/mi);
+  const stationMatch = text.match(/^(Parkering|Servering|Infotält|Bygg[\s&]+Riv|Nattvakt|Bemanning|Registrering|Cafeteria|Kiosk|Information)/mi);
   if(stationMatch) station = stationMatch[1].replace(/\s+/g,' ').trim();
 
-  // Matcha pass-block: "Fredag 10:00-12:00" eller "Lördag10:15-12:30"
+  // Hitta ALLA passrubriker och deras positioner
   const passPattern = /(Fredag|Lördag|Söndag|Måndag|Tisdag|Onsdag|Torsdag)\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})([^\n]*)/gi;
-  let match;
-  while((match = passPattern.exec(text)) !== null){
-    const day = match[1];
-    const timeStart = match[2];
-    const timeEnd = match[3];
-    const note = match[4].replace(/\(.*?\)/g,'').trim();
+  const allMatches = [];
+  let m;
+  while((m = passPattern.exec(text)) !== null) allMatches.push({...m, index: m.index, endIndex: m.index + m[0].length});
+
+  // För varje rubrik: analysera texten BARA fram till nästa rubrik
+  for(let i = 0; i < allMatches.length; i++){
+    const cur = allMatches[i];
+    const nextIdx = i < allMatches.length - 1 ? allMatches[i+1].index : text.length;
+    const section = text.slice(cur.endIndex, nextIdx);
+
+    const day = cur[1];
+    const timeStart = cur[2];
+    const timeEnd = cur[3];
+    const note = (cur[4]||'').replace(/\(.*?\)/g,'').trim();
     const date = dayMap[day] || null;
 
-    // Räkna antal platser: sök framåt efter tabellrader (1, 2, 3...)
-    const afterMatch = text.slice(match.index + match[0].length, match.index + match[0].length + 500);
-    const slotRows = afterMatch.match(/^\s*\d+\s*$/gm);
-    const slots = slotRows ? slotRows.length : 2; // default 2 platser
+    // Räkna rader som BÖRJAR med ett nummer (1, 2, 3, 4...)
+    // Matchar "1", "1 ", "1\t...", "1  Namn  Telefon  P19"
+    const slotLines = section.split('\n').filter(line => /^\s*\d+\b/.test(line.trim()));
+    // Filtrera bort "Namn"-rader och liknande
+    const slots = Math.max(1, slotLines.filter(l => !/namn|telefon|lag/i.test(l)).length);
 
     shifts.push({ station, date, rawDay: day, time_start: timeStart, time_end: timeEnd, slots, note: note || '' });
   }
