@@ -1608,6 +1608,7 @@ async function loadFromDB() {
     DB.emailLog = arguments_emailLog || [];
     DB.resourceRequests = resourceReqs || [];
     console.log('DB laddat:', DB.shifts.length, 'pass,', DB.participants.length, 'deltagare,', DB.feedback.length, 'feedback');
+    if(DB.shifts.length) console.log('[DEBUG] Första pass:', JSON.stringify({title:DB.shifts[0].title, team:DB.shifts[0].team, time_start:DB.shifts[0].time_start}));
   } catch(e) {
     console.error('DB-fel:', e);
   }
@@ -3704,7 +3705,7 @@ function renderShiftDetail(cat, day) {
             <span style="font-size:12px;font-weight:600;color:${color}">${taken}/${total}</span>
           </div>
         </td>
-        <td style="font-size:12px;color:var(--muted)">${s.contact_name||'–'}</td>
+        <td style="font-size:12px;color:var(--muted);font-weight:600">${s.team||'–'}</td>
         <td><div style="display:flex;gap:.35rem">
           <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editShift('${s.id}')">✏️</button>
           <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();deleteShift('${s.id}')">🗑</button>
