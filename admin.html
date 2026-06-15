@@ -240,7 +240,7 @@ setVH(); window.addEventListener('resize',setVH);
       <div class="demo-step"><div class="demo-step-num">2</div><span>Öppna <strong>Passschema</strong> – se pass, beläggning och stationsinstruktioner</span></div>
       <div class="demo-step"><div class="demo-step-num">3</div><span>Prova <strong>Mejla bemanning</strong> – filtrera på passtyp och skicka riktat</span></div>
       <div class="demo-step"><div class="demo-step-num">4</div><span>Klicka <strong>Skriv ut lista</strong> i Pass &amp; beläggning – se utskriftsvyn</span></div>
-      <div class="demo-step"><div class="demo-step-num">5</div><span>Gå till <strong>Bemanning</strong> – se hur man importerar lag och kontaktuppgifter</span></div>
+      <div class="demo-step"><div class="demo-step-num">5</div><span>Gå till <strong>Medlemmar</strong> – se hur man importerar lag och kontaktuppgifter</span></div>
     </div>
     <div class="demo-cta-row">
       <button class="btn btn-primary" style="width:100%;font-size:15px;min-height:44px" onclick="closeDemoWelcome()">Utforska demon →</button>
@@ -270,6 +270,12 @@ setVH(); window.addEventListener('resize',setVH);
     <a class="nav-item" onclick="showSection('shifts')" href="#">
       <span class="nav-icon">📋</span> Pass &amp; beläggning
     </a>
+    <a class="nav-item" onclick="showSection('children')" href="#">
+      <span class="nav-icon">👥</span> Medlemmar
+    </a>
+    <a class="nav-item" onclick="showSection('pool')" href="#">
+      <span class="nav-icon">🌟</span> Frivilligpool
+    </a>
     <div class="nav-section">Kommunikation</div>
     <a class="nav-item" onclick="showSection('email')" href="#">
       <span class="nav-icon">📧</span> Mejla bemanning
@@ -278,12 +284,6 @@ setVH(); window.addEventListener('resize',setVH);
       <span class="nav-icon">⭐</span> Feedback
     </a>
     <div class="nav-section">Administration</div>
-    <a class="nav-item" onclick="showSection('children')" href="#">
-      <span class="nav-icon">🧑</span> Bemanning
-    </a>
-    <a class="nav-item" onclick="showSection('pool')" href="#">
-      <span class="nav-icon">🧑‍🤝‍🧑</span> Bemanningspool
-    </a>
     <a class="nav-item" onclick="showSection('settings')" href="#">
       <span class="nav-icon">⚙️</span> Inställningar
     </a>
@@ -397,11 +397,11 @@ setVH(); window.addEventListener('resize',setVH);
     <div class="section" id="sec-children">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem">
         <div>
-          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bemanning</h2>
-          <p style="font-size:13px;color:var(--muted);margin-top:2px">Alla personer som ska hjälpa till. Lägg till, redigera och tilldela pass direkt.</p>
+          <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Medlemmar</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Alla som deltar i cupen. Importera, tilldela pass och skicka bokningslänkar.</p>
         </div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till person</button>
+          <button class="btn btn-primary" onclick="openModal('modalAddChild')">+ Lägg till</button>
           <button class="btn btn-ghost" onclick="openImportModal()" title="Importera från CSV-fil">📂 Importera</button>
           <button class="btn btn-ghost" onclick="exportParticipants()" title="Exportera deltagarlistan som CSV">📤 Exportera</button>
         </div>
@@ -430,7 +430,7 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
 
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-          <thead><tr><th>Bemannare</th><th>Jobbar för</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th></th></tr></thead>
+          <thead><tr><th>Namn</th><th>Jobbar för</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th></th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
       </div>
