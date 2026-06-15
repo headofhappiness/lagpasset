@@ -1194,7 +1194,7 @@ Hälsningar,
 
     <!-- Upload-zon -->
     <div id="importDropZone"
-      onclick="document.getElementById('importFileInput').click()"
+      onclick="document.getElementById('importPassFileInput').click()"
       ondragover="event.preventDefault();this.style.borderColor='var(--green)'"
       ondragleave="this.style.borderColor='var(--border)'"
       ondrop="event.preventDefault();this.style.borderColor='var(--border)';handleImportFile(event.dataTransfer.files[0])"
@@ -1202,11 +1202,18 @@ Hälsningar,
       <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
       <div style="font-weight:600;color:var(--dark);margin-bottom:.25rem">Dra och släpp filen här</div>
       <div style="font-size:13px;color:var(--muted)">eller klicka för att välja &nbsp;·&nbsp; .docx eller .xlsx</div>
-      <input type="file" id="importFileInput" accept=".docx,.xlsx,.csv" style="display:none;position:absolute" onchange="handleImportFile(this.files[0])">
+      <input type="file" id="importPassFileInput" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.csv" style="display:none" onchange="handleImportFile(this.files[0])">
     </div>
 
     <!-- Status -->
     <div id="importStatus" style="display:none;margin-top:.85rem;font-size:13px;color:var(--muted)"></div>
+
+    <!-- Datummappning -->
+    <div id="importDateMap" style="display:none;margin-top:.85rem">
+      <div style="font-weight:700;color:var(--dark);font-size:13.5px;margin-bottom:.5rem">📅 Mappa dagar till rätt datum i cupen:</div>
+      <div id="importDateMapRows" style="display:flex;flex-direction:column;gap:.4rem"></div>
+      <button onclick="applyDateMapping()" class="btn btn-primary" style="margin-top:.75rem;width:100%">Använd dessa datum →</button>
+    </div>
 
     <!-- Preview-tabell -->
     <div id="importPreview" style="display:none;margin-top:1rem">
@@ -4259,7 +4266,7 @@ function openImportModal() {
   document.getElementById('importStep2').style.display = 'none';
   document.getElementById('importStep3').style.display = 'none';
   document.getElementById('importRunBtn').style.display = 'none';
-  document.getElementById('importFileInput').value = '';
+  document.getElementById('importPassFileInput').value = '';
   openModal('modalImport');
 }
 
@@ -4577,11 +4584,75 @@ async function handleImportFile(file){
 
     _importedShifts = shifts;
     statusEl.textContent = '✓ Hittade ' + shifts.length + ' pass i "' + file.name + '"';
-    renderImportPreview(shifts);
+    showDateMapping(shifts);
   } catch(e){
     console.error(e);
     statusEl.textContent = '❌ Kunde inte läsa filen: ' + e.message;
   }
+}
+
+
+function showDateMapping(shifts){
+  // Hitta unika dagar i dokumentet
+  const uniqueDays = [...new Set(shifts.map(s => s.rawDay).filter(Boolean))];
+  if(!uniqueDays.length){
+    // Inga dagar att mappa - visa direkt
+    renderImportPreview(shifts);
+    return;
+  }
+
+  // Bygg datumväljare för varje dag
+  const eventDates = [];
+  if(EVENT && EVENT.date_start){
+    const start = new Date(EVENT.date_start);
+    const end = new Date(EVENT.date_end || EVENT.date_start);
+    const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+    for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
+      eventDates.push({
+        value: d.toISOString().slice(0,10),
+        label: dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1)
+      });
+    }
+  }
+
+  const dayMapEl = document.getElementById('importDateMap');
+  const rowsEl = document.getElementById('importDateMapRows');
+
+  rowsEl.innerHTML = uniqueDays.map(day => {
+    const guessDate = eventDates.find(d => d.label.startsWith(day)) || eventDates[0];
+    const options = eventDates.map(d =>
+      '<option value="' + d.value + '"' + (guessDate && guessDate.value === d.value ? ' selected' : '') + '>' + d.label + '</option>'
+    ).join('');
+    // Lägg till möjlighet att skriva in datum om event inte har dagar
+    const fallbackOption = '<option value="">– ange datum –</option>';
+    return '<div style="display:flex;align-items:center;gap:.75rem;padding:.4rem 0;border-bottom:1px solid var(--border)">' +
+      '<span style="font-weight:600;color:var(--dark);min-width:80px;font-size:13px">' + day + '</span>' +
+      '<span style="color:var(--muted);font-size:13px">→</span>' +
+      (eventDates.length
+        ? '<select data-day="' + day + '" style="flex:1;padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px">' + options + '</select>'
+        : '<input type="date" data-day="' + day + '" style="flex:1;padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px">'
+      ) + '</div>';
+  }).join('');
+
+  dayMapEl.style.display = 'block';
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importSaveBtn').style.display = 'none';
+}
+
+function applyDateMapping(){
+  const mapEl = document.getElementById('importDateMapRows');
+  const inputs = mapEl.querySelectorAll('[data-day]');
+  const mapping = {};
+  inputs.forEach(el => { mapping[el.dataset.day] = el.value; });
+
+  // Uppdatera datum på alla shifts
+  _importedShifts = _importedShifts.map(s => ({
+    ...s,
+    date: (s.rawDay && mapping[s.rawDay]) ? mapping[s.rawDay] : s.date
+  }));
+
+  document.getElementById('importDateMap').style.display = 'none';
+  renderImportPreview(_importedShifts);
 }
 
 function parsePassSchema(text, defaultStation){
@@ -4624,7 +4695,7 @@ function parsePassSchema(text, defaultStation){
     const slotRows = afterMatch.match(/^\s*\d+\s*$/gm);
     const slots = slotRows ? slotRows.length : 2; // default 2 platser
 
-    shifts.push({ station, date, time_start: timeStart, time_end: timeEnd, slots, note: note || '' });
+    shifts.push({ station, date, rawDay: day, time_start: timeStart, time_end: timeEnd, slots, note: note || '' });
   }
   return shifts;
 }
