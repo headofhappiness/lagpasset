@@ -1379,7 +1379,7 @@ async function sbInsert(table, data) {
     },
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error('Supabase insert error: ' + res.status);
+  if (!res.ok) { const errText = await res.text(); console.error('sbInsert fel:', table, JSON.stringify(data), errText); throw new Error('Supabase insert error: ' + res.status + ' ' + errText); }
   return res.json();
 }
 
@@ -4721,14 +4721,13 @@ function showDateMapping(shifts){
   const eventDates = [];
   if(EVENT && EVENT.date_start){
     const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
-    const [sy,sm,sd] = EVENT.date_start.split('-').map(Number);
-    const [ey,em,ed] = (EVENT.date_end || EVENT.date_start).split('-').map(Number);
-    const start = new Date(sy, sm-1, sd);
-    const end = new Date(ey, em-1, ed);
+    const localDate = (iso) => { const [y,m,d] = iso.split('-').map(Number); return new Date(y, m-1, d); };
+    const toISO = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const start = localDate(EVENT.date_start);
+    const end = localDate(EVENT.date_end || EVENT.date_start);
     for(let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
-      const iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
       eventDates.push({
-        value: iso,
+        value: toISO(d),
         label: dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1)
       });
     }
@@ -4779,14 +4778,18 @@ function parsePassSchema(text, defaultStation, manualTeam){
   const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   const dayMap = {};
   if(EVENT && EVENT.date_start){
-    // Parsa datum lokalt för att undvika UTC-förskjutning
-    const [sy,sm,sd] = EVENT.date_start.split('-').map(Number);
-    const start = new Date(sy, sm-1, sd); // lokal midnatt
+    // Bygg dayMap tidszonssäkert: parsa ISO som lokalt datum
+    const localDate = (iso) => {
+      const [y,m,d] = iso.split('-').map(Number);
+      return new Date(y, m-1, d); // lokal midnatt, ingen UTC-konvertering
+    };
+    const toISO = (d) => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const startD = localDate(EVENT.date_start);
     for(let i = -3; i < 14; i++){
-      const d = new Date(sy, sm-1, sd + i);
-      const name = dayNames[d.getDay()];
-      const iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-      if(!dayMap[name]) dayMap[name] = iso;
+      const d = new Date(startD);
+      d.setDate(startD.getDate() + i);
+      const name = dayNames[d.getDay()]; // getDay() = lokal veckodag
+      if(!dayMap[name]) dayMap[name] = toISO(d);
     }
   } else {
     dayMap['Torsdag']='2026-06-26'; dayMap['Fredag']='2026-06-27';
