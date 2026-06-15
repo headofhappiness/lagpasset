@@ -443,7 +443,7 @@ setVH(); window.addEventListener('resize',setVH);
           <h2 style="font-size:18px;font-weight:700;color:var(--dark)">Bemanningspool</h2>
           <p style="font-size:13px;color:var(--muted);margin-top:2px">Ungdomar och frivilliga som kan ta pass som annars blir tomma.</p>
         </div>
-        <button class="btn btn-primary" onclick="openModal('modalAddPool')">+ Lägg till i poolen</button>
+        <button class="btn btn-primary" onclick="openNewPoolModal()">+ Lägg till i poolen</button>
       </div>
 
       <div class="msg info">
@@ -1193,7 +1193,8 @@ Hälsningar,
     </div>
 
     <!-- Upload-zon -->
-    <div id="importDropZone" onclick="document.getElementById('importFileInput').click()"
+    <div id="importDropZone"
+      onclick="document.getElementById('importFileInput').click()"
       ondragover="event.preventDefault();this.style.borderColor='var(--green)'"
       ondragleave="this.style.borderColor='var(--border)'"
       ondrop="event.preventDefault();this.style.borderColor='var(--border)';handleImportFile(event.dataTransfer.files[0])"
@@ -1201,7 +1202,7 @@ Hälsningar,
       <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
       <div style="font-weight:600;color:var(--dark);margin-bottom:.25rem">Dra och släpp filen här</div>
       <div style="font-size:13px;color:var(--muted)">eller klicka för att välja &nbsp;·&nbsp; .docx eller .xlsx</div>
-      <input type="file" id="importFileInput" accept=".docx,.xlsx,.csv" style="display:none" onchange="handleImportFile(this.files[0])">
+      <input type="file" id="importFileInput" accept=".docx,.xlsx,.csv" style="display:none;position:absolute" onchange="handleImportFile(this.files[0])">
     </div>
 
     <!-- Status -->
@@ -2638,6 +2639,16 @@ async function addPoolMember(){
     console.error(e);
     showToast('Kunde inte lägga till', 'error');
   }
+}
+
+function openNewPoolModal(){
+  // Återställ formulär och knapp
+  ['poolName','poolTeam','poolCan','poolPhone'].forEach(id => {
+    const e = document.getElementById(id); if(e) e.value = '';
+  });
+  const saveBtn = document.querySelector('#modalAddPool .btn-primary');
+  if(saveBtn){ saveBtn.textContent = 'Lägg till'; saveBtn.onclick = addToPool; }
+  openModal('modalAddPool');
 }
 
 function editPoolMember(id){
@@ -4577,17 +4588,17 @@ function parsePassSchema(text, defaultStation){
   const shifts = [];
   // Mappa dagnamn till datum baserat på EVENT.date_start
   const dayMap = {};
+  const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   if(EVENT && EVENT.date_start){
+    // Sök ±7 dagar runt eventet för att hitta matchande veckodagar
     const start = new Date(EVENT.date_start);
-    const dayNames = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
-    for(let i = 0; i < 7; i++){
+    for(let i = -3; i < 10; i++){
       const d = new Date(start);
       d.setDate(start.getDate() + i);
       const name = dayNames[d.getDay()];
       if(!dayMap[name]) dayMap[name] = d.toISOString().slice(0,10);
     }
   } else {
-    // Fallback: anta Åsacupen 26-28 juni
     dayMap['Fredag'] = '2026-06-26';
     dayMap['Lördag'] = '2026-06-27';
     dayMap['Söndag'] = '2026-06-28';
@@ -4621,11 +4632,13 @@ function parsePassSchema(text, defaultStation){
 function renderImportPreview(shifts){
   const tbody = document.getElementById('importPreviewBody');
   const dayNames = { '2026-06-26':'Fre', '2026-06-27':'Lör', '2026-06-28':'Sön' };
+  const dayShortNames = {'2026-06-26':'Fre','2026-06-27':'Lör','2026-06-28':'Sön'};
   tbody.innerHTML = shifts.map((s,i) => {
-    const dayLabel = s.date ? (dayNames[s.date] || s.date.slice(5)) : '?';
+    const dayLabel = s.date ? (dayShortNames[s.date] || s.date.slice(8)) : '?';
+    const dateLabel = s.date ? s.date.slice(5).replace('-','/') : '?';
     return `<tr style="border-top:1px solid var(--border)">
       <td style="padding:6px 10px">${s.station}</td>
-      <td style="padding:6px 10px">${dayLabel} ${s.date ? s.date.slice(5).replace('-','/') : '?'}</td>
+      <td style="padding:6px 10px">${dayLabel} ${dateLabel}</td>
       <td style="padding:6px 10px">${s.time_start}–${s.time_end}</td>
       <td style="padding:6px 10px;text-align:center">${s.slots}</td>
       <td style="padding:6px 4px;text-align:center"><button onclick="removeImportRow(${i})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" title="Ta bort">×</button></td>
@@ -4657,12 +4670,11 @@ async function saveImportedShifts(){
     try {
       await sbInsert('shifts', {
         event_id: EVENT_ID,
-        category: s.station,
+        title: s.station,
         date: s.date,
         time_start: s.time_start,
         time_end: s.time_end,
-        slots: s.slots,
-        note: s.note || ''
+        slots: s.slots
       });
       saved++;
     } catch(e){ console.error(e); failed++; }
