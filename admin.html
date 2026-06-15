@@ -779,7 +779,7 @@ Hälsningar,
           <label class="form-label">Eventnamn</label>
           <input type="text" id="setEventName" placeholder="Arrangmangets namn">
         </div>
-        <div class="inline-2">
+        <div class="inline-2" style="max-width:420px">
           <div class="form-group">
             <label class="form-label">Första eventdag</label>
             <input type="date" id="setEventStart" value="2026-06-13">
@@ -2082,8 +2082,13 @@ function renderPoolTable(){
 function renderContactsSettings(){
   const el = document.getElementById('contactsTable');
   if(!el) return;
-  const source = DB.contacts.length ? DB.contacts : CONTACTS;
+  const isDemo = typeof IS_DEMO !== 'undefined' && IS_DEMO;
+  const source = isDemo ? (DB.contacts.length ? DB.contacts : CONTACTS) : DB.contacts;
   const useDB = DB.contacts.length > 0;
+  if(!isDemo && !source.length){
+    el.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:.5rem 0">Inga kontaktpersoner ännu. Klicka "+ Lägg till" för att lägga till.</p>';
+    return;
+  }
   if(source.length === 0){
     el.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:1rem">Inga kontaktpersoner tillagda ännu.</td></tr>';
     return;
