@@ -3360,7 +3360,7 @@ function previewEmail(){ if(typeof IS_DEMO!=="undefined"&&IS_DEMO){ demoBlock();
 
 // Visa demo-banner och klubbnamn bara i demo-läge
 if(typeof IS_DEMO !== 'undefined' && IS_DEMO){
-  document.getElementById('sidebarClubName').textContent = 'Åsa IF (demo)';
+  document.getElementById('sidebarClubName').textContent = (CLUB && CLUB.name ? CLUB.name : 'Demo') + ' (demo)';
   const _demoBanner = document.getElementById('demoBanner');
   if(_demoBanner) _demoBanner.classList.add('active');
 }
