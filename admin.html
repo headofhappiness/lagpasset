@@ -1192,7 +1192,7 @@ Hälsningar,
 
     <!-- Eventdatum (för att mappa Fredag/Lördag/Söndag) -->
     <div id="importDateHint" style="background:var(--green-light);border-radius:8px;padding:.65rem 1rem;font-size:13px;color:var(--green);margin-bottom:1rem">
-      📅 Eventet <strong id="importEventName">–</strong> körs <strong id="importEventDates">–</strong>. Fredag/Lördag/Söndag mappas automatiskt.
+      📅 Eventet <strong id="importEventName">–</strong> körs <strong id="importEventDates">–</strong>. Dagar mappas automatiskt mot cup-datumen. Pass utanför datumen visas med varning.
     </div>
 
     <!-- Manuellt lag-fält -->
@@ -4774,85 +4774,142 @@ function parsePassSchema(text, defaultStation, manualTeam){
   const dayMap = {};
   if(EVENT && EVENT.date_start){
     const start = new Date(EVENT.date_start);
-    for(let i = -3; i < 10; i++){
+    for(let i = -3; i < 14; i++){
       const d = new Date(start); d.setDate(start.getDate() + i);
       const name = dayNames[d.getDay()];
       if(!dayMap[name]) dayMap[name] = d.toISOString().slice(0,10);
     }
   } else {
-    dayMap['Fredag']='2026-06-26'; dayMap['Lördag']='2026-06-27'; dayMap['Söndag']='2026-06-28';
+    dayMap['Torsdag']='2026-06-26'; dayMap['Fredag']='2026-06-27';
+    dayMap['Lördag']='2026-06-28'; dayMap['Söndag']='2026-06-29';
   }
 
   // Stationsnamn från dokumenttext eller filnamn
   let station = defaultStation;
-  const stationMatch = text.match(/^(Parkering|Servering|Infotält|Bygg[\s&]+Riv|Nattvakt|Bemanning|Registrering|Cafeteria|Kiosk|Information)/mi);
+  const stationMatch = text.match(/^(Parkering|Servering|Infotält|Bygg[\s&]+Riv|Nattvakt|Bemanning|Registrering|Cafeteria|Kiosk|Information|Städ|Lotteri|Transport|Resurs)/mi);
   if(stationMatch) station = stationMatch[1].replace(/\s+/g,' ').trim();
 
-  // Extrahera dominerande lag från hela dokumentet (robustare än per-sektion)
-  // Robust lag-sökning: matchar P19, F16 etc oavsett radbrytningsformat
+  // Lag-regex: matchar P19, F16, FJ, HJ, DJU, PJ, P9 etc
+  // Måste vara 2-4 versaler/siffror, börja med bokstav, ej vanliga ord
+  const LAG_RE = /(?:^|[\t |])([A-ZÅÄÖ]{1,3}\d{0,2}J?|[A-ZÅÄÖ]{2,4})(?=[\t |\r\n]|$)/gm;
+  const LAG_EXCLUDE = new Set(['NAMN','LAG','TELEFON','OCH','AV','PÅ','ER','VI','NI','DE','ETT','EN','DET','HAR','SKA','KAN','FÅR','TAR','GÅR','VID','OM','DÅ','NÄR','SOM','ATT','MED','FÖR','TIL','EJ','JA','NEJ','INFO','TACK']);
   const allTeamMatches = [];
-  const teamRe = /(?:[\r\n\t ]|^)([A-ZÅÄÖ]\d{1,3})(?=[\r\n\t ]|$)/gm;
   let tm;
-  while((tm = teamRe.exec(text)) !== null){ allTeamMatches.push(tm[1]); }
+  const teamRe = new RegExp(LAG_RE.source, 'gm');
+  while((tm = teamRe.exec(text)) !== null){
+    const t = tm[1];
+    if(!LAG_EXCLUDE.has(t) && t.length >= 2 && t.length <= 5) allTeamMatches.push(t);
+  }
   const teamFreq = {};
   allTeamMatches.forEach(t => { teamFreq[t] = (teamFreq[t]||0)+1; });
   const autoTeam = Object.keys(teamFreq).sort((a,b)=>teamFreq[b]-teamFreq[a])[0] || '';
   const defaultTeam = manualTeam || autoTeam;
-  console.log('[LP Import] Hittade lag:', Object.entries(teamFreq).sort((a,b)=>b[1]-a[1]).slice(0,3), 'defaultTeam:', defaultTeam);
+  console.log('[LP Import] Lag-frekvens:', Object.entries(teamFreq).sort((a,b)=>b[1]-a[1]).slice(0,5), 'defaultTeam:', defaultTeam);
 
-  // Hitta ALLA passrubriker och deras positioner
-  const passPattern = /(Fredag|Lördag|Söndag|Måndag|Tisdag|Onsdag|Torsdag)\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})([^\n]*)/gi;
+  // Passrubrik-regex: hanterar:
+  // "Fredag 08:30-12:45"
+  // "Lördag - Söndag 21:00-02:00"  (tvådagspass → tar första dagen)
+  // "Lördag  02:00-07:00"           (extra mellanslag)
+  // Sluttid: antingen HH:MM eller text som "det är klart" / "ca 18:00"
+  const DAY = '(M\u00e5ndag|Tisdag|Onsdag|Torsdag|Fredag|L\u00f6rdag|S\u00f6ndag)';
+  const passPattern = new RegExp(
+    DAY + '(?:\s*[-–]\s*' + DAY + ')?\s+(\d{1,2}:\d{2})\s*[-–*]\s*([\d:ca\.\s]+|det \u00e4r klart)',
+    'gi'
+  );
   const allMatches = [];
   let m;
-  while((m = passPattern.exec(text)) !== null) allMatches.push({...m, index: m.index, endIndex: m.index + m[0].length});
+  while((m = passPattern.exec(text)) !== null){
+    const startDay = m[1];
+    // m[2] = eventuell andra dag (ignoreras – vi tar startdagen)
+    const timeStart = m[3];
+    let timeEndRaw = (m[4]||'').trim();
+    // Rensa "ca ", "ca.", punkt etc, extrahera HH:MM
+    const timeMatch = timeEndRaw.match(/(\d{1,2}:\d{2})/);
+    const timeEnd = timeMatch ? timeMatch[1] : null;
+    if(!timeEnd) continue; // kan inte spara utan sluttid
+    allMatches.push({ startDay, timeStart, timeEnd, index: m.index, endIndex: m.index + m[0].length });
+  }
 
-  // För varje rubrik: analysera texten BARA fram till nästa rubrik
+  // Event-datumintervall för varningscheck
+  let eventStart = null, eventEnd = null;
+  if(EVENT && EVENT.date_start){
+    eventStart = new Date(EVENT.date_start);
+    eventEnd = new Date(EVENT.date_end || EVENT.date_start);
+    eventEnd.setHours(23,59,59);
+  }
+
   for(let i = 0; i < allMatches.length; i++){
     const cur = allMatches[i];
     const nextIdx = i < allMatches.length - 1 ? allMatches[i+1].index : text.length;
     const section = text.slice(cur.endIndex, nextIdx);
 
-    const day = cur[1];
-    const timeStart = cur[2];
-    const timeEnd = cur[3];
-    const note = (cur[4]||'').replace(/\(.*?\)/g,'').trim();
-    const date = dayMap[day] || null;
+    const date = dayMap[cur.startDay] || null;
 
-    // Räkna rader som BÖRJAR med ett nummer
+    // Varna om datumet är utanför eventet
+    let outsideEvent = false;
+    if(date && eventStart && eventEnd){
+      const d = new Date(date);
+      if(d < eventStart || d > eventEnd) outsideEvent = true;
+    }
+
+    // Räkna platser
     const slotLines = section.split('\n').filter(line => /^\s*\d+\b/.test(line.trim()));
     const dataLines = slotLines.filter(l => !/namn|telefon|lag/i.test(l));
     const slots = Math.max(1, dataLines.length);
 
-    // Extrahera lag per sektion, fallback till dokumentets dominerande lag
+    // Lag per sektion: ta det vanligaste laget i sektionens tabellrader
     let team = defaultTeam;
-    const sectionTeam = section.match(/\n([A-ZÅÄÖ]\d{1,3})\n/);
-    if(sectionTeam) team = sectionTeam[1].trim();
-    // Fallback: sista ordet på en tabellrad om det liknar ett lagnamn
-    if(!team){
-      for(const line of dataLines){
-        const words = line.trim().split(/\s+/);
-        const last = words[words.length - 1];
-        if(last && /^[A-ZÅÄÖ][A-Za-z0-9]{1,5}$/.test(last) && last !== 'Lag'){
-          team = last; break;
-        }
-      }
+    const sectionTeamFreq = {};
+    const sectionTeamRe = new RegExp(LAG_RE.source, 'gm');
+    let stm;
+    while((stm = sectionTeamRe.exec(section)) !== null){
+      const t = stm[1];
+      if(!LAG_EXCLUDE.has(t) && t.length >= 2 && t.length <= 5) sectionTeamFreq[t] = (sectionTeamFreq[t]||0)+1;
     }
+    const sectionBest = Object.keys(sectionTeamFreq).sort((a,b)=>sectionTeamFreq[b]-sectionTeamFreq[a])[0];
+    if(sectionBest) team = sectionBest;
 
-    shifts.push({ station, date, rawDay: day, time_start: timeStart, time_end: timeEnd, slots, team, note: note || '' });
+    shifts.push({
+      station, date, rawDay: cur.startDay,
+      time_start: cur.timeStart, time_end: cur.timeEnd,
+      slots, team, note: '',
+      outsideEvent
+    });
   }
   return shifts;
 }
 
 function renderImportPreview(shifts){
   const tbody = document.getElementById('importPreviewBody');
-  const dayNames = { '2026-06-26':'Fre', '2026-06-27':'Lör', '2026-06-28':'Sön' };
-  const dayShortNames = {'2026-06-26':'Fre','2026-06-27':'Lör','2026-06-28':'Sön'};
+  const dayShortNames = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+  const outsideCount = shifts.filter(s => s.outsideEvent).length;
+
+  // Visa varning om det finns pass utanför event-datumen
+  let warnEl = document.getElementById('importOutsideWarn');
+  if(!warnEl){
+    warnEl = document.createElement('div');
+    warnEl.id = 'importOutsideWarn';
+    warnEl.style.cssText = 'background:#fdecea;border-radius:8px;padding:.65rem 1rem;font-size:13px;color:#c0392b;margin-bottom:.75rem;display:none';
+    document.getElementById('importPreview').prepend(warnEl);
+  }
+  if(outsideCount > 0){
+    warnEl.style.display = '';
+    warnEl.textContent = '⚠️ ' + outsideCount + ' pass ligger utanför cup-datumen (' +
+      (EVENT ? EVENT.date_start + ' – ' + (EVENT.date_end||EVENT.date_start) : '?') +
+      '). Kontrollera datummappningen ovan, eller ta bort de pass som inte ska vara med.';
+  } else {
+    warnEl.style.display = 'none';
+  }
+
   tbody.innerHTML = shifts.map((s,i) => {
-    const dayLabel = s.date ? (dayShortNames[s.date] || s.date.slice(8)) : '?';
-    const dateLabel = s.date ? s.date.slice(5).replace('-','/') : '?';
-    return `<tr style="border-top:1px solid var(--border)">
+    const d = s.date ? new Date(s.date) : null;
+    const dayLabel = d ? dayShortNames[d.getDay()] : '?';
+    const dateLabel = s.date ? s.date.slice(5).replace('-','/') : (s.rawDay || '?');
+    const warn = s.outsideEvent ? ' title="Utanför cup-datumen!" style="background:#fdecea"' : '';
+    const warnIcon = s.outsideEvent ? ' ⚠️' : '';
+    return `<tr style="border-top:1px solid var(--border)"${warn}>
       <td style="padding:6px 10px">${s.station}</td>
-      <td style="padding:6px 10px">${dayLabel} ${dateLabel}</td>
+      <td style="padding:6px 10px">${dayLabel} ${dateLabel}${warnIcon}</td>
       <td style="padding:6px 10px">${s.time_start}–${s.time_end}</td>
       <td style="padding:6px 10px;text-align:center">${s.slots}</td>
       <td style="padding:6px 10px;font-size:12px;color:var(--muted)">${s.team||'–'}</td>
