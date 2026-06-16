@@ -4358,6 +4358,12 @@ function useTemplate(type) {
     subj.value = `Påminnelse – välj ditt pass, ${evName} 😊`;
     body.value = `Hej!\n\nVi vill bara påminna om att du ännu inte valt ditt pass inför ${evName}. Vi hoppas allt är bra med dig!\n\nSista dag att välja är ${deadline} – klicka på knappen nedan så är det klart på en minut.\n\nHar du frågor eller funderingar är du alltid välkommen att höra av dig till ${contactEmail}.\n\nVi ser så fram emot att ha dig med!\n\nVärme och tack,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
+    // Sätt mottagarfilter till "Ej valt pass" automatiskt
+    setEmailFilter('unbooked');
+    document.querySelectorAll('.chip[onclick*="toggleChip"]').forEach(c => {
+      const val = c.getAttribute('onclick').match(/'([^']+)'\s*\)/)?.[1];
+      c.className = val === 'unbooked' ? 'chip chip-on' : 'chip chip-off';
+    });
   } else if(type === 'info') {
     subj.value = `Instruktioner inför ditt pass – ${evName} 🌟`;
     body.value = `Hej!\n\nSå fint att du kommer att hjälpa till på ${evName} – vi är så glada att ha dig med!\n\nHär kommer instruktioner inför ditt pass:\n\n[Välj station nedan så visas instruktionerna här, eller skriv manuellt]\n\nVi ses på eventet!\n\nVärme och tack,\n${clubN}`;
