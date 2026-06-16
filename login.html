@@ -203,15 +203,25 @@ async function updatePassword(){
   }
 }
 
+// Flagga — sätts när PASSWORD_RECOVERY triggas, blockerar auto-inloggning
+let isPasswordRecovery = false;
+
 // Lyssna på auth-events — fångar PASSWORD_RECOVERY
 sb.auth.onAuthStateChange(async (event, session) => {
   if(event === 'PASSWORD_RECOVERY'){
+    isPasswordRecovery = true;
     show('resetForm');
+  } else if(event === 'SIGNED_IN' && !isPasswordRecovery){
+    if(session) await routeUser(session.user);
   }
 });
 
-// Kolla om redan inloggad
+// Kolla om redan inloggad (vid vanlig sidladdning utan recovery-länk)
 (async () => {
+  const hash = window.location.hash;
+  if(hash.includes('type=recovery')){
+    return; // Låt onAuthStateChange hantera PASSWORD_RECOVERY
+  }
   const { data: { session } } = await sb.auth.getSession();
   if(session){
     await routeUser(session.user);
