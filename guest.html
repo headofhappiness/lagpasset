@@ -1017,11 +1017,8 @@ function updateContactCard(){
 // ════════════════════════════════════════════════
 function fillFaqAccordion(){
   const el = document.getElementById('faqAccordion');
-  const faqList = (LIVE && LIVE.faq && LIVE.faq.length)
-    ? LIVE.faq.filter(f => f.is_active !== false)
-    : (DEMO.faq || []);
-  if(!el || !faqList.length){ if(el) el.innerHTML = ''; return; }
-  el.innerHTML = faqList.map((f,i)=>
+  if(!el || !DEMO.faq) return;
+  el.innerHTML = DEMO.faq.map((f,i)=>
     `<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
       <button type="button" onclick="toggleFaq(${i})" style="width:100%;text-align:left;background:var(--bg);border:none;padding:.8rem .95rem;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--dark);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:.5rem">
         <span>${f.q}</span>
@@ -1136,9 +1133,7 @@ async function initLive(token){
       shiftIds.length ? sbFetch('shift_slots', '?shift_id=in.(' + shiftIds.join(',') + ')&order=slot_number.asc') : Promise.resolve([])
     ]);
 
-    const contacts = await sbFetch('contacts', '?event_id=eq.' + eventId + '&order=area.asc').catch(() => []);
-    const faq = await sbFetch('faq', '?club_id=eq.' + (event.club_id||'') + '&is_active=eq.true&order=created_at.asc').catch(() => []);
-    LIVE = { participant, event, shifts, bookings, shiftSlots, contacts, faq };
+    LIVE = { participant, event, shifts, bookings, shiftSlots };
     renderLiveView();
   } catch(e){
     console.error('Live-fel:', e);
@@ -1335,8 +1330,10 @@ async function sendThanksEmail(name, phone){
       },
       body: JSON.stringify({
         mode: 'thanks',
-        recipient: { name: name, email: LIVE.participant.email },
+        recipient: { name: name, email: LIVE.participant.email, token: LIVE.participant.token || '' },
         eventName: (LIVE.event && LIVE.event.name) || 'eventet',
+        clubName: (LIVE.event && LIVE.event.club_name) || '',
+        baseUrl: window.location.origin + '/guest.html',
         shift: {
           title: s.title,
           time: liveDayLabel(s.date) + ' · ' + tid,
