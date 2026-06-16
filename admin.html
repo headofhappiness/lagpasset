@@ -1437,6 +1437,11 @@ async function sbFetch(table, params) {
   return res.json();
 }
 
+async function sbInsertReturn(table, data) {
+  const rows = await sbInsert(table, data);
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
 async function sbInsert(table, data) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + table, {
     method: 'POST',
@@ -5337,33 +5342,40 @@ function parsePassSchema(text, defaultStation, manualTeam){
     }
 
     // Räkna platser - hanterar | 1 | tabellformat och vanliga numrerade rader
+    // Extrahera en slot per tabellrad med rätt lag
+    const slotsWithTeams = [];
     const tableDataRows = section.split('\n').filter(l => /^\s*\|\s*\d+\s*\|/.test(l));
     const plainDataRows = section.split('\n').filter(l => /^\s*\d+\b/.test(l.trim()) && !/namn|telefon|lag/i.test(l));
-    const slots = Math.max(1, tableDataRows.length || plainDataRows.length);
 
-    // Lag per sektion: extrahera lag från tabellrader | n | | | LAG | |
-    let team = defaultTeam;
-    const lagFromTable = [];
-    section.split('\n').forEach(line => {
-      // Matcha | 1 | (tom) | (tom) | P19 | (tom) | - lag är 4:e pipe-fält
-      const pipeParts = line.split('|').map(p => p.trim()).filter((p,i) => i > 0);
-      if(pipeParts.length >= 4 && /^\d+$/.test(pipeParts[0])){
-        const lagCandidate = pipeParts[3];
-        if(lagCandidate && lagCandidate.length >= 2 && lagCandidate.length <= 5 && !LAG_EXCLUDE.has(lagCandidate) && /^[A-ZÅÄÖ]/.test(lagCandidate)){
-          lagFromTable.push(lagCandidate);
-        }
-      }
-    });
-    if(lagFromTable.length > 0){
-      const lagFreq = {};
-      lagFromTable.forEach(t => lagFreq[t] = (lagFreq[t]||0)+1);
-      team = Object.keys(lagFreq).sort((a,b)=>lagFreq[b]-lagFreq[a])[0];
+    if(tableDataRows.length > 0){
+      tableDataRows.forEach((line, idx) => {
+        const pipeParts = line.split('|').map(p => p.trim()).filter((p,i) => i > 0);
+        // Kolumnordning: [radnr, Namn, Telefon, Lag, (ev extra)]
+        const lagCandidate = pipeParts.length >= 4 ? pipeParts[3] : '';
+        const isValidLag = lagCandidate && lagCandidate.length >= 2 && lagCandidate.length <= 5
+          && !LAG_EXCLUDE.has(lagCandidate) && /^[A-ZÅÄÖ]/.test(lagCandidate);
+        slotsWithTeams.push({
+          slot_number: idx + 1,
+          team: isValidLag ? lagCandidate : (defaultTeam || '')
+        });
+      });
+    } else {
+      plainDataRows.forEach((line, idx) => {
+        slotsWithTeams.push({ slot_number: idx + 1, team: defaultTeam || '' });
+      });
+      if(!slotsWithTeams.length) slotsWithTeams.push({ slot_number: 1, team: defaultTeam || '' });
     }
+
+    const slots = slotsWithTeams.length;
+    // Vanligaste laget på passet (för bakåtkompatibilitet i vyer)
+    const lagFreq2 = {};
+    slotsWithTeams.forEach(s => { lagFreq2[s.team] = (lagFreq2[s.team]||0)+1; });
+    const team = Object.keys(lagFreq2).sort((a,b)=>lagFreq2[b]-lagFreq2[a])[0] || defaultTeam || '';
 
     shifts.push({
       station, date, rawDay: cur.startDay,
       time_start: cur.timeStart, time_end: cur.timeEnd,
-      slots, team, note: '',
+      slots, team, slotsWithTeams, note: '',
       outsideEvent
     });
   }
@@ -5459,7 +5471,7 @@ async function saveImportedShifts(){
         console.warn('Pass utan datum hoppas över:', s.station, s.rawDay, s.time_start);
         failed++; continue;
       }
-      await sbInsert('shifts', {
+      const newShift = await sbInsertReturn('shifts', {
         event_id: EVENT_ID,
         title: s.station,
         date: s.date,
@@ -5468,6 +5480,24 @@ async function saveImportedShifts(){
         slots: s.slots,
         team: importTeam ? (s.team || null) : null
       });
+      // Spara shift_slots — en rad per plats med rätt lag
+      if(newShift && newShift.id && s.slotsWithTeams && s.slotsWithTeams.length){
+        const slotRows = s.slotsWithTeams.map(sl => ({
+          shift_id: newShift.id,
+          slot_number: sl.slot_number,
+          team: importTeam ? (sl.team || s.team || '') : (s.team || '')
+        }));
+        await fetch(SUPABASE_URL + '/rest/v1/shift_slots', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(slotRows)
+        });
+      }
       saved++;
     } catch(e){ console.error(e); failed++; }
   }
