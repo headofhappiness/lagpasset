@@ -1221,15 +1221,10 @@ function renderLivePassList(){
   let html = '';
   Object.keys(byDay).forEach(day=>{
     const myShifts = byDay[day].filter(s => shiftHasMyTeam(s.id));
-    const otherShifts = byDay[day].filter(s => !shiftHasMyTeam(s.id));
-    const orderedShifts = [...myShifts, ...otherShifts];
-    let shownSeparator = false;
+    // Visa bara pass som tillhör personens lag
+    if(myShifts.length === 0) return;
     html += '<div class="day-header">' + day + '</div>';
-    orderedShifts.forEach(s=>{
-      if(!shownSeparator && !shiftHasMyTeam(s.id) && myShifts.length > 0){
-        html += '<div style="font-size:12px;color:var(--muted);font-weight:600;padding:.5rem 0 .25rem;letter-spacing:.04em">ÖVRIGA PASS</div>';
-        shownSeparator = true;
-      }
+    myShifts.forEach(s=>{
       const taken = LIVE.bookings.filter(b => b.shift_id === s.id).length;
       const slotCount = (LIVE.shiftSlots||[]).filter(sl=>sl.shift_id===s.id).length;
       const free = (slotCount || s.slots) - taken;
