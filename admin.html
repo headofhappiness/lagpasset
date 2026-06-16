@@ -5369,14 +5369,9 @@ function parsePassSchema(text, defaultStation, manualTeam){
       if(d < eventStart || d > eventEnd) outsideEvent = true;
     }
 
-    // Räkna platser - hanterar | 1 | tabellformat och vanliga numrerade rader
-    // Extrahera en slot per tabellrad med rätt lag
-    const slotsWithTeams = [];
-    const tableDataRows = section.split('\n').filter(l => /^\s*\|\s*\d+\s*\|/.test(l));
-    const plainDataRows = section.split('\n').filter(l => /^\s*\d+\b/.test(l.trim()) && !/namn|telefon|lag/i.test(l));
-
     // Mammoth-tabeller blir rena textrader: radnr på en rad, lag på nästa
     // Mönster: "1\nF15\n2\nF15\n..." — hitta par (nummer, lag)
+    const slotsWithTeams = [];
     const isValidLag = t => t && t.length >= 2 && t.length <= 5
       && !LAG_EXCLUDE.has(t) && /^[A-ZÅÄÖ]/.test(t);
 
@@ -5385,7 +5380,6 @@ function parsePassSchema(text, defaultStation, manualTeam){
     while(si < sectionLines.length){
       if(/^\d+$/.test(sectionLines[si])){
         const slotNum = parseInt(sectionLines[si]);
-        // Leta lag bland nästkommande rader (max 3 framåt)
         let foundTeam = '';
         for(let sj = si+1; sj < Math.min(si+4, sectionLines.length); sj++){
           if(isValidLag(sectionLines[sj])){
@@ -5403,11 +5397,7 @@ function parsePassSchema(text, defaultStation, manualTeam){
 
     // Fallback om inget hittades
     if(!slotsWithTeams.length){
-      const plainDataRows = section.split('\n').filter(l => /^\s*\d+\b/.test(l.trim()) && !/namn|telefon|lag/i.test(l));
-      plainDataRows.forEach((line, idx) => {
-        slotsWithTeams.push({ slot_number: idx + 1, team: defaultTeam || '' });
-      });
-      if(!slotsWithTeams.length) slotsWithTeams.push({ slot_number: 1, team: defaultTeam || '' });
+      slotsWithTeams.push({ slot_number: 1, team: defaultTeam || '' });
     }
 
     const slots = slotsWithTeams.length;
@@ -5525,6 +5515,7 @@ async function saveImportedShifts(){
         team: importTeam ? (s.team || null) : null
       });
       // Spara shift_slots — en rad per plats med rätt lag
+      console.log('[LP] newShift:', newShift && newShift.id, 'slotsWithTeams:', s.slotsWithTeams && s.slotsWithTeams.length, s.slotsWithTeams && s.slotsWithTeams.slice(0,3));
       if(newShift && newShift.id && s.slotsWithTeams && s.slotsWithTeams.length){
         const slotRows = s.slotsWithTeams.map(sl => ({
           shift_id: newShift.id,
