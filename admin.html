@@ -717,6 +717,18 @@ Hälsningar,
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleEmailLog()">
           <div style="display:flex;align-items:center;gap:.5rem">
             <span style="font-size:1.1rem">📋</span>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
+          <div>
+            <div class="card-title">Vanliga frågor (FAQ)</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen när de valt sitt pass. Spara gärna svar på återkommande frågor så slipper ni svara på samma sak om och om igen.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddFaq')">+ Lägg till fråga</button>
+        </div>
+        <div id="faqList" style="margin-top:.5rem;display:flex;flex-direction:column;gap:.5rem"></div>
+      </div>
+
+          <div class="card">
             <div class="card-title">Utskickslogg</div>
           </div>
           <span id="emailLogArrow" style="color:var(--muted)">▸</span>
@@ -955,16 +967,6 @@ Hälsningar,
         </div>
       </div>
 
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
-          <div>
-            <div class="card-title">Vanliga frågor (FAQ)</div>
-            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen när de valt sitt pass. Spara gärna svar på återkommande frågor så slipper ni svara på samma sak om och om igen.</p>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddFaq')">+ Lägg till fråga</button>
-        </div>
-        <div id="faqList" style="margin-top:.5rem;display:flex;flex-direction:column;gap:.5rem"></div>
-      </div>
 
       <div class="card">
         <div class="card-title" style="margin-bottom:.5rem">Integritet &amp; GDPR</div>
@@ -1516,17 +1518,17 @@ async function loadEvent(){
     const events = await sbFetch('events', '?id=eq.' + EVENT_ID);
     if(events.length) EVENT = events[0];
     // Ladda föreningen kopplad till eventet
-    // Ladda FAQ från faq-tabellen
-  try {
-    const faqRows = await sbFetch('faq', '?club_id=eq.' + (CLUB && CLUB.id ? CLUB.id : ''));
-    DB.faq = faqRows.map(f => ({ id: f.id, q: f.question, a: f.answer, enabled: f.is_active !== false }));
-  } catch(e){ DB.faq = []; }
-  if(EVENT && EVENT.club_id){
+    if(EVENT && EVENT.club_id){
       try {
         const clubs = await sbFetch('clubs', '?id=eq.' + EVENT.club_id);
         if(clubs.length) CLUB = clubs[0];
       } catch(e){ console.error('Klubb-fel:', e); }
     }
+    // Ladda FAQ från faq-tabellen (efter CLUB är satt)
+    try {
+      const faqRows = CLUB && CLUB.id ? await sbFetch('faq', '?club_id=eq.' + CLUB.id + '&order=created_at.asc') : [];
+      DB.faq = faqRows.map(f => ({ id: f.id, q: f.question, a: f.answer, enabled: f.is_active !== false }));
+    } catch(e){ DB.faq = []; }
   } catch(e){ console.error('Event-fel:', e); }
 }
 
