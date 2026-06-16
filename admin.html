@@ -358,10 +358,9 @@ setVH(); window.addEventListener('resize',setVH);
           </button>
           <div id="reminderLog" style="display:none;margin-top:.6rem;display:none;flex-direction:column;gap:.4rem"></div>
         </div>
-        <!-- Skicka påminnelse nu -->
-        <div style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="sendReminderNow()" id="reminderNowBtn">⏰ Skicka påminnelse nu</button>
-          <div id="reminderNowMsg" style="font-size:13px;color:var(--muted)"></div>
+        <!-- Länk till Mejla bemanning -->
+        <div style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--border)">
+          <a onclick="showSection('email')" href="#" style="font-size:13px;color:var(--green);font-weight:600;text-decoration:none">📧 Skicka påminnelse via Mejla bemanning →</a>
         </div>
       </div>
 
@@ -638,10 +637,40 @@ Hälsningar,
 </textarea>
         </div>
 
-        <label class="checkbox-row" style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;cursor:pointer">
+        <label class="checkbox-row" style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;cursor:pointer">
           <input type="checkbox" id="includeBookingLink">
           <span style="font-size:13.5px;color:var(--text)">Inkludera personlig passval-knapp (för inbjudan/påminnelse)</span>
         </label>
+
+        <!-- Inkludera instruktioner -->
+        <div style="border:1.5px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem">
+          <label class="checkbox-row" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;margin-bottom:0">
+            <input type="checkbox" id="includeInstructions" onchange="toggleInstructionsPanel()">
+            <span style="font-size:13.5px;color:var(--text);font-weight:600">Inkludera stationsinstruktioner i mejlet</span>
+          </label>
+          <div id="instructionsPanel" style="display:none;margin-top:.85rem">
+            <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+              <select id="instructionStationSelect" onchange="onInstructionStationChange()" style="flex:1;min-width:160px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px">
+                <option value="">Välj station...</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="previewInstructionText()" title="Visa instruktioner">👁 Visa</button>
+              <button class="btn btn-ghost btn-sm" onclick="editInstructionText()" title="Redigera instruktioner">✏️ Redigera</button>
+            </div>
+            <!-- Visningsläge -->
+            <div id="instructionPreviewPanel" style="display:none;margin-top:.75rem;background:#f7fbf7;border:1.5px solid rgba(26,140,58,.15);border-radius:8px;padding:.85rem 1rem">
+              <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.05em;margin-bottom:.5rem">FÖRHANDSVISNING</div>
+              <div id="instructionPreviewText" style="font-size:13.5px;color:var(--dark);line-height:1.7;white-space:pre-wrap"></div>
+            </div>
+            <!-- Redigeringsläge -->
+            <div id="instructionEditPanel" style="display:none;margin-top:.75rem">
+              <textarea id="instructionEditText" rows="6" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13.5px;resize:vertical;box-sizing:border-box" placeholder="Skriv instruktioner för stationen..."></textarea>
+              <div style="display:flex;gap:.5rem;margin-top:.5rem">
+                <button class="btn btn-ghost btn-sm" onclick="cancelInstructionEdit()">Avbryt</button>
+                <button class="btn btn-primary btn-sm" onclick="saveInstructionFromEmail()">Spara instruktioner</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="sendEmail()">📧 Skicka mejl</button>
@@ -3408,6 +3437,68 @@ function toggleEmailLog(){
   list.style.display = open ? 'none' : 'block';
   if(arrow) arrow.textContent = open ? '▸' : '▾';
   if(!open) renderEmailLog();
+}
+
+// ═══════════════════════════════════════
+// INSTRUKTIONER I MEJLA-BEMANNING
+// ═══════════════════════════════════════
+
+function toggleInstructionsPanel(){
+  const checked = document.getElementById('includeInstructions').checked;
+  const panel = document.getElementById('instructionsPanel');
+  panel.style.display = checked ? 'block' : 'none';
+  if(checked) populateInstructionStations();
+}
+
+function populateInstructionStations(){
+  const sel = document.getElementById('instructionStationSelect');
+  const stations = [...new Set(DB.shifts.map(s => s.title).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Välj station...</option>' +
+    stations.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+function onInstructionStationChange(){
+  // Dölj båda panelerna när man byter station
+  document.getElementById('instructionPreviewPanel').style.display = 'none';
+  document.getElementById('instructionEditPanel').style.display = 'none';
+}
+
+function getInstructionForStation(station){
+  return savedInstructions[station] || '';
+}
+
+function previewInstructionText(){
+  const station = document.getElementById('instructionStationSelect').value;
+  if(!station){ showToast('Välj en station först', 'error'); return; }
+  const text = getInstructionForStation(station);
+  document.getElementById('instructionPreviewText').textContent = text || '(Inga instruktioner sparade för ' + station + ')';
+  document.getElementById('instructionPreviewPanel').style.display = 'block';
+  document.getElementById('instructionEditPanel').style.display = 'none';
+}
+
+function editInstructionText(){
+  const station = document.getElementById('instructionStationSelect').value;
+  if(!station){ showToast('Välj en station först', 'error'); return; }
+  const text = getInstructionForStation(station);
+  document.getElementById('instructionEditText').value = text;
+  document.getElementById('instructionEditPanel').style.display = 'block';
+  document.getElementById('instructionPreviewPanel').style.display = 'none';
+}
+
+function cancelInstructionEdit(){
+  document.getElementById('instructionEditPanel').style.display = 'none';
+}
+
+function saveInstructionFromEmail(){
+  const station = document.getElementById('instructionStationSelect').value;
+  if(!station) return;
+  const text = document.getElementById('instructionEditText').value;
+  savedInstructions[station] = text;
+  document.getElementById('instructionEditPanel').style.display = 'none';
+  // Visa förhandsgranskning direkt efter sparning
+  document.getElementById('instructionPreviewText').textContent = text || '(tom)';
+  document.getElementById('instructionPreviewPanel').style.display = 'block';
+  showToast('Instruktioner sparade för ' + station + '!');
 }
 
 // ═══════════════════════════════════════
