@@ -3962,9 +3962,98 @@ function useTemplate(type) {
   }
 }
 
+// Auto-mailmallar sparas i localStorage per event
+function getAutoTemplates(){
+  try {
+    const raw = localStorage.getItem('lp_templates_' + EVENT_ID);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e){ return {}; }
+}
+function saveAutoTemplates(templates){
+  try { localStorage.setItem('lp_templates_' + EVENT_ID, JSON.stringify(templates)); } catch(e){}
+}
+
 function editAutoTemplate(which){
-  const titles = { confirm: 'Tack för bokat pass (automatiskt)', reminder: 'Automatisk påminnelse' };
-  showToast('Mallar kan redigeras i nästa version.');
+  const templates = getAutoTemplates();
+  const evName = (typeof EVENT !== 'undefined' && EVENT && EVENT.name) || 'eventet';
+  const clubN = (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || 'Föreningen';
+
+  const defaults = {
+    confirm: {
+      title: 'Tack för bokat pass',
+      subj: `⭐ Tack för bokat pass – ${evName}`,
+      body: `Tack för att du hjälper till under ${evName}! Ditt pass och all praktisk info finns i länken nedan.
+
+Hör av dig om du har frågor.
+
+Hälsningar,
+${clubN}`
+    },
+    reminder: {
+      title: 'Påminnelse – välj pass',
+      subj: `Påminnelse: välj ditt pass – ${evName}`,
+      body: `Hej!
+
+Du har ännu inte valt pass inför ${evName}. Det tar bara en minut – klicka på knappen nedan och välj ett pass som passar dig.
+
+Hälsningar,
+${clubN}`
+    }
+  };
+
+  const current = templates[which] || defaults[which];
+
+  // Bygg modal-innehåll
+  const existing = document.getElementById('modalAutoTemplate');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'modalAutoTemplate';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:520px;width:100%">
+      <div class="modal-header">
+        <div class="modal-title">${current.title}</div>
+        <button class="modal-close" onclick="document.getElementById('modalAutoTemplate').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Ämnesrad</label>
+          <input type="text" id="atSubj" value="${current.subj.replace(/"/g,'&quot;')}" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Meddelande</label>
+          <textarea id="atBody" rows="7" style="width:100%;resize:vertical">${current.body}</textarea>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Systemet lägger automatiskt till "Hej [namn]!" och passdetaljer.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modalAutoTemplate').remove()">Avbryt</button>
+        <button class="btn btn-ghost" onclick="resetAutoTemplate('${which}')">Återställ standard</button>
+        <button class="btn btn-primary" onclick="saveAutoTemplate('${which}')">Spara</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function saveAutoTemplate(which){
+  const subj = document.getElementById('atSubj').value.trim();
+  const body = document.getElementById('atBody').value.trim();
+  if(!subj || !body){ showToast('Fyll i ämne och meddelande', 'error'); return; }
+  const templates = getAutoTemplates();
+  templates[which] = { subj, body };
+  saveAutoTemplates(templates);
+  document.getElementById('modalAutoTemplate').remove();
+  showToast('Mall sparad!');
+}
+
+function resetAutoTemplate(which){
+  const templates = getAutoTemplates();
+  delete templates[which];
+  saveAutoTemplates(templates);
+  document.getElementById('modalAutoTemplate').remove();
+  showToast('Standardtext återställd');
 }
 
 // På/av för automatisk påminnelse (sparas lokalt i webbläsaren)
