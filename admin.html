@@ -697,7 +697,7 @@ Hälsningar,
           <span style="font-size:1.15rem">⚖️</span>
           <div style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Bemanningsanalys – AI:s tips inför nästa gång</div>
         </div>
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Sammanställt från vad volontärerna svarat om bemanningen på sina pass. Använd för att sätta rätt antal personer nästa år. <strong style="color:var(--dark)">Tänk på att behovet också beror på hur många lag och besökare som kommer</strong> – blir cupen större kan även "lagom" pass behöva fler.</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Sammanställt från vad bemanningen svarat om på sina pass. Använd för att sätta rätt antal personer nästa år. <strong style="color:var(--dark)">Tänk på att behovet också beror på hur många lag och besökare som kommer</strong> – blir cupen större kan även "lagom" pass behöva fler.</div>
         <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
       </div>
 
@@ -1283,7 +1283,7 @@ Hälsningar,
     </div>
     <div class="form-group" style="margin-bottom:.5rem">
       <label class="form-label">Meddelande i mejlet (valfritt)</label>
-      <textarea id="sendLinksMsg" rows="3" placeholder="Hej! Glöm inte att välja ett pass…">Välj ditt volontärpass via länken nedan. Det tar bara en minut!</textarea>
+      <textarea id="sendLinksMsg" rows="3" placeholder="Hej! Glöm inte att välja ett pass…">Välj ditt pass via länken nedan. Det tar bara en minut!</textarea>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalSendLinks')">Avbryt</button>
@@ -3945,7 +3945,7 @@ function useTemplate(type) {
     : 'sista anmälningsdag';
   if(type === 'invite') {
     subj.value = `Välj ditt pass \u2013 ${evName}`;
-    body.value = `Hej!\n\nDet är dags att välja volontärpass inför ${evName}. Klicka på knappen nedan, välj ett pass som passar dig \u2013 det tar bara en minut.\n\nSista anmälningsdag är ${deadline}.\n\nHar du frågor, hör av dig till ${contactEmail}.\n\nHälsningar,\n${clubN}`;
+    body.value = `Hej!\n\nDet är dags att välja pass inför ${evName}. Klicka på knappen nedan, välj ett pass som passar dig \u2013 det tar bara en minut.\n\nSista anmälningsdag är ${deadline}.\n\nHar du frågor, hör av dig till ${contactEmail}.\n\nHälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
   } else if(type === 'reminderManual') {
     subj.value = `Påminnelse: välj ditt pass \u2013 ${evName}`;
@@ -4019,7 +4019,7 @@ function renderFeedback(){
     list.innerHTML = '<div style="padding:2rem 1.5rem;text-align:center;color:var(--muted)">' +
       '<div style="font-size:1.8rem;margin-bottom:.5rem">📭</div>' +
       '<div style="font-weight:600;color:var(--dark);margin-bottom:.25rem">Ingen feedback har kommit in än</div>' +
-      '<div style="font-size:13px">Feedback dyker upp här automatiskt när pass avslutats och volontärerna svarat på sin feedback-länk.</div>' +
+      '<div style="font-size:13px">Feedback dyker upp här automatiskt när pass avslutats och bemanningen svarat på sin feedback-länk.</div>' +
       '</div>';
     const sa = document.getElementById('statAvg'); if(sa) sa.textContent = '–';
     const sc = document.getElementById('statCount'); if(sc) sc.textContent = '0';
