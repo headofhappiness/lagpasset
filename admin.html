@@ -715,23 +715,22 @@ Hälsningar,
       <!-- UTSKICKSLOGG -->
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleEmailLog()">
-          <div style="display:flex;align-items:center;gap:.5rem">
-            <span style="font-size:1.1rem">📋</span>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
           <div>
             <div class="card-title">Vanliga frågor (FAQ)</div>
-            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen när de valt sitt pass. Spara gärna svar på återkommande frågor så slipper ni svara på samma sak om och om igen.</p>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen på sin bokningssida efter att de valt pass. Perfekt för frågor som ofta dyker upp.</p>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddFaq')">+ Lägg till fråga</button>
         </div>
         <div id="faqList" style="margin-top:.5rem;display:flex;flex-direction:column;gap:.5rem"></div>
       </div>
 
-          <div class="card">
-            <div class="card-title">Utskickslogg</div>
-          </div>
-          <span id="emailLogArrow" style="color:var(--muted)">▸</span>
+      <div class="card" onclick="toggleEmailLog()" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span style="font-size:1.1rem">📋</span>
+          <div class="card-title">Utskickslogg</div>
+          <span id="emailLogArrow" style="color:var(--muted);margin-left:auto">▸</span>
         </div>
         <div id="emailLogList" style="display:none;margin-top:1rem"></div>
       </div>
