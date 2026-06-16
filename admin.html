@@ -1516,11 +1516,11 @@ async function loadEvent(){
     const events = await sbFetch('events', '?id=eq.' + EVENT_ID);
     if(events.length) EVENT = events[0];
     // Ladda föreningen kopplad till eventet
-    // Ladda FAQ från event
-  if(EVENT && EVENT.faq){
-    try { DB.faq = typeof EVENT.faq === 'string' ? JSON.parse(EVENT.faq) : (EVENT.faq || []); }
-    catch(e){ DB.faq = []; }
-  } else { DB.faq = []; }
+    // Ladda FAQ från faq-tabellen
+  try {
+    const faqRows = await sbFetch('faq', '?club_id=eq.' + (CLUB && CLUB.id ? CLUB.id : ''));
+    DB.faq = faqRows.map(f => ({ id: f.id, q: f.question, a: f.answer, enabled: f.is_active !== false }));
+  } catch(e){ DB.faq = []; }
   if(EVENT && EVENT.club_id){
       try {
         const clubs = await sbFetch('clubs', '?id=eq.' + EVENT.club_id);
@@ -5643,24 +5643,53 @@ async function saveImportedShifts(){
 }
 // ── FAQ-hantering ─────────────────────────────────────────
 async function saveFaqToDB(faqArray){
-  try {
-    await sbUpdate('events', EVENT_ID, { faq: faqArray });
-    DB.faq = faqArray;
-    if(EVENT) EVENT.faq = faqArray;
-    renderFaqList();
-    showToast('FAQ sparad ✓');
-  } catch(e){ showToast('Kunde inte spara FAQ: ' + e.message, 'error'); }
+  // Används inte längre — varje FAQ-operation hanterar sin egen DB-operation
+  DB.faq = faqArray;
+  renderFaqList();
 }
 
-function toggleFaq(idx){
+async function upsertFaqItem(item){
+  // item = { id?, q, a, enabled }
+  const clubId = CLUB && CLUB.id;
+  if(!clubId) return;
+  if(item.id){
+    // Uppdatera befintlig
+    await fetch(SUPABASE_URL + '/rest/v1/faq?id=eq.' + item.id, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ question: item.q, answer: item.a, is_active: item.enabled !== false })
+    });
+  } else {
+    // Ny rad
+    const res = await fetch(SUPABASE_URL + '/rest/v1/faq', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ club_id: clubId, question: item.q, answer: item.a, is_active: item.enabled !== false })
+    });
+    const rows = await res.json();
+    if(rows && rows[0]) item.id = rows[0].id;
+  }
+}
+
+async function deleteFaqFromDB(id){
+  await fetch(SUPABASE_URL + '/rest/v1/faq?id=eq.' + id, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  });
+}
+
+async function toggleFaq(idx){
   const allItems = _faqAllItems;
-  const item = {...allItems[idx], enabled: allItems[idx].enabled === false, suggested: undefined};
+  const item = {...allItems[idx], enabled: allItems[idx].enabled === false };
   delete item.suggested;
   const updated = [...DB.faq];
   const existing = updated.findIndex(f => f.q === item.q);
   if(existing >= 0) updated[existing] = item;
   else updated.push(item);
-  saveFaqToDB(updated);
+  DB.faq = updated;
+  await upsertFaqItem(item);
+  renderFaqList();
+  showToast('FAQ uppdaterad ✓');
 }
 
 function editFaq(idx){
@@ -5673,12 +5702,16 @@ function editFaq(idx){
   openModal('modalAddFaq');
 }
 
-function deleteFaq(idx){
-  const updated = DB.faq.filter((_,i) => i !== idx);
-  saveFaqToDB(updated);
+async function deleteFaq(idx){
+  const allItems = _faqAllItems;
+  const item = allItems[idx];
+  if(item && item.id) await deleteFaqFromDB(item.id);
+  DB.faq = DB.faq.filter(f => f.id !== (item && item.id));
+  renderFaqList();
+  showToast('FAQ borttagen');
 }
 
-function saveFaqFromModal(){
+async function saveFaqFromModal(){
   const q = (document.getElementById('faqQ').value || '').trim();
   const a = (document.getElementById('faqA').value || '').trim();
   if(!q || !a){ showToast('Fyll i fråga och svar.', 'error'); return; }
@@ -5687,13 +5720,13 @@ function saveFaqFromModal(){
   let allItems = [];
   try { allItems = JSON.parse(allItemsRaw); } catch(e){}
   const newItem = { q, a, enabled: true };
-  let updated = [...DB.faq];
-  if(!isNaN(idx) && allItems[idx]){
-    const existing = updated.findIndex(f => f.q === allItems[idx].q);
-    if(existing >= 0) updated[existing] = newItem;
-    else updated.push(newItem);
-  } else { updated.push(newItem); }
-  saveFaqToDB(updated);
+  if(!isNaN(idx) && allItems[idx] && allItems[idx].id) newItem.id = allItems[idx].id;
+  await upsertFaqItem(newItem);
+  const existing2 = DB.faq.findIndex(f => f.id === newItem.id);
+  if(existing2 >= 0) DB.faq[existing2] = newItem;
+  else DB.faq.push(newItem);
+  renderFaqList();
+  showToast('FAQ sparad ✓');
   closeModal('modalAddFaq');
 }
 // ─────────────────────────────────────────────────────────
