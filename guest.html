@@ -1220,7 +1220,7 @@ function renderLivePassList(){
   document.getElementById('noPassMsg').style.display='none';
   let html = '';
   Object.keys(byDay).forEach(day=>{
-    const myShifts = byDay[day].filter(s => shiftHasMyTeam(s.id));
+    const myShifts = byDay[day].filter(s => shiftHasMyTeam(s.id)).sort((a,b) => (a.title+a.time_start).localeCompare(b.title+b.time_start));
     // Visa bara pass som tillhör personens lag
     if(myShifts.length === 0) return;
     html += '<div class="day-header">' + day + '</div>';
