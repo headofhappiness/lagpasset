@@ -5515,7 +5515,6 @@ async function saveImportedShifts(){
         team: importTeam ? (s.team || null) : null
       });
       // Spara shift_slots — en rad per plats med rätt lag
-      console.log('[LP] newShift:', newShift && newShift.id, 'slotsWithTeams:', s.slotsWithTeams && s.slotsWithTeams.length, s.slotsWithTeams && s.slotsWithTeams.slice(0,3));
       if(newShift && newShift.id && s.slotsWithTeams && s.slotsWithTeams.length){
         const slotRows = s.slotsWithTeams.map(sl => ({
           shift_id: newShift.id,
