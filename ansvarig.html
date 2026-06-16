@@ -265,38 +265,57 @@ function render(){
   document.getElementById('navClub').textContent = (EVENT && EVENT.club_name) ? EVENT.club_name : 'Föreningen';
   document.getElementById('navEvent').textContent = (EVENT && EVENT.name) || 'Eventet';
   const stationsList = ANSVARIG && ANSVARIG.stations && ANSVARIG.stations.length ? ANSVARIG.stations : [STATION];
-  document.getElementById('stationName').textContent = stationsList.length > 1 ? stationsList.join(', ') : stationsList[0];
-  document.getElementById('heroSub').textContent = 'Du är ansvarig för ' + (stationsList.length > 1 ? 'dessa stationer' : stationsList[0]) + '.' + (ANSVARIG && ANSVARIG.name ? ' (' + ANSVARIG.name + ')' : '');
+  document.getElementById('stationName').textContent = stationsList.length > 1 ? 'Dina stationer' : stationsList[0];
+  document.getElementById('heroSub').textContent = 'Du är ansvarig för: ' + stationsList.join(', ') + (ANSVARIG && ANSVARIG.name ? ' (' + ANSVARIG.name + ')' : '');
 
-  // Besättning per pass
+  // En sektion per station
   const list = document.getElementById('crewList');
-  if(!SHIFTS.length){ list.innerHTML = '<div style="font-size:13px;color:var(--muted);font-style:italic">Inga pass på den här stationen ännu.</div>'; }
-  else {
-    list.innerHTML = SHIFTS.map(s => {
-      const taken = s._crew.length, total = s.slots, free = Math.max(0, total - taken);
-      const pct = total ? Math.round(taken/total*100) : 0;
-      const color = pct>=100 ? 'var(--green)' : pct>=60 ? 'var(--amber)' : 'var(--red)';
-      const people = s._crew.map(p =>
-        '<div class="person"><div class="person-av">'+initials(p.name)+'</div>' +
-        '<div class="person-info"><div class="person-name">'+p.name+'</div><div class="person-links">' +
-        (p.phone ? '<a href="tel:'+p.phone.replace(/\s/g,'')+'">📞 '+p.phone+'</a>' : '') +
-        (p.email ? '<a href="mailto:'+p.email+'">✉️ '+p.email+'</a>' : '') +
-        '</div></div></div>'
-      ).join('');
-      const empties = Array.from({length:free}).map(()=>'<div class="empty-slot">+ Ledig plats</div>').join('');
-      return '<div class="pass-block"><div class="pass-head">' +
-        '<div><div class="pass-title">'+fmtDay(s.date)+' '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5)+'</div>' +
-        (s.location ? '<div class="pass-meta">'+s.location+'</div>' : '') + '</div>' +
-        '<span class="fill" style="color:'+color+'">'+taken+'/'+total+'</span></div>' +
-        people + empties + '</div>';
+  if(!SHIFTS.length){
+    list.innerHTML = '<div style="font-size:13px;color:var(--muted);font-style:italic">Inga pass på dina stationer ännu.</div>';
+  } else {
+    list.innerHTML = stationsList.map(stName => {
+      const stShifts = SHIFTS.filter(s => (s.title||'').toLowerCase() === stName.toLowerCase());
+      if(!stShifts.length) return '';
+      const stCrew = [];
+      const passList = stShifts.map(s => {
+        const taken = s._crew.length, total = s.slots, free = Math.max(0, total - taken);
+        const pct = total ? Math.round(taken/total*100) : 0;
+        const color = pct>=100 ? 'var(--green)' : pct>=60 ? 'var(--amber)' : 'var(--red)';
+        s._crew.forEach(p => { if(p.email) stCrew.push(p); });
+        const people = s._crew.map(p =>
+          '<div class="person"><div class="person-av">'+initials(p.name)+'</div>' +
+          '<div class="person-info"><div class="person-name">'+p.name+'</div><div class="person-links">' +
+          (p.phone ? '<a href="tel:'+p.phone.replace(/\s/g,'')+'">📞 '+p.phone+'</a>' : '') +
+          (p.email ? '<a href="mailto:'+p.email+'">✉️ '+p.email+'</a>' : '') +
+          '</div></div></div>'
+        ).join('');
+        const empties = Array.from({length:free}).map(()=>'<div class="empty-slot">+ Ledig plats</div>').join('');
+        return '<div class="pass-block"><div class="pass-head">' +
+          '<div><div class="pass-title">'+fmtDay(s.date)+' '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5)+'</div></div>' +
+          '<span class="fill" style="color:'+color+'">'+taken+'/'+total+'</span></div>' +
+          people + empties + '</div>';
+      }).join('');
+      const mailBtn = stCrew.length > 0
+        ? '<button onclick="mailStation(\''+stName+'\')" style="margin-top:.75rem;background:var(--green);color:#fff;border:none;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">📧 Mejla '+stName+'-teamet ('+stCrew.length+' med e-post)</button>'
+        : '';
+      return '<div style="margin-bottom:1.5rem"><div style="font-size:16px;font-weight:700;color:var(--dark);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:2px solid var(--green)">'+stName+'</div>' + passList + mailBtn + '</div>';
     }).join('');
   }
 
-  // Mejl-räknare
+  // Mejl-räknare (totalt)
   document.getElementById('mailCount').textContent = CREW.length;
   // Resurs-passväljare
   const sel = document.getElementById('resPass');
-  sel.innerHTML = SHIFTS.map(s => '<option value="'+s.id+'">'+fmtDay(s.date)+' '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5)+'</option>').join('') || '<option>Inga pass</option>';
+  sel.innerHTML = SHIFTS.map(s => '<option value="'+s.id+'">'+s.title+' · '+fmtDay(s.date)+' '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5)+'</option>').join('') || '<option>Inga pass</option>';
+}
+
+function mailStation(stName){
+  // Bygg mailto med alla med e-post på denna station
+  const stShifts = SHIFTS.filter(s => (s.title||'').toLowerCase() === stName.toLowerCase());
+  const emails = [];
+  stShifts.forEach(s => s._crew.forEach(p => { if(p.email && !emails.includes(p.email)) emails.push(p.email); }));
+  if(!emails.length){ alert('Inga e-postadresser hittades för ' + stName + '.'); return; }
+  window.location.href = 'mailto:' + emails.join(',') + '?subject=Information om ' + stName + ' – ' + ((EVENT && EVENT.name) || 'eventet');
 }
 
 function togglePanel(id){
