@@ -941,10 +941,10 @@ Hälsningar,
             <div class="card-title">Kontaktpersoner</div>
             <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas i medlemsvyn så att medlemmar kan ställa frågor. Under schemaläggningen går frågor i första hand till schemaansvarig – övriga områdesansvariga blir relevanta under själva eventet.</p>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddContact')">+ Lägg till</button>
+          <button class="btn btn-ghost btn-sm" onclick="openAddContactModal(null)">+ Lägg till</button>
         </div>
         <div class="table-wrap" style="margin-top:.5rem"><table>
-          <thead><tr><th>Ansvarsområde</th><th>Namn</th><th>Kontakt</th><th>Stations-länk</th><th></th></tr></thead>
+          <thead><tr><th>Ansvarsområde</th><th>Namn</th><th>Stationer</th><th>Kontakt</th><th>Länk</th><th></th></tr></thead>
           <tbody id="contactsTable"></tbody>
         </table></div>
       </div>
@@ -1143,7 +1143,12 @@ Hälsningar,
     <div class="form-group">
       <label class="form-label">Ansvarsområde</label>
       <input type="text" id="contactArea" placeholder="Ex. Servering, Parkering, Allmänt om cupen">
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Detta visas för medlemmen när de väljer vem frågan ska gå till.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Visas för medlemmen när de väljer vem frågan ska gå till.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ansvarig för stationer (valfritt)</label>
+      <div id="contactStationsWrap" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.4rem"></div>
+      <div style="font-size:12px;color:var(--muted)">Välj vilka stationer personen ansvarar för. Personen får en personlig länk med sin vy.</div>
     </div>
     <div class="form-group">
       <label class="form-label">Namn</label>
@@ -2281,16 +2286,27 @@ function renderContactsSettings(){
     el.innerHTML = '<tr><td colspan="4" style="color:var(--muted);font-style:italic;padding:1rem">Inga kontaktpersoner tillagda ännu.</td></tr>';
     return;
   }
-  el.innerHTML = source.map(k=>`<tr>
-    <td style="font-weight:600;color:var(--dark)">${k.area}</td>
-    <td class="td-muted">${k.name}</td>
-    <td style="font-size:12.5px">
-      <a href="mailto:${k.email||''}" style="color:var(--green);text-decoration:none">${k.email||'–'}</a><br>
-      <span style="color:var(--muted)">${k.phone||'–'}</span>
-    </td>
-    <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="copyAnsvarigLink('${k.id||''}')">🔗 Kopiera</button> <button class="btn btn-ghost btn-sm" onclick="mailAnsvarigLink('${k.id||''}')">✉️ Mejla</button></td>
-    <td><button class="btn btn-ghost btn-sm">✏️</button></td>
-  </tr>`).join('');
+  el.innerHTML = source.map(k=>{
+    const stationsLabel = k.stations && k.stations.length
+      ? k.stations.join(', ')
+      : '<span style="color:var(--muted);font-style:italic">Ingen station</span>';
+    const hasToken = !!k.token;
+    return `<tr>
+      <td style="font-weight:600;color:var(--dark)">${k.area}</td>
+      <td class="td-muted">${k.name}</td>
+      <td style="font-size:12.5px;color:var(--muted)">${stationsLabel}</td>
+      <td style="font-size:12.5px">
+        <a href="mailto:${k.email||''}" style="color:var(--green);text-decoration:none">${k.email||'–'}</a><br>
+        <span style="color:var(--muted)">${k.phone||'–'}</span>
+      </td>
+      <td style="white-space:nowrap">
+        ${hasToken
+          ? `<button class="btn btn-ghost btn-sm" onclick="copyAnsvarigLink('${k.id||''}')">🔗 Kopiera</button> <button class="btn btn-ghost btn-sm" onclick="mailAnsvarigLink('${k.id||''}')">✉️ Mejla</button>`
+          : '<span style="font-size:12px;color:var(--muted)">Spara för att få länk</span>'}
+      </td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openAddContactModal(DB.contacts.find(c=>c.id==='${k.id||''}'))">✏️</button></td>
+    </tr>`;
+  }).join('');
 }
 
 function renderContactsTable(){ renderContactsSettings(); }
@@ -3232,25 +3248,67 @@ async function mailAnsvarigLink(contactId){
   }
 }
 
+async function openAddContactModal(existingContact){
+  // Populera stationscheckboxar
+  const wrap = document.getElementById('contactStationsWrap');
+  const stations = [...new Set(DB.shifts.map(s => s.title))].sort();
+  const selected = existingContact ? (existingContact.stations || []) : [];
+  wrap.innerHTML = stations.map(st => `
+    <label style="display:flex;align-items:center;gap:.35rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px">
+      <input type="checkbox" value="${st}" ${selected.includes(st)?'checked':''} style="accent-color:var(--green)"> ${st}
+    </label>`).join('');
+  // Fyll i befintliga värden om redigering
+  if(existingContact){
+    document.getElementById('contactArea').value = existingContact.area || '';
+    document.getElementById('contactPersonName').value = existingContact.name || '';
+    document.getElementById('contactPersonEmail').value = existingContact.email || '';
+    document.getElementById('contactPersonPhone').value = existingContact.phone || '';
+    document.getElementById('modalAddContact').dataset.editId = existingContact.id;
+  } else {
+    ['contactArea','contactPersonName','contactPersonEmail','contactPersonPhone'].forEach(id => {
+      const e = document.getElementById(id); if(e) e.value = '';
+    });
+    delete document.getElementById('modalAddContact').dataset.editId;
+  }
+  openModal('modalAddContact');
+}
+
 async function addContact(){
   const area = document.getElementById('contactArea').value.trim();
+  const stationCheckboxes = document.querySelectorAll('#contactStationsWrap input[type=checkbox]:checked');
+  const stations = Array.from(stationCheckboxes).map(cb => cb.value);
   const name = document.getElementById('contactPersonName').value.trim();
   const email = document.getElementById('contactPersonEmail').value.trim();
   const phone = document.getElementById('contactPersonPhone').value.trim();
   if(!area || !name){ showToast('Ange ansvarsområde och namn.', 'error'); return; }
   try {
-    const result = await sbInsert('contacts', {
+    // Generera token om ny kontakt
+    const editId = document.getElementById('modalAddContact').dataset.editId;
+    const token = editId ? undefined : 'ans-' + Math.random().toString(36).slice(2,12);
+    const payload = {
       event_id: EVENT_ID,
-      area: area,
-      name: name,
+      area,
+      name,
       email: email || null,
       phone: phone || null,
+      stations: stations.length ? stations : null,
       sort_order: (DB.contacts.length || 0) + 1
-    });
-    if(result && result.length) DB.contacts.push(result[0]);
+    };
+    if(token) payload.token = token;
+
+    let result;
+    if(editId){
+      delete payload.sort_order;
+      await sbUpdate('contacts', editId, payload);
+      const idx = DB.contacts.findIndex(c => c.id === editId);
+      if(idx >= 0) Object.assign(DB.contacts[idx], payload);
+    } else {
+      result = await sbInsert('contacts', payload);
+      if(result && result.length) DB.contacts.push(result[0]);
+    }
     closeModal('modalAddContact');
     renderContactsSettings();
-    showToast('Kontaktperson tillagd');
+    showToast(editId ? 'Kontaktperson uppdaterad' : 'Kontaktperson tillagd');
     ['contactArea','contactPersonName','contactPersonEmail','contactPersonPhone'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
   } catch(e){
     console.error(e);
