@@ -1770,7 +1770,7 @@ function showSection(id){
   if(id==='children') renderChildTable();
   if(id==='pool'){ renderPoolTable(); renderResourceRequests(); }
   if(id==='settings'){ renderContactsTable(); renderFaqList(); renderSections(); }
-  if(id==='shifts'){ renderStationRows(); }
+  if(id==='shifts'){ renderStationRows(); const cv=document.getElementById('shiftCategoryView'); const dv=document.getElementById('shiftDetailView'); if(cv) cv.style.display='block'; if(dv) dv.style.display='none'; }
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) setTimeout(closeSidebar, 50);
 }
@@ -1862,7 +1862,7 @@ function getStationStats(){
       if(!stations[key].weakest || pct < stations[key].weakest.pct){
         const d = new Date(s.date);
         const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
-        stations[key].weakest = {day:days[d.getDay()], time:s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5), pct, taken, total};
+        stations[key].weakest = {day:days[d.getDay()], time:s.time_start.slice(0,5)+'–'+(s.time_end||'–'), pct, taken, total};
       }
     });
     return Object.values(stations).map(st=>{
@@ -2145,7 +2145,7 @@ function renderChildTable(){
     if(useDB && shift){
       const d = new Date(shift.date);
       const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
-      passText = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5);
+      passText = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + (shift.time_end||'–');
     } else if(!useDB){
       passText = c.pass || '–';
     }
@@ -2312,7 +2312,7 @@ function renderShiftTable(){
       const d = new Date(s.date);
       const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
       day = days[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
-      time = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+      time = s.time_start.slice(0,5) + '–' + (s.time_end||'–');
     } else {
       taken = s.taken; total = s.total; title = s.title;
       day = s.day; time = s.time; location = '';
@@ -2597,7 +2597,7 @@ function fillChildShiftOptions(selectedShiftId){
     const d = new Date(s.date);
     const taken = DB.bookings.filter(b=>b.shift_id===s.id).length;
     const full = taken >= s.slots;
-    const label = s.title + ' · ' + days[d.getDay()] + ' ' + s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5) + ' (' + taken + '/' + s.slots + ')' + (full ? ' – fullt' : '');
+    const label = s.title + ' · ' + days[d.getDay()] + ' ' + s.time_start.slice(0,5) + '–' + (s.time_end||'–') + ' (' + taken + '/' + s.slots + ')' + (full ? ' – fullt' : '');
     html += '<option value="' + s.id + '"' + (s.id===selectedShiftId?' selected':'') + (full && s.id!==selectedShiftId?' disabled':'') + '>' + label + '</option>';
   });
   sel.innerHTML = html;
@@ -2762,7 +2762,7 @@ function openFillPool(shiftId){
   if(shift && sub){
     const d = new Date(shift.date);
     const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
-    sub.textContent = 'Tilldela ' + shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5);
+    sub.textContent = 'Tilldela ' + shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + (shift.time_end||'–');
   }
   const list = document.getElementById('fillPoolList');
   if(DB.pool.length === 0){
@@ -3109,7 +3109,7 @@ function printStations(stationList){
       const bookings = DB.bookings.filter(b => b.shift_id === s.id);
       const d = new Date(s.date);
       const dag = dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
-      const tid = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+      const tid = s.time_start.slice(0,5) + '–' + (s.time_end||'–');
       html += '<div class="shift">';
       html += '<div class="shift-head"><span>' + dag + ' · ' + tid + (s.location ? ' · ' + s.location : '') + '</span>';
       html += '<span class="shift-meta">' + bookings.length + '/' + s.slots + ' platser</span></div>';
@@ -3932,7 +3932,7 @@ function renderShiftDetail(cat, day) {
       const d = new Date(s.date);
       const dayNames = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
       const dag = dayNames[d.getDay()];
-      const tid = s.time_start.slice(0,5) + '–' + s.time_end.slice(0,5);
+      const tid = s.time_start.slice(0,5) + '–' + (s.time_end||'–');
       const rowId = 'shift-db-' + s.id;
       const peopleRows = bookingsForShift.map(b => {
         const p = DB.participants.find(p => p.id === b.participant_id);
@@ -4320,7 +4320,7 @@ function renderFeedback(){
     if(shift){
       const d = new Date(shift.date);
       const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
-      meta = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5);
+      meta = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + (shift.time_end||'–');
       if(participant && participant.team) meta += ' · ' + participant.team;
     }
     const comment = f.comment || '';
@@ -4382,7 +4382,7 @@ function renderStaffingAnalysis(){
     const avg = scores.reduce((a,b)=>a+b,0) / scores.length;
     const shift = DB.shifts.find(s => s.id === sid);
     let name = 'Okänt pass';
-    if(shift){ const d = new Date(shift.date); name = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + shift.time_end.slice(0,5); }
+    if(shift){ const d = new Date(shift.date); name = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + (shift.time_end||'–'); }
     if(avg <= 2.4){
       html += row('FÖR LITE', '#c0392b', '#fdecea', name, scores.length + ' svar – upplevdes underbemannat. Fler behövs nästa år.');
     } else if(avg >= 3.6){
@@ -5117,7 +5117,7 @@ function parsePassSchema(text, defaultStation, manualTeam){
   // "Lördag - Söndag 21:00-02:00"  (tvådagspass → tar första dagen)
   // "Lördag  02:00-07:00"           (extra mellanslag)
   // Sluttid: antingen HH:MM eller text som "det är klart" / "ca 18:00"
-  const passPattern = /\*{0,2}(Måndag|Tisdag|Onsdag|Torsdag|Fredag|Lördag|Söndag)(?:\s*[-–]\s*(?:Måndag|Tisdag|Onsdag|Torsdag|Fredag|Lördag|Söndag))?\s+(\d{1,2}:\d{2})\s*[-–*]\s*([\d:ca\s\.]+)/gi;
+  const passPattern = /\*{0,2}(Måndag|Tisdag|Onsdag|Torsdag|Fredag|Lördag|Söndag)(?:\s*[-–]\s*(?:Måndag|Tisdag|Onsdag|Torsdag|Fredag|Lördag|Söndag))?\s+(\d{1,2}:\d{2})\s*[-–*]\s*([\d:ca\s\.]+|[^\n\*]{1,30})/gi;
   const allMatches = [];
   let m;
   while((m = passPattern.exec(text)) !== null){
@@ -5127,7 +5127,7 @@ function parsePassSchema(text, defaultStation, manualTeam){
     let timeEndRaw = (m[3]||'').trim();
     // Rensa "ca ", "ca.", punkt etc, extrahera HH:MM
     const timeMatch = timeEndRaw.match(/(\d{1,2}:\d{2})/);
-    const timeEnd = timeMatch ? timeMatch[1] : '23:59'; // fallback för "det är klart" etc
+    const timeEnd = timeMatch ? timeMatch[1] : null; // null = öppen sluttid ("det är klart" etc)
     allMatches.push({ startDay, timeStart, timeEnd, index: m.index, endIndex: m.index + m[0].length });
   }
 
