@@ -3739,23 +3739,16 @@ function onInstructionStationChange(){
   document.getElementById('instructionPreviewPanel').style.display = 'none';
   document.getElementById('instructionEditPanel').style.display = 'none';
 
-  // Ersätt platshållaren i meddelandetexten med sparade instruktioner
+  // Visa bara förhandsgranskning — ersätt INTE i textarea
+  // Platshållaren byts ut vid utskick i fullMessage-logiken
   const station = document.getElementById('instructionStationSelect').value;
   if(!station) return;
   const instrText = savedInstructions[station] || '';
-  const bodyEl = document.getElementById('emailBody');
-  if(!bodyEl) return;
-  const PLACEHOLDER = '[Välj station nedan så visas instruktionerna här, eller skriv manuellt]';
-  // Ersätt platshållaren om den finns, annars ersätt tidigare instruktionsblock
-  if(bodyEl.value.includes(PLACEHOLDER)){
-    bodyEl.value = bodyEl.value.replace(PLACEHOLDER, instrText || '');
-  } else {
-    // Ersätt tidigare instruktioner (allt efter ────)
-    const sepIdx = bodyEl.value.indexOf('────────────────');
-    if(sepIdx > -1){
-      bodyEl.value = bodyEl.value.slice(0, sepIdx).trimEnd() + (instrText ? '\n\n────────────────\n📋 Instruktioner – ' + station + '\n\n' + instrText : '');
-    }
-  }
+  // Uppdatera förhandsgranskning
+  const previewEl = document.getElementById('instructionPreviewText');
+  const previewPanel = document.getElementById('instructionPreviewPanel');
+  if(previewEl && instrText){ previewEl.textContent = instrText; }
+  if(previewPanel && instrText){ previewPanel.style.display = 'block'; }
 }
 
 function getInstructionForStation(station){
