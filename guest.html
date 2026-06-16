@@ -299,7 +299,7 @@ setVH(); window.addEventListener('resize',setVH);
 
       <div id="alreadyBooked" style="display:none" class="msg info"></div>
       <div id="passListWrap"></div>
-      <div id="confirmBar" style="display:none;position:sticky;bottom:1rem;background:#fff;border:2px solid var(--green);border-radius:14px;padding:1rem 1.25rem;margin-top:1rem;box-shadow:0 4px 20px rgba(26,140,58,.15);flex-direction:row;align-items:center;justify-content:space-between;gap:1rem">
+      <div id="confirmBar" style="display:none;position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);width:calc(100% - 2rem);max-width:500px;background:#fff;border:2px solid var(--green);border-radius:14px;padding:.9rem 1.25rem;box-shadow:0 4px 24px rgba(26,140,58,.25);flex-direction:row;align-items:center;justify-content:space-between;gap:1rem;z-index:999">
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--dark)" id="confirmBarTitle">Du har valt ett pass</div>
           <div style="font-size:13px;color:var(--muted)" id="confirmBarSub"></div>
