@@ -1125,14 +1125,15 @@ async function initLive(token){
     const eventId = participant.event_id;
     const event = participant.events || (await sbFetch('events', '?id=eq.' + eventId))[0];
 
-    // Hämta alla pass för eventet + bokningar
+    // Hämta alla pass för eventet + bokningar + slots
     const shifts = await sbFetch('shifts', '?event_id=eq.' + eventId + '&order=date.asc,time_start.asc');
     const shiftIds = shifts.map(s => s.id);
-    const bookings = shiftIds.length
-      ? await sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')')
-      : [];
+    const [bookings, shiftSlots] = await Promise.all([
+      shiftIds.length ? sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')') : Promise.resolve([]),
+      shiftIds.length ? sbFetch('shift_slots', '?shift_id=in.(' + shiftIds.join(',') + ')&order=slot_number.asc') : Promise.resolve([])
+    ]);
 
-    LIVE = { participant, event, shifts, bookings };
+    LIVE = { participant, event, shifts, bookings, shiftSlots };
     renderLiveView();
   } catch(e){
     console.error('Live-fel:', e);
@@ -1165,7 +1166,10 @@ function renderLiveView(){
   const myBooking = LIVE.bookings.find(b => b.participant_id === p.id);
 
   // Urgency
-  const totalSlots = LIVE.shifts.reduce((s,sh)=>s+sh.slots,0);
+  const totalSlots = LIVE.shifts.reduce((s,sh)=>{
+    const sc = (LIVE.shiftSlots||[]).filter(sl=>sl.shift_id===sh.id).length;
+    return s + (sc || sh.slots);
+  }, 0);
   const totalTaken = LIVE.bookings.length;
   const pct = totalSlots>0 ? Math.round(totalTaken/totalSlots*100) : 0;
   const setT = (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
@@ -1207,16 +1211,32 @@ function renderLivePassList(){
     byDay[day].push(s);
   });
 
+  const personTeam = (LIVE.participant && LIVE.participant.team) || '';
+  const shiftHasMyTeam = (shiftId) => {
+    if(!personTeam) return true;
+    return (LIVE.shiftSlots||[]).some(sl => sl.shift_id === shiftId && sl.team === personTeam);
+  };
+
   document.getElementById('noPassMsg').style.display='none';
   let html = '';
   Object.keys(byDay).forEach(day=>{
+    const myShifts = byDay[day].filter(s => shiftHasMyTeam(s.id));
+    const otherShifts = byDay[day].filter(s => !shiftHasMyTeam(s.id));
+    const orderedShifts = [...myShifts, ...otherShifts];
+    let shownSeparator = false;
     html += '<div class="day-header">' + day + '</div>';
-    byDay[day].forEach(s=>{
+    orderedShifts.forEach(s=>{
+      if(!shownSeparator && !shiftHasMyTeam(s.id) && myShifts.length > 0){
+        html += '<div style="font-size:12px;color:var(--muted);font-weight:600;padding:.5rem 0 .25rem;letter-spacing:.04em">ÖVRIGA PASS</div>';
+        shownSeparator = true;
+      }
       const taken = LIVE.bookings.filter(b => b.shift_id === s.id).length;
-      const free = s.slots - taken;
+      const slotCount = (LIVE.shiftSlots||[]).filter(sl=>sl.shift_id===s.id).length;
+      const free = (slotCount || s.slots) - taken;
+      const total = (LIVE.shiftSlots||[]).filter(sl=>sl.shift_id===s.id).length || s.slots;
       const full = free <= 0 && s.id !== myShiftId;
       const low = !full && free <= 2;
-      const pct = s.slots>0 ? Math.round(taken/s.slots*100) : 0;
+      const pct = total>0 ? Math.round(taken/total*100) : 0;
       const sel = s.id === myShiftId;
       const spotsLabel = sel ? 'Ditt pass ✓' : full ? 'Fullt' : free===1 ? '1 plats kvar!' : free+' platser kvar';
       const spotsCls = sel ? 'spots-ok' : full ? 'spots-full' : low ? 'spots-low' : 'spots-ok';
@@ -1233,7 +1253,7 @@ function renderLivePassList(){
         '<div style="margin-top:8px;display:flex;align-items:center;gap:8px">' +
         '<div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;max-width:100px">' +
         '<div style="height:5px;width:'+pct+'%;background:'+barColor+';border-radius:3px"></div></div>' +
-        '<span style="font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap">'+taken+' av '+s.slots+' tagna</span>' +
+        '<span style="font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap">'+taken+' av '+total+' tagna</span>' +
         '</div></div>' +
         '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;padding-left:8px">' +
         '<span class="spots '+spotsCls+'">'+spotsLabel+'</span></div>' +
