@@ -208,14 +208,16 @@ async function load(){
       const c = contacts[0];
       eventId = c.event_id;
       STATION = c.area;
-      ANSVARIG = { name:c.name, email:c.email, phone:c.phone };
+      ANSVARIG = { name:c.name, email:c.email, phone:c.phone, stations: c.stations || [] };
     }
 
     const events = await sbFetch('events', '?id=eq.' + eventId + '&limit=1');
     EVENT = events[0] || { name:'Eventet' };
 
     const allShifts = await sbFetch('shifts', '?event_id=eq.' + eventId);
-    SHIFTS = allShifts.filter(s => (s.title||'').toLowerCase() === (STATION||'').toLowerCase())
+    // Filtrera på stationer som kontaktpersonen ansvarar för
+    const myStations = ANSVARIG.stations && ANSVARIG.stations.length ? ANSVARIG.stations : [STATION];
+    SHIFTS = allShifts.filter(s => myStations.some(st => (s.title||'').toLowerCase() === st.toLowerCase()))
                       .sort((a,b)=> (a.date+a.time_start).localeCompare(b.date+b.time_start));
     const shiftIds = SHIFTS.map(s=>s.id);
 
@@ -262,8 +264,9 @@ function render(){
   document.getElementById('main').style.display='block';
   document.getElementById('navClub').textContent = (EVENT && EVENT.club_name) ? EVENT.club_name : 'Föreningen';
   document.getElementById('navEvent').textContent = (EVENT && EVENT.name) || 'Eventet';
-  document.getElementById('stationName').textContent = STATION;
-  document.getElementById('heroSub').textContent = 'Du är ansvarig för ' + STATION + '.' + (ANSVARIG && ANSVARIG.name ? ' (' + ANSVARIG.name + ')' : '');
+  const stationsList = ANSVARIG && ANSVARIG.stations && ANSVARIG.stations.length ? ANSVARIG.stations : [STATION];
+  document.getElementById('stationName').textContent = stationsList.length > 1 ? stationsList.join(', ') : stationsList[0];
+  document.getElementById('heroSub').textContent = 'Du är ansvarig för ' + (stationsList.length > 1 ? 'dessa stationer' : stationsList[0]) + '.' + (ANSVARIG && ANSVARIG.name ? ' (' + ANSVARIG.name + ')' : '');
 
   // Besättning per pass
   const list = document.getElementById('crewList');
