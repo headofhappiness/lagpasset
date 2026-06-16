@@ -3469,9 +3469,27 @@ function populateInstructionStations(){
 }
 
 function onInstructionStationChange(){
-  // Dölj båda panelerna när man byter station
+  // Dölj panelerna
   document.getElementById('instructionPreviewPanel').style.display = 'none';
   document.getElementById('instructionEditPanel').style.display = 'none';
+
+  // Ersätt platshållaren i meddelandetexten med sparade instruktioner
+  const station = document.getElementById('instructionStationSelect').value;
+  if(!station) return;
+  const instrText = savedInstructions[station] || '';
+  const bodyEl = document.getElementById('emailBody');
+  if(!bodyEl) return;
+  const PLACEHOLDER = '[Välj station nedan så visas instruktionerna här, eller skriv manuellt]';
+  // Ersätt platshållaren om den finns, annars ersätt tidigare instruktionsblock
+  if(bodyEl.value.includes(PLACEHOLDER)){
+    bodyEl.value = bodyEl.value.replace(PLACEHOLDER, instrText || '');
+  } else {
+    // Ersätt tidigare instruktioner (allt efter ────)
+    const sepIdx = bodyEl.value.indexOf('────────────────');
+    if(sepIdx > -1){
+      bodyEl.value = bodyEl.value.slice(0, sepIdx).trimEnd() + (instrText ? '\n\n────────────────\n📋 Instruktioner – ' + station + '\n\n' + instrText : '');
+    }
+  }
 }
 
 function getInstructionForStation(station){
@@ -4116,7 +4134,7 @@ function useTemplate(type) {
     if(linkCheck) linkCheck.checked = true;
   } else if(type === 'info') {
     subj.value = `Instruktioner inför ditt pass – ${evName} 🌟`;
-    body.value = `Hej!\n\nSå fint att du kommer att hjälpa till på ${evName} – vi är så glada att ha dig med!\n\nHär kommer instruktioner inför ditt pass:\n\n[Klistra in eller skriv instruktioner här]\n\nVi ses på eventet!\n\nVärme och tack,\n${clubN}`;
+    body.value = `Hej!\n\nSå fint att du kommer att hjälpa till på ${evName} – vi är så glada att ha dig med!\n\nHär kommer instruktioner inför ditt pass:\n\n[Välj station nedan så visas instruktionerna här, eller skriv manuellt]\n\nVi ses på eventet!\n\nVärme och tack,\n${clubN}`;
     if(linkCheck) linkCheck.checked = false;
   } else if(type === 'thanks') {
     subj.value = `Ett stort TACK från oss – ${evName} 🙏❤️`;
