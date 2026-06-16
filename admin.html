@@ -1948,6 +1948,7 @@ function renderStationRowsInto(targetId, compact){
       </div>
       <span style="font-size:14px;font-weight:800;color:${col.text};flex-shrink:0">${st.pct}%${done}</span>
       <span style="color:var(--muted);font-size:1.1rem;flex-shrink:0">›</span>
+      ${!compact ? `<button onclick="event.stopPropagation();renameStation('${st.cat}')" title="Byt namn" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:4px;border-radius:6px;flex-shrink:0" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--muted)'">✏️</button><button onclick="event.stopPropagation();deleteStation('${st.cat}')" title="Ta bort station" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:4px;border-radius:6px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">🗑</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -2536,6 +2537,59 @@ async function saveManualBooking(bookingId, shiftId){
   } catch(e){
     console.error(e);
     showToast('Kunde inte spara', 'error');
+  }
+}
+
+async function deleteStation(cat){
+  const shifts = DB.shifts.filter(s => s.title === cat);
+  const booked = shifts.filter(s => DB.bookings.some(b => b.shift_id === s.id));
+
+  let msg = 'Ta bort stationen "' + cat + '" och alla dess ' + shifts.length + ' pass?';
+  if(booked.length > 0){
+    msg += '\n\n⚠️ ' + booked.length + ' pass har bokningar som också raderas.';
+  }
+  if(!await showConfirm(msg, 'Ta bort')) return;
+
+  try {
+    // Radera bokningar för stationens pass
+    const shiftIds = shifts.map(s => s.id);
+    for(const b of DB.bookings.filter(b => shiftIds.includes(b.shift_id))){
+      await sbDelete('bookings', b.id);
+    }
+    // Radera passen
+    for(const s of shifts){
+      await sbDelete('shifts', s.id);
+    }
+    DB.shifts = DB.shifts.filter(s => s.title !== cat);
+    DB.bookings = DB.bookings.filter(b => !shiftIds.includes(b.shift_id));
+    showToast('Stationen "' + cat + '" borttagen');
+    renderStationRows();
+    renderDashboard();
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte ta bort stationen', 'error');
+  }
+}
+
+async function renameStation(cat){
+  const newName = prompt('Byt namn på stationen:', cat);
+  if(!newName || newName.trim() === cat) return;
+  const name = newName.trim();
+
+  // Uppdatera alla shifts med detta stationsnamn
+  const toUpdate = DB.shifts.filter(s => s.title === cat);
+  if(!toUpdate.length){ showToast('Inga pass hittades', 'error'); return; }
+
+  try {
+    for(const s of toUpdate){
+      await sbUpdate('shifts', s.id, { title: name });
+      s.title = name;
+    }
+    showToast('Stationen döptes om till "' + name + '"');
+    renderStationRows();
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte byta namn', 'error');
   }
 }
 
@@ -4971,8 +5025,8 @@ async function handleImportFiles(files){
       }
       // Rensa mammoth-artefakter: fetstilsbrytningar mitt i tal (t.ex. "12:****45" -> "12:45")
       text = text.replace(/\*{2,}/g, '');
-      // Filnamnet används som stationsnamn — behåller hela namnet (ex: 'Städ Frillesås 26' vs 'Städet 26')
-      const stationFromFile = file.name.replace(/\.\w+$/, '').replace(/_/g, ' ').replace(/\s+\d+\s*$/, '').trim();
+      // Filnamnet används exakt som stationsnamn — bara filändelsen och understreck tas bort
+      const stationFromFile = file.name.replace(/\.\w+$/, '').replace(/_/g, ' ').trim();
       const shifts = parsePassSchema(text, stationFromFile, manualTeam);
       if(!shifts.length){
         errors.push(file.name + ': hittade inga pass');
