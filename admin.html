@@ -429,7 +429,7 @@ setVH(); window.addEventListener('resize',setVH);
       </div>
 
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-          <thead><tr><th>Namn</th><th>Jobbar för</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th></th></tr></thead>
+          <thead><tr><th>Namn</th><th>Jobbar för</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th>E-post</th><th></th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
       </div>
@@ -1325,11 +1325,11 @@ Hälsningar,
       </div>
       <div class="inline-2" style="max-width:100%">
         <div class="form-group" style="margin-bottom:.5rem">
-          <label class="form-label">E-post (valfritt)</label>
+          <label class="form-label">E-post <span style="color:var(--amber);font-size:11px;font-weight:600">rekommenderat</span></label>
           <input type="email" id="fillPoolEmail" placeholder="kalle@exempel.se">
         </div>
         <div class="form-group" style="margin-bottom:.5rem">
-          <label class="form-label">Telefon (valfritt)</label>
+          <label class="form-label">Telefon <span style="color:var(--amber);font-size:11px;font-weight:600">rekommenderat</span></label>
           <input type="tel" id="fillPoolPhone" placeholder="070-xxx xx xx">
         </div>
       </div>
@@ -2130,6 +2130,7 @@ function renderChildTable(){
       <td style="font-size:13px;color:var(--text)">${passText !== '–' ? passText : '<span style="color:var(--muted)">–</span>'}</td>
       <td>${statusBadge(c, useDB)}</td>
       <td>${useDB ? (c.phone ? '<span style="font-size:12.5px;color:var(--green)">' + c.phone + '</span>' : '<span style="color:var(--muted)">–</span>') : (c.linkSent ? '<span style="font-size:12.5px;color:var(--green)">✓ Skickad</span>' : '<span style="font-size:12.5px;color:var(--muted)">Ej skickad</span>')}</td>
+      <td style="font-size:12.5px">${useDB && c.email ? c.email : '<span style="color:var(--muted)">–</span>'}${useDB && c.is_trainer_child ? ' <span title="Tränarbarn">🏅</span>' : ''}</td>
       <td><div style="display:flex;gap:.35rem">
         <button class="btn btn-ghost btn-sm" onclick="editChild('${c.id}')" title="Redigera">✏️</button>
         <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="deleteChild('${c.id}')" title="Ta bort">🗑</button>
@@ -2439,6 +2440,63 @@ async function deleteStation(){
   } catch(e){
     console.error(e);
     showToast('Kunde inte ta bort kategorin', 'error');
+  }
+}
+
+function editManualBooking(bookingId, shiftId){
+  const b = DB.bookings.find(b => b.id === bookingId);
+  if(!b) return;
+
+  const existing = document.getElementById('modalEditManualBooking');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'modalEditManualBooking';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:420px;width:100%">
+      <div class="modal-header">
+        <div class="modal-title">Ändra tilldelning</div>
+        <button class="modal-close" onclick="document.getElementById('modalEditManualBooking').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Namn</label>
+          <input type="text" id="emb_name" value="${(b.display_name||'').replace(/"/g,'&quot;')}" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-post</label>
+          <input type="email" id="emb_email" value="${(b.email||'').replace(/"/g,'&quot;')}" style="width:100%">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefon</label>
+          <input type="tel" id="emb_phone" value="${(b.phone||'').replace(/"/g,'&quot;')}" style="width:100%">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modalEditManualBooking').remove()">Avbryt</button>
+        <button class="btn btn-primary" onclick="saveManualBooking('${bookingId}','${shiftId}')">Spara</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function saveManualBooking(bookingId, shiftId){
+  const name = document.getElementById('emb_name').value.trim();
+  const email = document.getElementById('emb_email').value.trim();
+  const phone = document.getElementById('emb_phone').value.trim();
+  if(!name){ showToast('Namn krävs', 'error'); return; }
+  try {
+    await sbUpdate('bookings', bookingId, { display_name: name, email: email||null, phone: phone||null });
+    const b = DB.bookings.find(b => b.id === bookingId);
+    if(b) Object.assign(b, { display_name: name, email: email||null, phone: phone||null });
+    document.getElementById('modalEditManualBooking').remove();
+    renderShiftDetail(currentStationTitle, 'Alla');
+    showToast('Sparad!');
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte spara', 'error');
   }
 }
 
@@ -3537,8 +3595,10 @@ function switchShiftTab(tab, el) {
 function renderInstructions() {
   const cat = currentInstructionCat;
   if(!cat) return;
+  // Använd currentStationTitle om categoryData inte har kategorin (DB-läge)
   const data = categoryData[cat];
-  document.getElementById('instructionTitle').textContent = 'Instruktioner – ' + data.title;
+  const title = data ? data.title : (currentStationTitle || cat);
+  document.getElementById('instructionTitle').textContent = 'Instruktioner – ' + title;
   const text = savedInstructions[cat] || '';
   const lines = text.split('\n');
   document.getElementById('instructionChecklistView').innerHTML = lines.map(line => {
@@ -3587,8 +3647,9 @@ function saveInstructions() {
 
 function mailInstructions() {
   const data = categoryData[currentInstructionCat];
+  const title = data ? data.title : (currentStationTitle || currentInstructionCat);
   document.getElementById('instructionMailSent').style.display = 'block';
-  document.getElementById('instructionMailSent').textContent = '📧 Instruktioner skickade till alla ' + data.title + '-bemanning!';
+  document.getElementById('instructionMailSent').textContent = '📧 Instruktioner skickade till alla ' + title + '-bemanning!';
   setTimeout(() => { document.getElementById('instructionMailSent').style.display = 'none'; }, 3000);
 }
 
@@ -3760,7 +3821,7 @@ function renderShiftDetail(cat, day) {
             </div>
           </div>
           <div style="display:flex;gap:.3rem;flex-shrink:0">
-            ${p ? '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editChild(\'' + p.id + '\')" title="Ändra person">✏️</button>' : ''}
+            ${p ? '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editChild(\'' + p.id + '\')" title="Ändra person">✏️</button>' : '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editManualBooking(\'' + b.id + '\',\'' + s.id + '\')" title="Ändra">✏️</button>'}
             <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();removeBooking('${b.id}','${s.id}')" title="Ta bort från passet">🗑</button>
           </div>
         </div>`;
