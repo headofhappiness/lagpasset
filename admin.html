@@ -5027,7 +5027,7 @@ async function saveFaqToDB(faqArray){
     await sbUpdate('events', EVENT_ID, { faq: faqArray });
     DB.faq = faqArray;
     if(EVENT) EVENT.faq = faqArray;
-    renderFaq();
+    renderFaqList();
     showToast('FAQ sparad ✓');
   } catch(e){ showToast('Kunde inte spara FAQ: ' + e.message, 'error'); }
 }
