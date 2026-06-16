@@ -70,8 +70,12 @@ input:focus{outline:none;border-color:var(--green)}
   <div id="forgotForm" class="hidden">
     <h1>Glömt lösenord?</h1>
     <div class="green-line"></div>
-    <p style="font-size:13.5px;color:var(--muted);margin-bottom:1rem;text-align:left">Kontakta kansliansvarig i din förening så hjälper de dig med ett nytt lösenord.</p>
-    <button class="btn" onclick="showLogin()" style="background:none;color:var(--green);border:1.5px solid var(--green)">← Tillbaka till inloggning</button>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:1rem;text-align:left">Ange din e-postadress så skickar vi en länk för att välja nytt lösenord.</p>
+    <label for="resetEmail">E-postadress</label>
+    <input type="email" id="resetEmail" placeholder="namn@forening.se" autocomplete="email" onkeydown="if(event.key==='Enter') sendReset()">
+    <button class="btn" id="resetSendBtn" onclick="sendReset()">Skicka återställningslänk</button>
+    <div id="forgotMsg" class="msg" style="display:none"></div>
+    <div class="forgot" style="margin-top:.75rem;text-align:center"><a onclick="showLogin()">← Tillbaka till inloggning</a></div>
   </div>
 
   <div id="resetForm" class="hidden">
@@ -157,6 +161,24 @@ async function login(){
 
 function forgotPassword(){
   show('forgotForm');
+  document.getElementById('forgotMsg').style.display='none';
+  document.getElementById('resetEmail').value='';
+}
+
+async function sendReset(){
+  const email = document.getElementById('resetEmail').value.trim();
+  const msg = document.getElementById('forgotMsg');
+  const btn = document.getElementById('resetSendBtn');
+  if(!email){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Fyll i din e-postadress.'; return; }
+  btn.disabled = true; btn.textContent = 'Skickar...';
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://lagpasset.se/login.html' });
+  if(error){
+    msg.className='msg err'; msg.style.display='block'; msg.textContent='Något gick fel: ' + error.message;
+    btn.disabled = false; btn.textContent = 'Skicka återställningslänk';
+  } else {
+    msg.className='msg ok'; msg.style.display='block'; msg.textContent='✓ Kolla inkorgen! Om e-posten finns i systemet har vi skickat en länk.';
+    btn.disabled = true;
+  }
 }
 
 async function updatePassword(){
