@@ -373,6 +373,10 @@ setVH(); window.addEventListener('resize',setVH);
           <label class="form-label">Ersättarens telefon</label>
           <input type="tel" id="transferPhone" placeholder="070-123 45 67" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box">
         </div>
+        <div class="form-group" style="margin-top:.75rem">
+          <label class="form-label">Ersättarens e-post (valfritt)</label>
+          <input type="email" id="transferEmail" placeholder="ersattare@email.se" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box">
+        </div>
         <div id="transferMsg" style="display:none;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem"></div>
         <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem">
           <button class="btn btn-ghost btn-sm" onclick="closeTransferModal()">Avbryt</button>
@@ -1101,7 +1105,11 @@ async function submitTransfer(){
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({ display_name: name, display_phone: phone })
+      body: JSON.stringify({ 
+        display_name: name, 
+        display_phone: phone,
+        display_email: document.getElementById('transferEmail').value.trim() || null
+      })
     });
     if(res.ok){
       msg.style.cssText='display:block;background:#f0fdf4;color:#1a8c3a';
