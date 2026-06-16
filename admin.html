@@ -1666,7 +1666,7 @@ async function loadFromDB() {
   try {
     const allShifts = await sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&select=id');
     const shiftIds = allShifts.map(function(s){ return s.id; });
-    const [shifts, bookings, participants, pool, contacts, feedback, arguments_emailLog, resourceReqs] = await Promise.all([
+    const [shifts, bookings, participants, pool, contacts, feedback, arguments_emailLog, resourceReqs, shiftSlots] = await Promise.all([
       sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&order=date.asc,time_start.asc'),
       shiftIds.length ? sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')') : Promise.resolve([]),
       sbFetch('participants', '?event_id=eq.' + EVENT_ID + '&order=team.asc,name.asc'),
@@ -1674,7 +1674,8 @@ async function loadFromDB() {
       sbFetch('contacts', '?event_id=eq.' + EVENT_ID + '&order=sort_order.asc'),
       shiftIds.length ? sbFetch('feedback', '?shift_id=in.(' + shiftIds.join(',') + ')&order=submitted_at.desc') : Promise.resolve([]),
       sbFetch('email_log', '?event_id=eq.' + EVENT_ID + '&order=created_at.desc').catch(function(){ return []; }),
-      sbFetch('resource_requests', '?event_id=eq.' + EVENT_ID + '&status=eq.open&order=created_at.desc').catch(function(){ return []; })
+      sbFetch('resource_requests', '?event_id=eq.' + EVENT_ID + '&status=eq.open&order=created_at.desc').catch(function(){ return []; }),
+      shiftIds.length ? sbFetch('shift_slots', '?shift_id=in.(' + shiftIds.join(',') + ')&order=slot_number.asc') : Promise.resolve([])
     ]);
     DB.shifts = shifts;
     DB.bookings = bookings;
@@ -1684,6 +1685,7 @@ async function loadFromDB() {
     DB.feedback = feedback;
     DB.emailLog = arguments_emailLog || [];
     DB.resourceRequests = resourceReqs || [];
+    DB.shiftSlots = shiftSlots || [];
     console.log('DB laddat:', DB.shifts.length, 'pass,', DB.participants.length, 'deltagare,', DB.feedback.length, 'feedback');
     if(DB.shifts.length) console.log('[DEBUG] Första pass:', JSON.stringify({title:DB.shifts[0].title, team:DB.shifts[0].team, time_start:DB.shifts[0].time_start}));
   } catch(e) {
@@ -2337,8 +2339,8 @@ function renderShiftTable(){
       // Data från Supabase
       const bookingsForShift = DB.bookings.filter(b => b.shift_id === s.id);
       taken = bookingsForShift.length;
-      const slotCount = (DB.shiftSlots||[]).filter(sl=>sl.shift_id===s.id).length;
-      total = slotCount || s.slots;
+      const _slotCount = (DB.shiftSlots||[]).filter(sl=>sl.shift_id===s.id).length;
+      total = _slotCount || s.slots;
       title = s.title;
       location = s.location || '';
       const d = new Date(s.date);
@@ -2361,10 +2363,7 @@ function renderShiftTable(){
           <span style="font-size:12.5px;color:var(--muted)">${taken}/${total}</span>
         </div>
       </td>
-      <td class="td-muted" style="font-size:12.5px">${(()=>{
-        const sl=(DB.shiftSlots||[]).filter(x=>x.shift_id===s.id);
-        return sl.length ? [...new Set(sl.map(x=>x.team))].sort().join(', ') : (s.team||'–');
-      })()}</td>
+      <td class="td-muted" style="font-size:12.5px">${(()=>{const sl=(DB.shiftSlots||[]).filter(x=>x.shift_id===s.id);return sl.length?[...new Set(sl.map(x=>x.team))].sort().join(', '):(s.team||'–');})()}</td>
       <td>
         <div style="display:flex;gap:4px">
           <button class="btn btn-ghost btn-sm btn-icon" title="Redigera" onclick="event.stopPropagation();editShift('${s.id}')">✏️</button>
@@ -2735,10 +2734,16 @@ function fillChildShiftOptions(selectedShiftId){
   // Hämta personens lag för att sortera rätt pass först
   const personTeam = (document.getElementById('newChildTeam')||{}).value || '';
 
+  // Hjälpfunktion: har passet platser för personens lag?
+  const shiftHasTeam = (shiftId, team) => {
+    if(!team) return false;
+    return (DB.shiftSlots||[]).some(sl => sl.shift_id === shiftId && sl.team === team);
+  };
+
   const shifts = DB.shifts.slice().sort((a,b)=>{
-    // Personens lag först, sedan alfabetiskt
-    const aMatch = a.team === personTeam ? 0 : 1;
-    const bMatch = b.team === personTeam ? 0 : 1;
+    // Personens lag först (baserat på shift_slots), sedan alfabetiskt
+    const aMatch = shiftHasTeam(a.id, personTeam) ? 0 : 1;
+    const bMatch = shiftHasTeam(b.id, personTeam) ? 0 : 1;
     if(aMatch !== bMatch) return aMatch - bMatch;
     return (a.title+a.date+a.time_start).localeCompare(b.title+b.date+b.time_start);
   });
@@ -2748,15 +2753,21 @@ function fillChildShiftOptions(selectedShiftId){
   shifts.forEach(s=>{
     const d = new Date(s.date);
     const taken = DB.bookings.filter(b=>b.shift_id===s.id).length;
-    const full = taken >= s.slots;
-    const lagLabel = s.team ? ' · ' + s.team : '';
-    const matchLabel = (personTeam && s.team === personTeam) ? ' ★' : '';
-    const label = s.title + ' · ' + days[d.getDay()] + ' ' + s.time_start.slice(0,5) + '–' + (s.time_end||'–') + lagLabel + ' (' + taken + '/' + s.slots + ')' + (full ? ' – fullt' : '') + matchLabel;
+    const slotsInShift = (DB.shiftSlots||[]).filter(sl=>sl.shift_id===s.id);
+    const total = slotsInShift.length || s.slots;
+    const full = taken >= total;
+    const hasPersonTeam = shiftHasTeam(s.id, personTeam);
+    const teamsLabel = slotsInShift.length
+      ? [...new Set(slotsInShift.map(sl=>sl.team))].sort().join('/')
+      : (s.team || '');
+    const lagLabel = teamsLabel ? ' · ' + teamsLabel : '';
+    const matchLabel = (personTeam && hasPersonTeam) ? ' ★' : '';
+    const label = s.title + ' · ' + days[d.getDay()] + ' ' + s.time_start.slice(0,5) + '–' + (s.time_end||'–') + lagLabel + ' (' + taken + '/' + total + ')' + (full ? ' – fullt' : '') + matchLabel;
 
     // Separator mellan eget lag och övriga
-    if(personTeam && lastGroup !== (s.team === personTeam ? 'own' : 'other')){
-      lastGroup = s.team === personTeam ? 'own' : 'other';
-      if(lastGroup === 'other' && shifts.some(x=>x.team===personTeam)){
+    if(personTeam && lastGroup !== (hasPersonTeam ? 'own' : 'other')){
+      lastGroup = hasPersonTeam ? 'own' : 'other';
+      if(lastGroup === 'other' && shifts.some(x=>shiftHasTeam(x.id, personTeam))){
         html += '<option disabled>── Övriga lag ──</option>';
       }
     }
@@ -4149,14 +4160,14 @@ function renderShiftDetail(cat, day) {
           </div>
         </div>`;
       }).join('');
-      const freeSlots = slotsForShift.slice(taken);
-      const emptyRows = freeSlots.length > 0
-        ? freeSlots.map(sl=>
+      const freeSlotsArr = slotsForShift.slice(taken);
+      const emptyRows = freeSlotsArr.length > 0
+        ? freeSlotsArr.map(sl =>
           `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
             <div style="display:flex;align-items:center;gap:.6rem">
               <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
               <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
-              <span style="font-size:12px;font-weight:700;color:var(--dark)">${sl.team}</span>
+              <span style="font-size:12px;font-weight:700;color:var(--dark);margin-left:.25rem">${sl.team}</span>
             </div>
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFillPool('${s.id}')" style="font-size:11px">Fyll från pool</button>
           </div>`
@@ -4184,10 +4195,7 @@ function renderShiftDetail(cat, day) {
             <span style="font-size:12px;font-weight:600;color:${color}">${taken}/${total}</span>
           </div>
         </td>
-        <td style="font-size:12px;color:var(--muted);font-weight:600">${(()=>{
-          const sl=(DB.shiftSlots||[]).filter(x=>x.shift_id===s.id);
-          return sl.length ? [...new Set(sl.map(x=>x.team))].sort().join(', ') : (s.team||'–');
-        })()}</td>
+        <td style="font-size:12px;color:var(--muted);font-weight:600">${(()=>{const sl=(DB.shiftSlots||[]).filter(x=>x.shift_id===s.id);return sl.length?[...new Set(sl.map(x=>x.team))].sort().join(', '):(s.team||'–');})()}</td>
         <td><div style="display:flex;gap:.35rem">
           <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editShift('${s.id}')">✏️</button>
           <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();deleteShift('${s.id}')">🗑</button>
