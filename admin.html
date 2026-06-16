@@ -613,10 +613,16 @@ setVH(); window.addEventListener('resize',setVH);
             <div class="chip chip-off" onclick="toggleChip(this,'booked')">Har valt pass</div>
           </div>
         </div>
-        <div>
+        <div style="margin-bottom:.65rem">
           <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ LAG</div>
           <div class="recipient-chips" id="lagChips">
             <div class="chip chip-on" onclick="toggleLagChip(this,'all')">Alla lag</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:.5rem">FILTRERA PÅ STATION</div>
+          <div class="recipient-chips" id="stationChips">
+            <div class="chip chip-on" onclick="toggleStationChip(this,'all')">Alla stationer</div>
           </div>
         </div>
         <div class="msg info" style="margin-top:.75rem;margin-bottom:0" id="recipientCount">Laddar...</div>
@@ -3458,6 +3464,7 @@ async function deleteChild(id){
 // ═══════════════════════════════════════
 let emailFilterType = 'all';
 let emailFilterTeam = 'all';
+let emailFilterStation = 'all';
 
 function toggleChip(el,val){
   document.querySelectorAll('#typeChips .chip').forEach(c=>{c.className='chip chip-off';});
@@ -3480,6 +3487,19 @@ function getEmailRecipients(){
   else if(emailFilterType === 'booked') list = list.filter(p => bookedIds.has(p.id));
   // Filtrera på lag
   if(emailFilterTeam && emailFilterTeam !== 'all') list = list.filter(p => (p.team||'') === emailFilterTeam);
+  // Filtrera på station
+  if(emailFilterStation && emailFilterStation !== 'all'){
+    const stationBookedParticipantIds = new Set(
+      DB.bookings
+        .filter(b => {
+          const shift = DB.shifts.find(s => s.id === b.shift_id);
+          return shift && shift.title === emailFilterStation;
+        })
+        .map(b => b.participant_id)
+        .filter(Boolean)
+    );
+    list = list.filter(p => stationBookedParticipantIds.has(p.id));
+  }
   return list;
 }
 
@@ -3494,6 +3514,31 @@ function renderLagChips(){
   });
   wrap.innerHTML = html;
   emailFilterTeam = 'all';
+  renderStationChips();
+}
+
+function toggleStationChip(el, val){
+  document.querySelectorAll('#stationChips .chip').forEach(c=>{c.className='chip chip-off';});
+  el.className='chip chip-on';
+  emailFilterStation = val;
+  updateRecipientCount();
+}
+
+function renderStationChips(){
+  const wrap = document.getElementById('stationChips');
+  if(!wrap) return;
+  // Unika stationer från bokningar
+  const bookedShiftIds = new Set(DB.bookings.map(b=>b.shift_id).filter(Boolean));
+  const stations = [...new Set(DB.shifts
+    .filter(s => bookedShiftIds.has(s.id))
+    .map(s => s.title)
+  )].sort();
+  let html = '<div class="chip chip-on" onclick="toggleStationChip(this,\'all\')">Alla stationer</div>';
+  stations.forEach(st => {
+    html += '<div class="chip chip-off" onclick="toggleStationChip(this,\'' + st.replace(/'/g,"\'") + '\')">' + st + '</div>';
+  });
+  wrap.innerHTML = html;
+  emailFilterStation = 'all';
 }
 
 async function sendTestEmail(){
@@ -4358,12 +4403,6 @@ function useTemplate(type) {
     subj.value = `Påminnelse – välj ditt pass, ${evName} 😊`;
     body.value = `Hej!\n\nVi vill bara påminna om att du ännu inte valt ditt pass inför ${evName}. Vi hoppas allt är bra med dig!\n\nSista dag att välja är ${deadline} – klicka på knappen nedan så är det klart på en minut.\n\nHar du frågor eller funderingar är du alltid välkommen att höra av dig till ${contactEmail}.\n\nVi ser så fram emot att ha dig med!\n\nVärme och tack,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
-    // Sätt mottagarfilter till "Ej valt pass" automatiskt
-    setEmailFilter('unbooked');
-    document.querySelectorAll('.chip[onclick*="toggleChip"]').forEach(c => {
-      const val = c.getAttribute('onclick').match(/'([^']+)'\s*\)/)?.[1];
-      c.className = val === 'unbooked' ? 'chip chip-on' : 'chip chip-off';
-    });
   } else if(type === 'info') {
     subj.value = `Instruktioner inför ditt pass – ${evName} 🌟`;
     body.value = `Hej!\n\nSå fint att du kommer att hjälpa till på ${evName} – vi är så glada att ha dig med!\n\nHär kommer instruktioner inför ditt pass:\n\n[Välj station nedan så visas instruktionerna här, eller skriv manuellt]\n\nVi ses på eventet!\n\nVärme och tack,\n${clubN}`;
