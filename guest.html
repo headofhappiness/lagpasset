@@ -364,7 +364,7 @@ setVH(); window.addEventListener('resize',setVH);
     <div id="transferModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem">
       <div style="background:#fff;border-radius:16px;padding:1.5rem;max-width:400px;width:100%">
         <div style="font-size:17px;font-weight:700;color:var(--dark);margin-bottom:.4rem">Skicka vidare till ersättare</div>
-        <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1rem">Ange ersättarens uppgifter. Telefon och e-post rekommenderas så ansvarig kan nå dem vid behov.</p>
+        <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1rem">Ange ersättarens namn och telefonnummer. Passet uppdateras direkt.</p>
         <div class="form-group">
           <label class="form-label">Ersättarens namn</label>
           <input type="text" id="transferName" placeholder="Förnamn Efternamn" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box">
@@ -951,7 +951,7 @@ function bookAnotherChild(){
   document.getElementById('stepIndicator').style.display='flex';
   document.getElementById('siLabels').style.display='flex';
   renderChildList();updateLagStats();
-  setStep(1);window.scrollTo({top:0,behavior:'smooth'});
+  setStep(2);window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function editBooking(){
@@ -1460,6 +1460,11 @@ function showLiveConfirmation(name, phone){
   if(typeof fillQuestionAreas==='function') fillQuestionAreas();
   if(typeof fillFaqAccordion==='function') fillFaqAccordion();
   window.scrollTo({top:0,behavior:'smooth'});
+  // Öppna rätt modal om hash finns i URL
+  const _hash = window.location.hash;
+  if(_hash === '#transfer') setTimeout(() => { if(typeof openTransferModal==='function') openTransferModal(); }, 400);
+  else if(_hash === '#sick') setTimeout(() => { if(typeof openSickReport==='function') openSickReport(); }, 400);
+  else if(_hash === '#change') setTimeout(() => { if(typeof editBooking==='function') editBooking(); }, 400);
 }
 
 // ════════════════════════════════════════════════
