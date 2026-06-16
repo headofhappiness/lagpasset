@@ -3401,6 +3401,10 @@ async function saveChild(){
           const b = await sbInsert('bookings', { shift_id: shiftId, participant_id: participant.id, booked_by_admin: true, display_name: name });
           if(b && b.length) DB.bookings.push(b[0]);
         }
+      } else if(!shiftId && existing){
+        // Ta bort bokning
+        await sbDelete('bookings', existing.id);
+        DB.bookings = DB.bookings.filter(b => b.id !== existing.id);
       }
     }
 
