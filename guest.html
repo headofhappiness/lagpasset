@@ -351,8 +351,33 @@ setVH(); window.addEventListener('resize',setVH);
       <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:.9rem">Du kan byta pass fram till sista anmälningsdag – så ofta du vill.</p>
       <button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="editBooking()">Byt pass</button>
       <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid rgba(26,140,58,.15)">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:.6rem;line-height:1.55">Hittat en ersättare? Överlåt ditt pass till någon annan.</p>
+        <button class="btn btn-outline btn-sm" style="width:auto;padding:9px 20px" onclick="openTransferModal()">Skicka vidare till ersättare</button>
+      </div>
+      <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid rgba(26,140,58,.15)">
         <p style="font-size:13px;color:var(--muted);margin-bottom:.6rem;line-height:1.55">Blivit sjuk eller fått förhinder och kan inte komma?</p>
         <button class="btn btn-outline btn-sm" style="width:auto;padding:9px 20px;color:#c0392b;border-color:rgba(192,57,43,.3)" onclick="openSickReport()">Anmäl förhinder</button>
+      </div>
+    </div>
+
+    <!-- ÖVERLÅT PASS-MODAL -->
+    <div id="transferModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem">
+      <div style="background:#fff;border-radius:16px;padding:1.5rem;max-width:400px;width:100%">
+        <div style="font-size:17px;font-weight:700;color:var(--dark);margin-bottom:.4rem">Skicka vidare till ersättare</div>
+        <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1rem">Ange ersättarens namn och telefonnummer. Passet uppdateras direkt.</p>
+        <div class="form-group">
+          <label class="form-label">Ersättarens namn</label>
+          <input type="text" id="transferName" placeholder="Förnamn Efternamn" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box">
+        </div>
+        <div class="form-group" style="margin-top:.75rem">
+          <label class="form-label">Ersättarens telefon</label>
+          <input type="tel" id="transferPhone" placeholder="070-123 45 67" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box">
+        </div>
+        <div id="transferMsg" style="display:none;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem"></div>
+        <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem">
+          <button class="btn btn-ghost btn-sm" onclick="closeTransferModal()">Avbryt</button>
+          <button class="btn btn-primary btn-sm" onclick="submitTransfer()">Spara ersättare</button>
+        </div>
       </div>
     </div>
 
@@ -988,16 +1013,19 @@ async function submitFeedback(){
 // ════════════════════════════════════════════════
 function fillQuestionAreas(){
   const sel = document.getElementById('questionArea');
-  if(!sel || !DEMO.contacts) return;
-  sel.innerHTML = DEMO.contacts.map((k,i)=>`<option value="${i}">${k.area} – ${k.name}</option>`).join('');
+  const _contactList = (LIVE && LIVE.contacts) ? LIVE.contacts : [];
+  if(!sel) return;
+  if(!_contactList.length){ sel.innerHTML = '<option>Inga kontaktpersoner inlagda</option>'; return; }
+  sel.innerHTML = _contactList.map((k,i)=>`<option value="${i}">${k.area} – ${k.name}</option>`).join('');
   updateContactCard();
 }
 
 function updateContactCard(){
   const sel = document.getElementById('questionArea');
   const card = document.getElementById('contactCard');
-  if(!sel || !card || !DEMO.contacts) return;
-  const k = DEMO.contacts[parseInt(sel.value)||0];
+  const _contactList2 = (LIVE && LIVE.contacts) ? LIVE.contacts : [];
+  if(!sel || !card || !_contactList2.length) return;
+  const k = _contactList2[parseInt(sel.value)||0];
   const subject = encodeURIComponent(`Fråga om ${DEMO.event.name} – ${k.area}`);
   const phoneHtml = k.phone
     ? `<div style="margin-top:.65rem;font-size:13px;color:var(--muted)">Akut? Ring <a href="tel:${k.phone.replace(/\s/g,'')}" style="color:var(--dark);font-weight:600;text-decoration:none">${k.phone}</a></div>`
@@ -1017,16 +1045,20 @@ function updateContactCard(){
 // ════════════════════════════════════════════════
 function fillFaqAccordion(){
   const el = document.getElementById('faqAccordion');
-  if(!el || !DEMO.faq) return;
-  el.innerHTML = DEMO.faq.map((f,i)=>
-    `<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
+  if(!el) return;
+  const rawList = (LIVE && LIVE.faq && LIVE.faq.length) ? LIVE.faq : [];
+  if(!rawList.length){ el.innerHTML = ''; return; }
+  el.innerHTML = rawList.map((f,i)=>{
+    const q = f.question || f.q || '';
+    const a = f.answer || f.a || '';
+    return `<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
       <button type="button" onclick="toggleFaq(${i})" style="width:100%;text-align:left;background:var(--bg);border:none;padding:.8rem .95rem;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--dark);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:.5rem">
-        <span>${f.q}</span>
+        <span>${q}</span>
         <span id="faq-arrow-${i}" style="color:var(--green);flex-shrink:0;transition:transform .2s">▾</span>
       </button>
-      <div id="faq-body-${i}" style="display:none;padding:0 .95rem .85rem;font-size:13.5px;color:var(--muted);line-height:1.6">${f.a}</div>
-    </div>`
-  ).join('');
+      <div id="faq-body-${i}" style="display:none;padding:0 .95rem .85rem;font-size:13.5px;color:var(--muted);line-height:1.6">${a}</div>
+    </div>`;
+  }).join('');
 }
 
 function toggleFaq(i){
@@ -1040,6 +1072,53 @@ function toggleFaq(i){
 // ════════════════════════════════════════════════
 // SJUKANMÄLAN / FÖRHINDER
 // ════════════════════════════════════════════════
+function openTransferModal(){
+  document.getElementById('transferName').value = '';
+  document.getElementById('transferPhone').value = '';
+  document.getElementById('transferMsg').style.display = 'none';
+  const m = document.getElementById('transferModal');
+  m.style.display = 'flex';
+}
+
+function closeTransferModal(){
+  document.getElementById('transferModal').style.display = 'none';
+}
+
+async function submitTransfer(){
+  const name = document.getElementById('transferName').value.trim();
+  const phone = document.getElementById('transferPhone').value.trim();
+  const msg = document.getElementById('transferMsg');
+  if(!name){ msg.style.cssText='display:block;background:#fef3f2;color:#c0392b'; msg.textContent='Ange ersättarens namn.'; return; }
+  const myBooking = LIVE.bookings.find(b => b.participant_id === LIVE.participant.id);
+  if(!myBooking){ msg.style.cssText='display:block;background:#fef3f2;color:#c0392b'; msg.textContent='Kunde inte hitta din bokning.'; return; }
+  try {
+    // Uppdatera bokningen med ersättarens uppgifter
+    const res = await fetch(SUPABASE_URL + '/rest/v1/bookings?id=eq.' + myBooking.id, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ display_name: name, display_phone: phone })
+    });
+    if(res.ok){
+      msg.style.cssText='display:block;background:#f0fdf4;color:#1a8c3a';
+      msg.textContent='✓ Ersättaren är sparad! Passet är nu registrerat på ' + name + '.';
+      myBooking.display_name = name;
+      myBooking.display_phone = phone;
+      setTimeout(() => closeTransferModal(), 2000);
+    } else {
+      msg.style.cssText='display:block;background:#fef3f2;color:#c0392b';
+      msg.textContent='Något gick fel. Försök igen.';
+    }
+  } catch(e){
+    msg.style.cssText='display:block;background:#fef3f2;color:#c0392b';
+    msg.textContent='Kunde inte spara. Kontrollera anslutningen.';
+  }
+}
+
 function openSickReport(){
   const m = document.getElementById('sickModal');
   if(m) m.style.display = 'flex';
@@ -1133,7 +1212,9 @@ async function initLive(token){
       shiftIds.length ? sbFetch('shift_slots', '?shift_id=in.(' + shiftIds.join(',') + ')&order=slot_number.asc') : Promise.resolve([])
     ]);
 
-    LIVE = { participant, event, shifts, bookings, shiftSlots };
+    const contacts = await sbFetch('contacts', '?event_id=eq.' + eventId + '&order=area.asc').catch(() => []);
+    const faq = await sbFetch('faq', '?club_id=eq.' + (event.club_id||'') + '&is_active=eq.true&order=created_at.asc').catch(() => []);
+    LIVE = { participant, event, shifts, bookings, shiftSlots, contacts, faq };
     renderLiveView();
   } catch(e){
     console.error('Live-fel:', e);
