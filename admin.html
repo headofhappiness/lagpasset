@@ -1062,7 +1062,7 @@ Hälsningar,
     <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem 0;border-top:1px solid var(--border);margin-top:.25rem">
       <input type="checkbox" id="newChildIsTrainer" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer">
       <label for="newChildIsTrainer" style="font-size:13.5px;font-weight:600;color:var(--dark);cursor:pointer">🏅 Tränarbarn</label>
-      <span style="font-size:12px;color:var(--muted)">— familjen får Bygg/Riv-pass</span>
+      <span style="font-size:12px;color:var(--muted)">— tilldelas pass manuellt av admin</span>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
@@ -1084,12 +1084,16 @@ Hälsningar,
     </div>
     <div class="form-group">
       <label class="form-label">Tillhör lag</label>
-      <input type="text" id="poolTeam" placeholder="Ex. P16, U17">
+      <select id="poolTeam" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff">
+        <option value="">Välj lag...</option>
+      </select>
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Ersättning för tagna pass kan gå tillbaka till detta lag (hanteras av föreningen).</div>
     </div>
     <div class="form-group">
       <label class="form-label">Kan ta vilka pass?</label>
-      <input type="text" id="poolCan" placeholder="Ex. Servering, Parkering, Bygg">
+      <select id="poolCan" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff">
+        <option value="">Alla pass</option>
+      </select>
     </div>
     <div class="form-group">
       <label class="form-label">Kontakt (telefon)</label>
@@ -2921,9 +2925,23 @@ async function addPoolMember(){
 
 function openNewPoolModal(){
   // Återställ formulär och knapp
-  ['poolName','poolTeam','poolCan','poolPhone'].forEach(id => {
+  ['poolName','poolPhone'].forEach(id => {
     const e = document.getElementById(id); if(e) e.value = '';
   });
+  // Populera lag-dropdown
+  const teamSel = document.getElementById('poolTeam');
+  if(teamSel){
+    const teams = [...new Set(DB.shifts.map(s=>s.team).filter(Boolean))].sort();
+    teamSel.innerHTML = '<option value="">Välj lag...</option>' + teams.map(t=>`<option value="${t}">${t}</option>`).join('') + '<option value="Övrigt">Övrigt</option>';
+    teamSel.value = '';
+  }
+  // Populera stationer-dropdown
+  const canSel = document.getElementById('poolCan');
+  if(canSel){
+    const stations = [...new Set(DB.shifts.map(s=>s.title).filter(Boolean))].sort();
+    canSel.innerHTML = '<option value="">Alla pass</option>' + stations.map(s=>`<option value="${s}">${s}</option>`).join('');
+    canSel.value = '';
+  }
   const saveBtn = document.querySelector('#modalAddPool .btn-primary');
   if(saveBtn){ saveBtn.textContent = 'Lägg till'; saveBtn.onclick = addPoolMember; }
   openModal('modalAddPool');
@@ -2933,7 +2951,18 @@ function editPoolMember(id){
   const p = DB.pool.find(x => x.id === id);
   if(!p) return;
   document.getElementById('poolName').value = p.name || '';
-  document.getElementById('poolTeam').value = p.team || '';
+  const poolTeamSelE = document.getElementById('poolTeam');
+  if(poolTeamSelE){
+    const teams = [...new Set(DB.shifts.map(s=>s.team).filter(Boolean))].sort();
+    poolTeamSelE.innerHTML = '<option value="">Välj lag...</option>' + teams.map(t=>`<option value="${t}">${t}</option>`).join('') + '<option value="Övrigt">Övrigt</option>';
+    poolTeamSelE.value = p.team || '';
+  }
+  const poolCanSelE = document.getElementById('poolCan');
+  if(poolCanSelE){
+    const stations = [...new Set(DB.shifts.map(s=>s.title).filter(Boolean))].sort();
+    poolCanSelE.innerHTML = '<option value="">Alla pass</option>' + stations.map(s=>`<option value="${s}">${s}</option>`).join('');
+    poolCanSelE.value = p.can_take || '';
+  }
   document.getElementById('poolCan').value = p.notes || '';
   document.getElementById('poolPhone').value = p.phone || '';
   // Byt knapp-text och lägg till id
