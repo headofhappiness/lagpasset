@@ -81,6 +81,7 @@ td{padding:.7rem .5rem;border-bottom:1px solid var(--border);font-size:14px;vert
       <div><label>Föreningens namn</label><input id="cName" placeholder="Ex. Åsa IF"></div>
       <div><label>Kontaktperson (admin)</label><input id="cContact" placeholder="Ex. Lisa Andersson"></div>
       <div><label>Admin-e-post (inloggning)</label><input id="cEmail" type="email" placeholder="namn@asaif.se"></div>
+      <div><label>Lösenord <span style="font-size:11px;font-weight:400;color:#aaa">(minst 8 tecken – delas ut till kontaktpersonen)</span></label><input id="cPassword" type="password" placeholder="Minst 8 tecken" minlength="8" autocomplete="new-password"></div>
       <div><label>Telefon</label><input id="cPhone" placeholder="070-123 45 67"></div>
     </div>
     <div style="margin-top:1.1rem;display:flex;align-items:flex-start;gap:.6rem;background:#f4f7f4;border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem">
@@ -445,14 +446,16 @@ async function addClub(){
   if(terms && !terms.checked){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Föreningen måste godkänna användarvillkoren innan ni kan spara.'; return; }
   const btn = document.getElementById('addBtn'); btn.disabled = true; btn.textContent = 'Sparar...';
   try {
+    const password = document.getElementById('cPassword').value;
+    if(!password || password.length < 8){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Lösenordet måste vara minst 8 tecken.'; btn.disabled=false; btn.textContent='Spara förening'; return; }
     const { data, error } = await sb.functions.invoke('create-admin-user', {
-      body: { clubName: name, contactName: contact || null, email: email, phone: phone || null }
+      body: { clubName: name, contactName: contact || null, email: email, phone: phone || null, password: password }
     });
     if(error) throw error;
     if(data && data.error) throw new Error(data.error);
     msg.className='msg ok'; msg.style.display='block';
     msg.innerHTML = '✓ <strong>' + name + '</strong> tillagd. <a href="#" onclick="sendWelcome(\'' + email + '\',\'' + (contact||name) + '\',\'' + name + '\');return false;" style="color:var(--green);font-weight:600">Skicka välkomstmejl →</a>';
-    document.getElementById('cName').value=''; document.getElementById('cContact').value=''; document.getElementById('cEmail').value=''; document.getElementById('cPhone').value='';
+    document.getElementById('cName').value=''; document.getElementById('cContact').value=''; document.getElementById('cEmail').value=''; document.getElementById('cPhone').value=''; document.getElementById('cPassword').value='';
     await loadClubs();
   } catch(e){
     msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte spara: ' + (e.message||'okänt fel');
