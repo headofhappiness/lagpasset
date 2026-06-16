@@ -5375,19 +5375,35 @@ function parsePassSchema(text, defaultStation, manualTeam){
     const tableDataRows = section.split('\n').filter(l => /^\s*\|\s*\d+\s*\|/.test(l));
     const plainDataRows = section.split('\n').filter(l => /^\s*\d+\b/.test(l.trim()) && !/namn|telefon|lag/i.test(l));
 
-    if(tableDataRows.length > 0){
-      tableDataRows.forEach((line, idx) => {
-        const pipeParts = line.split('|').map(p => p.trim()).filter((p,i) => i > 0);
-        // Kolumnordning: [radnr, Namn, Telefon, Lag, (ev extra)]
-        const lagCandidate = pipeParts.length >= 4 ? pipeParts[3] : '';
-        const isValidLag = lagCandidate && lagCandidate.length >= 2 && lagCandidate.length <= 5
-          && !LAG_EXCLUDE.has(lagCandidate) && /^[A-ZÅÄÖ]/.test(lagCandidate);
-        slotsWithTeams.push({
-          slot_number: idx + 1,
-          team: isValidLag ? lagCandidate : (defaultTeam || '')
-        });
-      });
-    } else {
+    // Mammoth-tabeller blir rena textrader: radnr på en rad, lag på nästa
+    // Mönster: "1\nF15\n2\nF15\n..." — hitta par (nummer, lag)
+    const isValidLag = t => t && t.length >= 2 && t.length <= 5
+      && !LAG_EXCLUDE.has(t) && /^[A-ZÅÄÖ]/.test(t);
+
+    const sectionLines = section.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    let si = 0;
+    while(si < sectionLines.length){
+      if(/^\d+$/.test(sectionLines[si])){
+        const slotNum = parseInt(sectionLines[si]);
+        // Leta lag bland nästkommande rader (max 3 framåt)
+        let foundTeam = '';
+        for(let sj = si+1; sj < Math.min(si+4, sectionLines.length); sj++){
+          if(isValidLag(sectionLines[sj])){
+            foundTeam = sectionLines[sj];
+            si = sj + 1;
+            break;
+          }
+        }
+        if(!foundTeam) si++;
+        slotsWithTeams.push({ slot_number: slotNum, team: foundTeam || defaultTeam || '' });
+      } else {
+        si++;
+      }
+    }
+
+    // Fallback om inget hittades
+    if(!slotsWithTeams.length){
+      const plainDataRows = section.split('\n').filter(l => /^\s*\d+\b/.test(l.trim()) && !/namn|telefon|lag/i.test(l));
       plainDataRows.forEach((line, idx) => {
         slotsWithTeams.push({ slot_number: idx + 1, team: defaultTeam || '' });
       });
