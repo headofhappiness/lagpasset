@@ -1052,7 +1052,7 @@ Hälsningar,
     <div class="inline-2">
       <div class="form-group">
         <label class="form-label">Lag</label>
-        <select id="newChildTeam" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff">
+        <select id="newChildTeam" onchange="fillChildShiftOptions()" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff">
           <option value="">Välj lag...</option>
         </select>
       </div>
@@ -2722,13 +2722,35 @@ function fillChildShiftOptions(selectedShiftId){
   const sel = document.getElementById('newChildShift');
   if(!sel) return;
   const days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
-  const shifts = DB.shifts.slice().sort((a,b)=>(a.title+a.date+a.time_start).localeCompare(b.title+b.date+b.time_start));
+
+  // Hämta personens lag för att sortera rätt pass först
+  const personTeam = (document.getElementById('newChildTeam')||{}).value || '';
+
+  const shifts = DB.shifts.slice().sort((a,b)=>{
+    // Personens lag först, sedan alfabetiskt
+    const aMatch = a.team === personTeam ? 0 : 1;
+    const bMatch = b.team === personTeam ? 0 : 1;
+    if(aMatch !== bMatch) return aMatch - bMatch;
+    return (a.title+a.date+a.time_start).localeCompare(b.title+b.date+b.time_start);
+  });
+
   let html = '<option value="">— Inget pass nu (personen väljer själv) —</option>';
+  let lastGroup = '';
   shifts.forEach(s=>{
     const d = new Date(s.date);
     const taken = DB.bookings.filter(b=>b.shift_id===s.id).length;
     const full = taken >= s.slots;
-    const label = s.title + ' · ' + days[d.getDay()] + ' ' + s.time_start.slice(0,5) + '–' + (s.time_end||'–') + ' (' + taken + '/' + s.slots + ')' + (full ? ' – fullt' : '');
+    const lagLabel = s.team ? ' · ' + s.team : '';
+    const matchLabel = (personTeam && s.team === personTeam) ? ' ★' : '';
+    const label = s.title + ' · ' + days[d.getDay()] + ' ' + s.time_start.slice(0,5) + '–' + (s.time_end||'–') + lagLabel + ' (' + taken + '/' + s.slots + ')' + (full ? ' – fullt' : '') + matchLabel;
+
+    // Separator mellan eget lag och övriga
+    if(personTeam && lastGroup !== (s.team === personTeam ? 'own' : 'other')){
+      lastGroup = s.team === personTeam ? 'own' : 'other';
+      if(lastGroup === 'other' && shifts.some(x=>x.team===personTeam)){
+        html += '<option disabled>── Övriga lag ──</option>';
+      }
+    }
     html += '<option value="' + s.id + '"' + (s.id===selectedShiftId?' selected':'') + (full && s.id!==selectedShiftId?' disabled':'') + '>' + label + '</option>';
   });
   sel.innerHTML = html;
