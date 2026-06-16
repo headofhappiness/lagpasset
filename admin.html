@@ -2916,7 +2916,7 @@ function openNewPoolModal(){
     const e = document.getElementById(id); if(e) e.value = '';
   });
   const saveBtn = document.querySelector('#modalAddPool .btn-primary');
-  if(saveBtn){ saveBtn.textContent = 'Lägg till'; saveBtn.onclick = addToPool; }
+  if(saveBtn){ saveBtn.textContent = 'Lägg till'; saveBtn.onclick = addPoolMember; }
   openModal('modalAddPool');
 }
 
@@ -2988,7 +2988,7 @@ async function savePoolEdit(id){
     showToast('Uppdaterad ✓');
     // Återställ knappen
     const saveBtn = document.querySelector('#modalAddPool .btn-primary');
-    if(saveBtn){ saveBtn.textContent = 'Lägg till'; saveBtn.onclick = null; saveBtn.setAttribute('onclick','addToPool()'); }
+    if(saveBtn){ saveBtn.textContent = 'Lägg till'; saveBtn.onclick = null; saveBtn.setAttribute('onclick','addPoolMember()'); }
   } catch(e){ showToast('Kunde inte spara: ' + e.message, 'error'); }
 }
 
