@@ -959,7 +959,7 @@ Hälsningar,
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
           <div>
             <div class="card-title">Vanliga frågor (FAQ)</div>
-            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen tillsammans med passet. Spara svar på återkommande frågor så slipper ni svara på samma sak om och om igen.</p>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen när de valt sitt pass. Spara gärna svar på återkommande frågor så slipper ni svara på samma sak om och om igen.</p>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddFaq')">+ Lägg till fråga</button>
         </div>
@@ -3609,15 +3609,9 @@ async function sendEmail(){
     const instrText = station ? (savedInstructions[station] || '') : '';
     if(instrText){
       const PLACEHOLDER = '[Välj station nedan så visas instruktionerna här, eller skriv manuellt]';
-      const INSTR_HEADER = 'Här kommer instruktioner inför ditt pass:';
       if(fullMessage.includes(PLACEHOLDER)){
-        // Ersätt platshållaren mitt i texten
         fullMessage = fullMessage.replace(PLACEHOLDER, instrText);
-      } else if(fullMessage.includes(INSTR_HEADER)){
-        // Lägg instruktionerna direkt efter rubriken
-        fullMessage = fullMessage.replace(INSTR_HEADER, INSTR_HEADER + '\n\n' + instrText);
       } else {
-        // Fallback — lägg i slutet
         fullMessage += '\n\n' + instrText;
       }
     }
