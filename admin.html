@@ -3609,9 +3609,15 @@ async function sendEmail(){
     const instrText = station ? (savedInstructions[station] || '') : '';
     if(instrText){
       const PLACEHOLDER = '[Välj station nedan så visas instruktionerna här, eller skriv manuellt]';
+      const INSTR_HEADER = 'Här kommer instruktioner inför ditt pass:';
       if(fullMessage.includes(PLACEHOLDER)){
+        // Ersätt platshållaren mitt i texten
         fullMessage = fullMessage.replace(PLACEHOLDER, instrText);
+      } else if(fullMessage.includes(INSTR_HEADER)){
+        // Lägg instruktionerna direkt efter rubriken
+        fullMessage = fullMessage.replace(INSTR_HEADER, INSTR_HEADER + '\n\n' + instrText);
       } else {
+        // Fallback — lägg i slutet
         fullMessage += '\n\n' + instrText;
       }
     }
