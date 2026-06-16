@@ -721,7 +721,7 @@ Hälsningar,
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
           <div>
             <div class="card-title">Vanliga frågor (FAQ)</div>
-            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen på sin bokningssida efter att de valt pass. Perfekt för frågor som ofta dyker upp.</p>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px">Visas för medlemmen när de valt sitt pass. Spara gärna svar på återkommande frågor så slipper ni svara på samma sak om och om igen.</p>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="openModal('modalAddFaq')">+ Lägg till fråga</button>
         </div>
@@ -1811,7 +1811,9 @@ function showSection(id){
   document.getElementById('topbarTitle').textContent=titles[id]||id;
   if(id==='children') renderChildTable();
   if(id==='pool'){ renderPoolTable(); renderResourceRequests(); }
-  if(id==='settings'){ renderContactsTable(); renderFaqList(); renderSections(); }
+  if(id==='settings'){ renderContactsTable(); renderSections(); }
+  if(id==='email'){ renderFaqList(); renderLagChips(); renderStationChips(); updateRecipientCount(); }
+  if(id==='feedback'){ renderFeedback(); }
   if(id==='shifts'){ renderStationRows(); const cv=document.getElementById('shiftCategoryView'); const dv=document.getElementById('shiftDetailView'); if(cv) cv.style.display='block'; if(dv) dv.style.display='none'; }
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) setTimeout(closeSidebar, 50);
