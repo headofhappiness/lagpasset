@@ -73,6 +73,17 @@ input:focus{outline:none;border-color:var(--green)}
     <p style="font-size:13.5px;color:var(--muted);margin-bottom:1rem;text-align:left">Kontakta kansliansvarig i din förening så hjälper de dig med ett nytt lösenord.</p>
     <button class="btn" onclick="showLogin()" style="background:none;color:var(--green);border:1.5px solid var(--green)">← Tillbaka till inloggning</button>
   </div>
+
+  <div id="resetForm" class="hidden">
+    <h1>Välj nytt lösenord</h1>
+    <div class="green-line"></div>
+    <label for="newPassword">Nytt lösenord</label>
+    <input type="password" id="newPassword" placeholder="Minst 8 tecken" autocomplete="new-password">
+    <label for="newPassword2">Bekräfta lösenord</label>
+    <input type="password" id="newPassword2" placeholder="Upprepa lösenordet" autocomplete="new-password" onkeydown="if(event.key==='Enter') updatePassword()">
+    <button class="btn" id="resetBtn" onclick="updatePassword()">Spara nytt lösenord</button>
+    <div id="resetMsg" class="msg" style="display:none"></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -83,10 +94,12 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function show(id){
-  document.getElementById('checking').classList.add('hidden');
-  document.getElementById('loginForm').classList.add('hidden');
-  document.getElementById('forgotForm').classList.add('hidden');
-  document.getElementById(id).classList.remove('hidden');
+  ['checking','loginForm','forgotForm','resetForm'].forEach(s=>{
+    const el = document.getElementById(s);
+    if(el) el.classList.add('hidden');
+  });
+  const el = document.getElementById(id);
+  if(el) el.classList.remove('hidden');
 }
 function setMsg(text, type){ const m=document.getElementById('msg'); m.className='msg '+(type||'info'); m.style.display='block'; m.innerHTML=text; }
 function showLogin(){ show('loginForm'); }
@@ -145,6 +158,35 @@ async function login(){
 function forgotPassword(){
   show('forgotForm');
 }
+
+async function updatePassword(){
+  const p1 = document.getElementById('newPassword').value;
+  const p2 = document.getElementById('newPassword2').value;
+  const msg = document.getElementById('resetMsg');
+  if(p1.length < 8){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Lösenordet måste vara minst 8 tecken.'; return; }
+  if(p1 !== p2){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Lösenorden matchar inte.'; return; }
+  const btn = document.getElementById('resetBtn');
+  btn.disabled = true; btn.textContent = 'Sparar...';
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  if(error){
+    msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte uppdatera lösenordet: ' + error.message;
+    btn.disabled = false; btn.textContent = 'Spara nytt lösenord';
+  } else {
+    msg.className='msg ok'; msg.style.display='block'; msg.textContent='✓ Lösenordet är uppdaterat! Du loggas in...';
+    setTimeout(async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if(session) await routeUser(session.user);
+      else show('loginForm');
+    }, 1500);
+  }
+}
+
+// Lyssna på auth-events — fångar PASSWORD_RECOVERY
+sb.auth.onAuthStateChange(async (event, session) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    show('resetForm');
+  }
+});
 
 // Kolla om redan inloggad
 (async () => {
