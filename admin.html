@@ -715,8 +715,6 @@ Hälsningar,
       <!-- UTSKICKSLOGG -->
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleEmailLog()">
-          <div style="display:flex;align-items:center;gap:.5rem">
-            <span style="font-size:1.1rem">📋</span>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap">
           <div>
@@ -728,12 +726,12 @@ Hälsningar,
         <div id="faqList" style="margin-top:.5rem;display:flex;flex-direction:column;gap:.5rem"></div>
       </div>
 
-          <div class="card">
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:1.1rem">📋</span>
             <div class="card-title">Utskickslogg</div>
+            <span id="emailLogArrow" style="color:var(--muted)">▸</span>
           </div>
-          <span id="emailLogArrow" style="color:var(--muted)">▸</span>
-        </div>
-        <div id="emailLogList" style="display:none;margin-top:1rem"></div>
+          <div id="emailLogList" style="display:none;margin-top:1rem"></div>
       </div>
     </div>
 
