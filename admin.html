@@ -1659,7 +1659,7 @@ function applyClubBranding(){
   }
 }
 
-let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [], resourceRequests: [], faq: [] };
+let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [], resourceRequests: [], faq: [], shiftSlots: [] };
 let editingShiftId = null;
 
 async function loadFromDB() {
@@ -2337,7 +2337,8 @@ function renderShiftTable(){
       // Data från Supabase
       const bookingsForShift = DB.bookings.filter(b => b.shift_id === s.id);
       taken = bookingsForShift.length;
-      total = s.slots;
+      const slotCount = (DB.shiftSlots||[]).filter(sl=>sl.shift_id===s.id).length;
+      total = slotCount || s.slots;
       title = s.title;
       location = s.location || '';
       const d = new Date(s.date);
@@ -2360,7 +2361,10 @@ function renderShiftTable(){
           <span style="font-size:12.5px;color:var(--muted)">${taken}/${total}</span>
         </div>
       </td>
-      <td class="td-muted" style="font-size:12.5px">${s.team||'–'}</td>
+      <td class="td-muted" style="font-size:12.5px">${(()=>{
+        const sl=(DB.shiftSlots||[]).filter(x=>x.shift_id===s.id);
+        return sl.length ? [...new Set(sl.map(x=>x.team))].sort().join(', ') : (s.team||'–');
+      })()}</td>
       <td>
         <div style="display:flex;gap:4px">
           <button class="btn btn-ghost btn-sm btn-icon" title="Redigera" onclick="event.stopPropagation();editShift('${s.id}')">✏️</button>
@@ -4113,7 +4117,8 @@ function renderShiftDetail(cat, day) {
     document.getElementById('shiftDetailTable').innerHTML = filtered.map((s, idx) => {
       const bookingsForShift = DB.bookings.filter(b => b.shift_id === s.id);
       const taken = bookingsForShift.length;
-      const total = s.slots;
+      const slotsForShift = (DB.shiftSlots||[]).filter(sl=>sl.shift_id===s.id).sort((a,b)=>a.slot_number-b.slot_number);
+      const total = slotsForShift.length || s.slots;
       const free = total - taken;
       const pct = total > 0 ? Math.round(taken/total*100) : 0;
       const color = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
@@ -4144,15 +4149,27 @@ function renderShiftDetail(cat, day) {
           </div>
         </div>`;
       }).join('');
-      const emptyRows = Array.from({length:free}).map(()=>
-        `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
-          <div style="display:flex;align-items:center;gap:.6rem">
-            <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
-            <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFillPool('${s.id}')" style="font-size:11px">Fyll från pool</button>
-        </div>`
-      ).join('');
+      const freeSlots = slotsForShift.slice(taken);
+      const emptyRows = freeSlots.length > 0
+        ? freeSlots.map(sl=>
+          `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
+            <div style="display:flex;align-items:center;gap:.6rem">
+              <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
+              <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
+              <span style="font-size:12px;font-weight:700;color:var(--dark)">${sl.team}</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFillPool('${s.id}')" style="font-size:11px">Fyll från pool</button>
+          </div>`
+        ).join('')
+        : Array.from({length:free}).map(()=>
+          `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
+            <div style="display:flex;align-items:center;gap:.6rem">
+              <div style="width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+</div>
+              <span style="font-size:13px;color:var(--muted);font-style:italic">Ledig plats</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openFillPool('${s.id}')" style="font-size:11px">Fyll från pool</button>
+          </div>`
+        ).join('');
       return `
       <tr onclick="toggleShiftPeople('${rowId}')" style="cursor:pointer" data-shift-id="${s.id}">
         <td style="padding:.5rem .6rem" onclick="event.stopPropagation()"><input type="checkbox" class="shift-select-cb" data-shift-id="${s.id}" data-has-bookings="${taken > 0 ? '1' : '0'}" onchange="onShiftCheckChange()" style="width:15px;height:15px;accent-color:var(--green);cursor:pointer"></td>
@@ -4167,7 +4184,10 @@ function renderShiftDetail(cat, day) {
             <span style="font-size:12px;font-weight:600;color:${color}">${taken}/${total}</span>
           </div>
         </td>
-        <td style="font-size:12px;color:var(--muted);font-weight:600">${s.team||'–'}</td>
+        <td style="font-size:12px;color:var(--muted);font-weight:600">${(()=>{
+          const sl=(DB.shiftSlots||[]).filter(x=>x.shift_id===s.id);
+          return sl.length ? [...new Set(sl.map(x=>x.team))].sort().join(', ') : (s.team||'–');
+        })()}</td>
         <td><div style="display:flex;gap:.35rem">
           <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editShift('${s.id}')">✏️</button>
           <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();deleteShift('${s.id}')">🗑</button>
