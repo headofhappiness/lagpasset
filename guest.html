@@ -364,7 +364,7 @@ setVH(); window.addEventListener('resize',setVH);
     <div id="transferModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem">
       <div style="background:#fff;border-radius:16px;padding:1.5rem;max-width:400px;width:100%">
         <div style="font-size:17px;font-weight:700;color:var(--dark);margin-bottom:.4rem">Skicka vidare till ersättare</div>
-        <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1rem">Ange ersättarens namn och telefonnummer. Passet uppdateras direkt.</p>
+        <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1rem">Ange ersättarens uppgifter. Telefon och e-post rekommenderas så ansvarig kan nå dem vid behov.</p>
         <div class="form-group">
           <label class="form-label">Ersättarens namn</label>
           <input type="text" id="transferName" placeholder="Förnamn Efternamn" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box">
@@ -951,7 +951,7 @@ function bookAnotherChild(){
   document.getElementById('stepIndicator').style.display='flex';
   document.getElementById('siLabels').style.display='flex';
   renderChildList();updateLagStats();
-  setStep(2);window.scrollTo({top:0,behavior:'smooth'});
+  setStep(1);window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function editBooking(){
