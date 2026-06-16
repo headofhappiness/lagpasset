@@ -423,6 +423,7 @@ setVH(); window.addEventListener('resize',setVH);
             <option value="booked">Pass valt</option>
             <option value="pending">Inget pass valt</option>
             <option value="admin">Tilldelad av admin</option>
+            <option value="trainer">🏅 Tränarbarn</option>
           </select>
         </div>
       </div>
@@ -1015,6 +1016,11 @@ Hälsningar,
       <label class="form-label">Jobbar för (valfritt)</label>
       <input type="text" id="newChildKid" placeholder="Barnets namn – om personen jobbar för sitt barn">
       <div style="font-size:12px;color:var(--muted);margin-top:4px">Lämna tomt om personen tar passet för egen del (t.ex. äldre ungdomar).</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.75rem 0;border-top:1px solid var(--border);margin-top:.25rem">
+      <input type="checkbox" id="newChildIsTrainer" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer">
+      <label for="newChildIsTrainer" style="font-size:13.5px;font-weight:600;color:var(--dark);cursor:pointer">🏅 Tränarbarn</label>
+      <span style="font-size:12px;color:var(--muted)">— familjen får Bygg/Riv-pass</span>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddChild')">Avbryt</button>
@@ -2006,12 +2012,12 @@ function renderAttention(){
   }
   // Stationer som behöver fler personer (under 50% fyllt – kritiskt lågt)
   stations.filter(s=>s.pct<50).forEach(st=>{
-    items.push(`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(192,57,43,.25);border-radius:10px;flex-wrap:wrap">
+    items.push(`<div onclick="openCategory('${st.cat}');showSection('shifts')" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(192,57,43,.25);border-radius:10px;flex-wrap:wrap;cursor:pointer" onmouseover="this.style.background='#fdf5f5'" onmouseout="this.style.background='#fff'">
       <div style="display:flex;align-items:center;gap:.6rem">
         <span style="font-size:1.1rem">${st.icon}</span>
         <span style="font-size:13.5px;color:var(--dark)"><strong>${st.name}</strong> behöver fler personer – bara ${st.pct}% av platserna fyllda</span>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="openCategory('${st.cat}');showSection('shifts')">Visa pass →</button>
+      <span style="font-size:13px;color:var(--muted);white-space:nowrap">Visa pass →</span>
     </div>`);
   });
   if(items.length === 0){
@@ -2088,6 +2094,7 @@ function renderChildTable(){
     if(teamFilter && !team.includes(teamFilter.split(' ')[0])) return false;
     if(statusFilter==='booked' && !booked) return false;
     if(statusFilter==='pending' && booked) return false;
+    if(statusFilter==='trainer' && !c.is_trainer_child) return false;
     return true;
   });
 
@@ -2110,7 +2117,10 @@ function renderChildTable(){
             ${c.name.split(' ').map(w=>w[0]).slice(0,2).join('')}
           </div>
           <div>
-            <div style="font-weight:600;color:var(--dark)">${c.name}</div>
+            <div style="display:flex;align-items:center;gap:.35rem">
+              <span style="font-weight:600;color:var(--dark)">${c.name}</span>
+              ${useDB && c.is_trainer_child ? '<span title="Tränarbarn" style="font-size:13px">🏅</span>' : ''}
+            </div>
             ${useDB && c.email ? '<div style="font-size:11px;color:var(--muted)">' + c.email + '</div>' : ''}
           </div>
         </div>
@@ -3054,6 +3064,7 @@ async function saveChild(){
   const phone=document.getElementById('newChildPhone').value.trim();
   const email=document.getElementById('newChildEmail').value.trim();
   const kid=document.getElementById('newChildKid').value.trim();
+  const isTrainer=document.getElementById('newChildIsTrainer').checked;
   const shiftId=document.getElementById('newChildShift').value;
   if(!name){showToast('Ange personens namn.', 'error'); return;}
   if(!email){showToast('Ange en e-postadress.', 'error'); return;}
@@ -3061,14 +3072,14 @@ async function saveChild(){
     let participant;
     if(editingChildId){
       // Uppdatera befintlig person
-      await sbUpdate('participants', editingChildId, { name, email, phone: phone||null, team: team||null, child_name: kid||null });
+      await sbUpdate('participants', editingChildId, { name, email, phone: phone||null, team: team||null, child_name: kid||null, is_trainer_child: isTrainer });
       participant = DB.participants.find(p => p.id === editingChildId);
-      if(participant) Object.assign(participant, { name, email, phone: phone||null, team: team||null, child_name: kid||null });
+      if(participant) Object.assign(participant, { name, email, phone: phone||null, team: team||null, child_name: kid||null, is_trainer_child: isTrainer });
     } else {
       // Ny person
       const token = 'tok-' + Math.random().toString(36).slice(2,12);
       const result = await sbInsert('participants', {
-        event_id: EVENT_ID, name, email, phone: phone||null, team: team||null, child_name: kid||null, token
+        event_id: EVENT_ID, name, email, phone: phone||null, team: team||null, child_name: kid||null, is_trainer_child: isTrainer, token
       });
       if(result && result.length){ participant = result[0]; DB.participants.push(participant); }
     }
@@ -3114,6 +3125,7 @@ function editChild(id){
   document.getElementById('newChildPhone').value = p.phone || '';
   document.getElementById('newChildEmail').value = p.email || '';
   document.getElementById('newChildKid').value = p.child_name || '';
+  document.getElementById('newChildIsTrainer').checked = !!p.is_trainer_child;
   const booking = DB.bookings.find(b => b.participant_id === id);
   fillChildShiftOptions(booking ? booking.shift_id : '');
 }
@@ -4677,6 +4689,8 @@ async function handleImportFiles(files){
         errors.push(file.name + ': filtypen stöds inte');
         continue;
       }
+      // Rensa mammoth-artefakter: fetstilsbrytningar mitt i tal (t.ex. "12:****45" -> "12:45")
+      text = text.replace(/\*{2,}/g, '');
       const stationFromFile = file.name.replace(/[_\-]\d+.*$/,'').replace(/\.\w+$/,'').trim();
       const shifts = parsePassSchema(text, stationFromFile, manualTeam);
       if(!shifts.length){
