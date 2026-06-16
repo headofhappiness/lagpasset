@@ -1035,7 +1035,9 @@ Hälsningar,
     <div class="inline-2">
       <div class="form-group">
         <label class="form-label">Lag</label>
-        <input type="text" id="newChildTeam" placeholder="Ex. P12, F13">
+        <select id="newChildTeam" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff">
+          <option value="">Välj lag...</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Telefon</label>
@@ -2627,7 +2629,14 @@ function openModal(id){
     editingChildId = null;
     const t = document.getElementById('addChildTitle');
     if(t) t.textContent = 'Lägg till person';
-    ['newChildName','newChildTeam','newChildPhone','newChildEmail','newChildKid'].forEach(fid=>{ const e=document.getElementById(fid); if(e) e.value=''; });
+    ['newChildName','newChildPhone','newChildEmail','newChildKid'].forEach(fid=>{ const e=document.getElementById(fid); if(e) e.value=''; });
+    // Populera lag-dropdown från importerade pass
+    const teamSel = document.getElementById('newChildTeam');
+    if(teamSel){
+      const teams = [...new Set(DB.shifts.map(s=>s.team).filter(Boolean))].sort();
+      teamSel.innerHTML = '<option value="">Välj lag...</option>' + teams.map(t=>`<option value="${t}">${t}</option>`).join('') + '<option value="Övrigt">Övrigt / Ingen lagstillhörighet</option>';
+      teamSel.value = '';
+    }
     fillChildShiftOptions();
   }
   openModal._editingChild = false;
@@ -3273,7 +3282,12 @@ function editChild(id){
   openModal('modalAddChild');
   document.getElementById('addChildTitle').textContent = 'Redigera person';
   document.getElementById('newChildName').value = p.name || '';
-  document.getElementById('newChildTeam').value = p.team || '';
+  const teamSelEdit = document.getElementById('newChildTeam');
+  if(teamSelEdit){
+    const teams = [...new Set(DB.shifts.map(s=>s.team).filter(Boolean))].sort();
+    teamSelEdit.innerHTML = '<option value="">Välj lag...</option>' + teams.map(t=>`<option value="${t}">${t}</option>`).join('') + '<option value="Övrigt">Övrigt / Ingen lagstillhörighet</option>';
+    teamSelEdit.value = p.team || '';
+  }
   document.getElementById('newChildPhone').value = p.phone || '';
   document.getElementById('newChildEmail').value = p.email || '';
   document.getElementById('newChildKid').value = p.child_name || '';
