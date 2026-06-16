@@ -4399,19 +4399,42 @@ function useTemplate(type) {
     subj.value = `Välj ditt pass – ${evName} 🙌`;
     body.value = `Hej [FÖRNAMN]!\n\nSnart är det dags för ${evName} och vi är så tacksamma att få din hjälp!\n\nVälj det pass som passar dig bäst – det tar bara en minut.\n\nSista dag för val är ${deadline} men välj gärna så snart du kan.\n\nVi ser fram emot att ses och skapa en riktigt fin ${evName} tillsammans!\n\nVarma hälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
+    setFilterChips('unbooked', 'all', 'all');
   } else if(type === 'reminderManual') {
     subj.value = `Påminnelse – välj ditt pass, ${evName} 😊`;
     body.value = `Hej [FÖRNAMN]!\n\nVi vill bara påminna om att du ännu inte valt ditt pass inför ${evName}.\n\nSista dag att välja är ${deadline} – klicka på knappen nedan så är det klart på en minut.\n\nVi är så tacksamma för din hjälp och ser så fram emot att ha dig med!\n\nGlada hälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = true;
+    setFilterChips('unbooked', 'all', 'all');
   } else if(type === 'info') {
     subj.value = `Instruktioner inför ditt pass – ${evName} 🌟`;
     body.value = `Hej [FÖRNAMN]!\n\nSå fint att du kommer att hjälpa till på ${evName}!\n\nHär kommer instruktioner inför ditt pass:\n\n[Välj station nedan så visas instruktionerna här, eller skriv manuellt]\n\nVi ses på ${evName}!\n\nBästa hälsningar,\n${clubN}`;
     if(linkCheck) linkCheck.checked = false;
+    setFilterChips('booked', 'all', 'all');
   } else if(type === 'thanks') {
     subj.value = `Ett stort TACK från oss – ${evName} 🙏❤️`;
     body.value = `Hej [FÖRNAMN]!\n\n${evName} är nu avslutad och vi vill till dig säga ett stort TACK!\n\nTack vare dig och alla andra fantastiska engagerade kunde vi genomföra ett riktigt bra event. Det hade verkligen aldrig gått utan er. Det du gör har stor betydelse för ${clubN}!\n\nVi hoppas att du hade roligt på ${evName} och att vi ses igen nästa gång!\n\nVarmt tack,\n${clubN} & cupkommittén`;
     if(linkCheck) linkCheck.checked = false;
+    setFilterChips('all', 'all', 'all');
   }
+}
+
+function setFilterChips(status, team, station){
+  emailFilterType = status;
+  emailFilterTeam = team;
+  emailFilterStation = station;
+  document.querySelectorAll('#typeChips .chip').forEach(c => {
+    const val = c.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    c.className = val === status ? 'chip chip-on' : 'chip chip-off';
+  });
+  document.querySelectorAll('#lagChips .chip').forEach(c => {
+    const val = c.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    c.className = val === team ? 'chip chip-on' : 'chip chip-off';
+  });
+  document.querySelectorAll('#stationChips .chip').forEach(c => {
+    const val = c.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    c.className = val === station ? 'chip chip-on' : 'chip chip-off';
+  });
+  updateRecipientCount();
 }
 
 // Auto-mailmallar sparas i localStorage per event
