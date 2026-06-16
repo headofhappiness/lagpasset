@@ -4971,7 +4971,8 @@ async function handleImportFiles(files){
       }
       // Rensa mammoth-artefakter: fetstilsbrytningar mitt i tal (t.ex. "12:****45" -> "12:45")
       text = text.replace(/\*{2,}/g, '');
-      const stationFromFile = file.name.replace(/[_\-]\d+.*$/,'').replace(/\.\w+$/,'').trim();
+      // Filnamnet används som stationsnamn — behåller hela namnet (ex: 'Städ Frillesås 26' vs 'Städet 26')
+      const stationFromFile = file.name.replace(/\.\w+$/, '').replace(/_/g, ' ').replace(/\s+\d+\s*$/, '').trim();
       const shifts = parsePassSchema(text, stationFromFile, manualTeam);
       if(!shifts.length){
         errors.push(file.name + ': hittade inga pass');
@@ -5091,9 +5092,8 @@ function parsePassSchema(text, defaultStation, manualTeam){
   }
 
   // Stationsnamn från dokumenttext eller filnamn
-  let station = defaultStation;
-  const stationMatch = text.match(/^(Parkering|Servering|Infotält|Bygg[\s&]+Riv|Nattvakt|Bemanning|Registrering|Cafeteria|Kiosk|Information|Städ|Lotteri|Transport|Resurs)/mi);
-  if(stationMatch) station = stationMatch[1].replace(/\s+/g,' ').trim();
+  // Använd alltid filnamnet som stationsnamn — aldrig dokumentinnehållet
+  const station = defaultStation;
 
   // Lag-regex: matchar P19, F16, FJ, HJ, DJU, PJ, P9 etc
   // Måste vara 2-4 versaler/siffror, börja med bokstav, ej vanliga ord
