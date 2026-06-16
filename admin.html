@@ -427,8 +427,15 @@ setVH(); window.addEventListener('resize',setVH);
         </div>
       </div>
 
+      <div id="memberBulkBar" style="display:none;background:#f0f7ff;border:1.5px solid #b8d4f0;border-radius:10px;padding:.6rem 1rem;margin-bottom:.6rem;display:none;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span id="memberBulkCount" style="font-size:13px;font-weight:600;color:var(--dark)">0 valda</span>
+        <button class="btn btn-sm" onclick="bulkSetTrainer(true)" style="background:#fff8e0;color:#8a6516;border:1.5px solid #f0d080;font-size:12.5px">🏅 Markera som tränarbarn</button>
+        <button class="btn btn-sm" onclick="bulkSetTrainer(false)" style="background:#fff;color:var(--muted);border:1.5px solid var(--border);font-size:12.5px">✕ Ta bort tränarbarn-markering</button>
+      </div>
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
-          <thead><tr><th>Namn</th><th>Jobbar för</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th>E-post</th><th></th></tr></thead>
+          <thead><tr>
+              <th style="width:36px;padding:.5rem .6rem"><input type="checkbox" id="selectAllMembers" title="Markera alla" onchange="toggleSelectAllMembers(this.checked)" style="width:15px;height:15px;accent-color:var(--green);cursor:pointer"></th>
+              <th>Namn</th><th>Jobbar för</th><th>Lag</th><th>Valt pass</th><th>Status</th><th>Telefon</th><th>E-post</th><th></th></tr></thead>
           <tbody id="childTable"></tbody>
         </table>
       </div>
@@ -459,6 +466,11 @@ setVH(); window.addEventListener('resize',setVH);
         <div id="resourceReqList" style="display:flex;flex-direction:column;gap:.6rem"></div>
       </div>
 
+      <div id="memberBulkBar" style="display:none;background:#f0f7ff;border:1.5px solid #b8d4f0;border-radius:10px;padding:.6rem 1rem;margin-bottom:.6rem;display:none;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span id="memberBulkCount" style="font-size:13px;font-weight:600;color:var(--dark)">0 valda</span>
+        <button class="btn btn-sm" onclick="bulkSetTrainer(true)" style="background:#fff8e0;color:#8a6516;border:1.5px solid #f0d080;font-size:12.5px">🏅 Markera som tränarbarn</button>
+        <button class="btn btn-sm" onclick="bulkSetTrainer(false)" style="background:#fff;color:var(--muted);border:1.5px solid var(--border);font-size:12.5px">✕ Ta bort tränarbarn-markering</button>
+      </div>
       <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
           <thead><tr><th>Namn</th><th>Tillhör lag</th><th>Kan ta</th><th>Kontakt</th><th>Tilldelade pass</th></tr></thead>
           <tbody id="poolTable"></tbody>
@@ -505,7 +517,12 @@ setVH(); window.addEventListener('resize',setVH);
           <div class="tabs" id="dayTabs"></div>
           <button id="btnDeleteSelected" class="btn btn-sm" onclick="deleteSelectedShifts()" style="display:none;background:#fdecea;color:#c0392b;border:1.5px solid #f5c6c2;font-size:12.5px">🗑 Radera markerade</button>
         </div>
-          <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
+          <div id="memberBulkBar" style="display:none;background:#f0f7ff;border:1.5px solid #b8d4f0;border-radius:10px;padding:.6rem 1rem;margin-bottom:.6rem;display:none;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span id="memberBulkCount" style="font-size:13px;font-weight:600;color:var(--dark)">0 valda</span>
+        <button class="btn btn-sm" onclick="bulkSetTrainer(true)" style="background:#fff8e0;color:#8a6516;border:1.5px solid #f0d080;font-size:12.5px">🏅 Markera som tränarbarn</button>
+        <button class="btn btn-sm" onclick="bulkSetTrainer(false)" style="background:#fff;color:var(--muted);border:1.5px solid var(--border);font-size:12.5px">✕ Ta bort tränarbarn-markering</button>
+      </div>
+      <div class="card table-wrap" style="padding:0;overflow:hidden"><table>
               <thead><tr>
                 <th style="width:36px;padding:.5rem .6rem"><input type="checkbox" id="selectAllShifts" title="Markera alla" onchange="toggleSelectAllShifts(this.checked)" style="width:15px;height:15px;accent-color:var(--green);cursor:pointer"></th>
                 <th>Pass</th><th>Dag</th><th>Tid</th><th>Platser</th><th>Lag</th><th>Ansvarig</th><th></th></tr></thead>
@@ -2157,7 +2174,8 @@ function renderChildTable(){
     } else if(!useDB){
       passText = c.pass || '–';
     }
-    return `<tr>
+    return `<tr data-member-id="${c.id||''}">
+      <td style="padding:.5rem .6rem"><input type="checkbox" class="member-select-cb" data-id="${c.id||''}" onchange="onMemberCheckChange()" style="width:15px;height:15px;accent-color:var(--green);cursor:pointer"></td>
       <td>
         <div style="display:flex;align-items:center;gap:.6rem">
           <div style="width:30px;height:30px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">
@@ -2390,6 +2408,51 @@ function renderShiftDetailInline(shiftId){
   }
   html += '</div>';
   content.innerHTML = html;
+}
+
+function onMemberCheckChange(){
+  const cbs = document.querySelectorAll('.member-select-cb');
+  const checked = [...document.querySelectorAll('.member-select-cb:checked')];
+  const allCb = document.getElementById('selectAllMembers');
+  if(allCb){
+    allCb.checked = checked.length === cbs.length && cbs.length > 0;
+    allCb.indeterminate = checked.length > 0 && checked.length < cbs.length;
+  }
+  const bar = document.getElementById('memberBulkBar');
+  const count = document.getElementById('memberBulkCount');
+  if(bar){ bar.style.display = checked.length > 0 ? 'flex' : 'none'; }
+  if(count){ count.textContent = checked.length + ' valda'; }
+}
+
+function toggleSelectAllMembers(checked){
+  document.querySelectorAll('.member-select-cb').forEach(cb => cb.checked = checked);
+  onMemberCheckChange();
+}
+
+async function bulkSetTrainer(isTrainer){
+  const checked = [...document.querySelectorAll('.member-select-cb:checked')];
+  if(!checked.length) return;
+  const ids = checked.map(cb => cb.dataset.id).filter(Boolean);
+  const label = isTrainer ? 'tränarbarn' : 'vanliga medlemmar';
+  if(!await showConfirm('Markera ' + ids.length + ' personer som ' + label + '?', 'Markera')) return;
+
+  try {
+    for(const id of ids){
+      await sbUpdate('participants', id, { is_trainer_child: isTrainer });
+      const p = DB.participants.find(p => p.id === id);
+      if(p) p.is_trainer_child = isTrainer;
+    }
+    showToast(ids.length + ' personer uppdaterade!');
+    // Avmarkera alla
+    document.querySelectorAll('.member-select-cb').forEach(cb => cb.checked = false);
+    const allCb = document.getElementById('selectAllMembers');
+    if(allCb) allCb.checked = false;
+    document.getElementById('memberBulkBar').style.display = 'none';
+    renderChildTable();
+  } catch(e){
+    console.error(e);
+    showToast('Kunde inte uppdatera', 'error');
+  }
 }
 
 function onShiftCheckChange(){
