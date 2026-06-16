@@ -1665,14 +1665,14 @@ function applyClubBranding(){
   }
 }
 
-let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [], resourceRequests: [], faq: [], shiftSlots: [], stationNotes: [] };
+let DB = { shifts: [], bookings: [], participants: [], pool: [], contacts: [], feedback: [], emailLog: [], resourceRequests: [], faq: [], shiftSlots: [] };
 let editingShiftId = null;
 
 async function loadFromDB() {
   try {
     const allShifts = await sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&select=id');
     const shiftIds = allShifts.map(function(s){ return s.id; });
-    const [shifts, bookings, participants, pool, contacts, feedback, arguments_emailLog, resourceReqs, shiftSlots, stationNotes] = await Promise.all([
+    const [shifts, bookings, participants, pool, contacts, feedback, arguments_emailLog, resourceReqs, shiftSlots] = await Promise.all([
       sbFetch('shifts', '?event_id=eq.' + EVENT_ID + '&order=date.asc,time_start.asc'),
       shiftIds.length ? sbFetch('bookings', '?shift_id=in.(' + shiftIds.join(',') + ')') : Promise.resolve([]),
       sbFetch('participants', '?event_id=eq.' + EVENT_ID + '&order=team.asc,name.asc'),
@@ -1681,8 +1681,7 @@ async function loadFromDB() {
       shiftIds.length ? sbFetch('feedback', '?shift_id=in.(' + shiftIds.join(',') + ')&order=submitted_at.desc') : Promise.resolve([]),
       sbFetch('email_log', '?event_id=eq.' + EVENT_ID + '&order=created_at.desc').catch(function(){ return []; }),
       sbFetch('resource_requests', '?event_id=eq.' + EVENT_ID + '&status=eq.open&order=created_at.desc').catch(function(){ return []; }),
-      shiftIds.length ? sbFetch('shift_slots', '?shift_id=in.(' + shiftIds.join(',') + ')&order=slot_number.asc') : Promise.resolve([]),
-      sbFetch('station_notes', '?event_id=eq.' + EVENT_ID).catch(() => [])
+      shiftIds.length ? sbFetch('shift_slots', '?shift_id=in.(' + shiftIds.join(',') + ')&order=slot_number.asc') : Promise.resolve([])
     ]);
     DB.shifts = shifts;
     DB.bookings = bookings;
@@ -1693,9 +1692,6 @@ async function loadFromDB() {
     DB.emailLog = arguments_emailLog || [];
     DB.resourceRequests = resourceReqs || [];
     DB.shiftSlots = shiftSlots || [];
-    DB.stationNotes = stationNotes || [];
-    // Synka savedInstructions från DB
-    DB.stationNotes.forEach(n => { savedInstructions[n.station] = n.info || ''; });
     console.log('DB laddat:', DB.shifts.length, 'pass,', DB.participants.length, 'deltagare,', DB.feedback.length, 'feedback');
     if(DB.shifts.length) console.log('[DEBUG] Första pass:', JSON.stringify({title:DB.shifts[0].title, team:DB.shifts[0].team, time_start:DB.shifts[0].time_start}));
   } catch(e) {
@@ -3609,14 +3605,7 @@ async function sendEmail(){
     const station = document.getElementById('instructionStationSelect') && document.getElementById('instructionStationSelect').value;
     const instrText = station ? (savedInstructions[station] || '') : '';
     if(instrText){
-      const placeholder = '[Välj station nedan så visas instruktionerna här, eller skriv manuellt]';
-      if(fullMessage.includes(placeholder)){
-        // Ersätt platshållaren direkt i texten
-        fullMessage = fullMessage.replace(placeholder, instrText);
-      } else {
-        // Lägg till i slutet om ingen platshållare finns
-        fullMessage += '\n\n────────────────\n📋 Instruktioner – ' + station + '\n\n' + instrText;
-      }
+      fullMessage += '\n\n────────────────\n📋 Instruktioner – ' + station + '\n\n' + instrText;
     }
   }
 
@@ -3787,34 +3776,11 @@ function cancelInstructionEdit(){
   document.getElementById('instructionEditPanel').style.display = 'none';
 }
 
-// Spara instruktion till Supabase (upsert på event_id + station)
-async function upsertStationNote(station, text){
-  if(!station) return;
-  // Uppdatera lokalt direkt
-  savedInstructions[station] = text;
-  const existing = DB.stationNotes.find(n => n.station === station);
-  if(existing) existing.info = text;
-  else DB.stationNotes.push({ event_id: EVENT_ID, station, info: text });
-  // Spara till Supabase
-  try {
-    await fetch(SUPABASE_URL + '/rest/v1/station_notes', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify({ event_id: EVENT_ID, station, info: text, updated_at: new Date().toISOString() })
-    });
-  } catch(e){ console.error('upsertStationNote fel:', e); }
-}
-
 function saveInstructionFromEmail(){
   const station = document.getElementById('instructionStationSelect').value;
   if(!station) return;
   const text = document.getElementById('instructionEditText').value;
-  upsertStationNote(station, text);
+  savedInstructions[station] = text;
   document.getElementById('instructionEditPanel').style.display = 'none';
   // Visa förhandsgranskning direkt efter sparning
   document.getElementById('instructionPreviewText').textContent = text || '(tom)';
@@ -4052,8 +4018,7 @@ function toggleEditInstructions() {
 }
 
 function saveInstructions() {
-  const text = document.getElementById('instructionEditor').value;
-  upsertStationNote(currentInstructionCat, text);
+  savedInstructions[currentInstructionCat] = document.getElementById('instructionEditor').value;
   toggleEditInstructions();
   renderInstructions();
 }
@@ -4444,7 +4409,7 @@ function useTemplate(type) {
     if(linkCheck) linkCheck.checked = false;
   } else if(type === 'thanks') {
     subj.value = `Ett stort TACK från oss – ${evName} 🙏❤️`;
-    body.value = `Hej!\n\n${evName} är avslutad och vi vill från hela vårt hjärta säga TACK!\n\nTack vare dig och alla andra fantastiska hjältar kunde vi genomföra ett riktigt bra event. Det hade aldrig gått utan er.\n\nVi hoppas att du hade en bra upplevelse och att vi ses igen nästa gång!\n\nMed varm och uppriktig tacksamhet,\n${clubN} & cupkommittén`;
+    body.value = `Hej!\n\n${evName} är avslutad och vi vill säga ett stort tack!\n\nTack vare dig och alla andra fantastiska anhöriga kunde vi genomföra ett riktigt bra event. Det hade aldrig gått utan er.\n\nVi hoppas att du hade riktigt fina dagar och att vi ses igen!\n\nVarma hälsningar,\n${clubN} & cupkommittén`;
     if(linkCheck) linkCheck.checked = false;
   }
 }
