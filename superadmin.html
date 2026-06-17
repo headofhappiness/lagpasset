@@ -288,15 +288,13 @@ async function saveEdit(){
     }).eq('id', id);
     if(error) throw error;
 
-    // Om e-post eller lösenord ändrats — uppdatera auth-användaren via create-admin-user
-    // som hanterar e-postbyte + club_users korrekt
-    if(password){
-      const { data: fnData, error: fnErr } = await sb.functions.invoke('create-admin-user', {
-        body: { clubName: name, contactName: contact||null, email, phone: phone||null, password, existingClubId: id }
-      });
-      if(fnErr) throw fnErr;
-      if(fnData && fnData.error) throw new Error(fnData.error);
-    }
+    // Uppdatera auth-användaren alltid (hanterar e-postbyte + lösenord + club_users)
+    // Lösenord är valfritt — skickas bara med om det fyllts i
+    const { data: fnData, error: fnErr } = await sb.functions.invoke('create-admin-user', {
+      body: { clubName: name, contactName: contact||null, email, phone: phone||null, password: password||null, existingClubId: id }
+    });
+    if(fnErr) throw fnErr;
+    if(fnData && fnData.error) throw new Error(fnData.error);
     closeEdit();
     await loadClubs();
   } catch(e){
