@@ -527,13 +527,13 @@ function showFeedbackPreview(){
 // ════════════════════════════════════════════════
 const DEMO = {
   club:{ name:"Åsa IF", logo_url:null, accent:"#1a8c3a" },
-  person:{ name:"Anna Mellbin", team:"FJ" }, // sätts via token i personlig länk
+  person:{ name:"Maria Lindgren", team:"FJ" }, // sätts via token i personlig länk
   event:{ name:"Åsacupen 2026", deadline:"2026-06-18", reminder_days:5, contact_email:"kansli@asaif.com" },
 
   // Kontaktpersoner (sätts av admin i Inställningar) — för frågor från medlemmar
   contacts:[
-    { area:"Schemaansvarig (frågor om pass & schema)", name:"Lena Sandberg", email:"lena.sandberg@asaif.com", phone:"070-123 45 67", isScheduler:true },
-    { area:"Allmänt om cupen", name:"Lena Sandberg",  email:"lena.sandberg@asaif.com", phone:"070-123 45 67" },
+    { area:"Schemaansvarig (frågor om pass & schema)", name:"Karin Svensson", email:"karin.svensson@asaif.com", phone:"070-123 45 67", isScheduler:true },
+    { area:"Allmänt om cupen", name:"Karin Svensson",  email:"karin.svensson@asaif.com", phone:"070-123 45 67" },
     { area:"Servering",        name:"Maria Lindqvist", email:"maria.l@asaif.com",       phone:"073-234 56 78" },
     { area:"Parkering",        name:"Johan Berg",      email:"johan.berg@asaif.com",    phone:"076-345 67 89" },
     { area:"Bygg & Riv",       name:"Anders Holm",     email:"anders.holm@asaif.com",   phone:"070-456 78 90" },
@@ -551,18 +551,18 @@ const DEMO = {
   teams:[
     { id:"FJ",  name:"FJ – Flickjuniorer", quota:23,
       children:[
-        {id:"c01",name:"Adelia Mellbin"},{id:"c02",name:"Agnes Marklinder"},
-        {id:"c03",name:"Alba Franzén"},{id:"c04",name:"Alice Todelius"},
-        {id:"c05",name:"Alicia Rastborg"},{id:"c06",name:"Alva Svarén"},
-        {id:"c07",name:"Bonnie Amnäs"},{id:"c08",name:"Elin Andersson"},
-        {id:"c09",name:"Fanny Lundqvist"},{id:"c10",name:"Hanalei Gagner"},
-        {id:"c11",name:"Ines Stengren"},{id:"c12",name:"Ingrid Johanson"},
-        {id:"c13",name:"Jenna Kullberg"},{id:"c14",name:"Jolien Marie Wiese"},
-        {id:"c15",name:"Linnea Tingstrand"},{id:"c16",name:"Linnéa Nothzén"},
-        {id:"c17",name:"Lovis Dahl"},{id:"c18",name:"Narges Sarwari"},
-        {id:"c19",name:"Nickolina Zackrisson Forsander"},{id:"c20",name:"Selma Jonsson Racic"},
-        {id:"c21",name:"Sofia Ekelund"},{id:"c22",name:"Stella Ullemark"},
-        {id:"c23",name:"Vilda Wallroth"},
+        {id:"c01",name:"Emma Lindgren"},{id:"c02",name:"Sara Bergström"},
+        {id:"c03",name:"Maja Karlsson"},{id:"c04",name:"Lova Eriksson"},
+        {id:"c05",name:"Frida Nilsson"},{id:"c06",name:"Tilda Johansson"},
+        {id:"c07",name:"Molly Larsson"},{id:"c08",name:"Klara Persson"},
+        {id:"c09",name:"Vera Svensson"},{id:"c10",name:"Nora Gustafsson"},
+        {id:"c11",name:"Stella Pettersson"},{id:"c12",name:"Elsa Andersson"},
+        {id:"c13",name:"Wilma Olsson"},{id:"c14",name:"Astrid Lindqvist"},
+        {id:"c15",name:"Isabelle Hansson"},{id:"c16",name:"Alva Björk"},
+        {id:"c17",name:"Ebba Holm"},{id:"c18",name:"Ida Strand"},
+        {id:"c19",name:"Julia Forsberg"},{id:"c20",name:"Lisa Engström"},
+        {id:"c21",name:"Ella Lundgren"},{id:"c22",name:"Matilda Ek"},
+        {id:"c23",name:"Agnes Blom"},
       ]
     },
     { id:"P13", name:"P13", quota:8,
@@ -584,9 +584,9 @@ const DEMO = {
 
   shifts:[
     // FJ – 6 pass att välja på
-    {id:"i01",title:"Infotält",            day:"Fredag",       time:"09:00–13:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:2, note:"Tag gärna cykel", location:"Infotältet vid huvudentrén", contactName:"Lena Sandberg", contactPhone:"070-123 45 67"},
-    {id:"i04",title:"Infotält",            day:"Lördag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:3, location:"Infotältet vid huvudentrén", contactName:"Lena Sandberg", contactPhone:"070-123 45 67"},
-    {id:"i08",title:"Infotält",            day:"Söndag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:1, location:"Infotältet vid huvudentrén", contactName:"Lena Sandberg", contactPhone:"070-123 45 67"},
+    {id:"i01",title:"Infotält",            day:"Fredag",       time:"09:00–13:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:2, note:"Tag gärna cykel", location:"Infotältet vid huvudentrén", contactName:"Karin Svensson", contactPhone:"070-123 45 67"},
+    {id:"i04",title:"Infotält",            day:"Lördag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:3, location:"Infotältet vid huvudentrén", contactName:"Karin Svensson", contactPhone:"070-123 45 67"},
+    {id:"i08",title:"Infotält",            day:"Söndag",       time:"07:00–11:00",  type:"infotalt", teams:["FJ","P15"],total:3, taken:1, location:"Infotältet vid huvudentrén", contactName:"Karin Svensson", contactPhone:"070-123 45 67"},
     {id:"s06",title:"Servering",           day:"Lördag",       time:"09:00–13:00",  type:"servering",teams:["FJ","P18","P13"],total:5,taken:4, location:"Kiosken vid plan 2", contactName:"Maria Lindqvist", contactPhone:"073-234 56 78"},
     {id:"s08",title:"Servering – matsal", day:"Lördag",       time:"16:30–20:30",  type:"servering",teams:["FJ","P18"],total:4,taken:2,note:"Matsalen", location:"Matsalen, Frillesåsskolan", contactName:"Maria Lindqvist", contactPhone:"073-234 56 78"},
     {id:"b01",title:"Bygg – tält & bord", day:"Torsdag",      time:"18:00 – klart",type:"bygg",     teams:["FJ","F15","F16","P13","P15","P18"],total:6,taken:2,note:"Ta med arbetshandskar", location:"Samling vid materialboden", contactName:"Anders Holm", contactPhone:"070-456 78 90"},
@@ -661,8 +661,8 @@ const bookedMap = {}; // childId → {shift, parentName, parentPhone}
 let LIVE = null; // { participant, event, shifts:[], bookings:[] }
 
 // Simulera lite förbokade barn för urgency-känsla
-bookedMap["c01"] = {shift:DEMO.shifts[5], parentName:"Anna Mellbin",   parentPhone:"070-111 22 33"};
-bookedMap["c04"] = {shift:DEMO.shifts[12],parentName:"Karin Todelius",  parentPhone:"070-444 55 66"};
+bookedMap["c01"] = {shift:DEMO.shifts[5], parentName:"Maria Lindgren",   parentPhone:"070-111 22 33"};
+bookedMap["c04"] = {shift:DEMO.shifts[12],parentName:"Eva Eriksson",  parentPhone:"070-444 55 66"};
 bookedMap["c07"] = {shift:DEMO.shifts[22],parentName:"Emil Amnäs",      parentPhone:"070-777 88 99"};
 bookedMap["c10"] = {shift:DEMO.shifts[16],parentName:"Sara Gagner",     parentPhone:"070-100 20 30"};
 bookedMap["c15"] = {shift:DEMO.shifts[1], parentName:"Peter Tingstrand",parentPhone:"070-200 30 40"};
