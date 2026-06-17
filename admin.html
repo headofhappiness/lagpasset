@@ -996,14 +996,20 @@ Hälsningar,
 
 <!-- ═══ IMPORTERA DELTAGARE ═══ -->
 <div class="modal-overlay" id="modalImport">
-  <div class="modal" style="max-width:620px;width:100%">
+  <div class="modal" style="max-width:640px;width:100%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
       <div class="modal-title" style="margin:0">📂 Importera deltagare</div>
       <button class="modal-close" onclick="closeModal('modalImport')">✕</button>
     </div>
 
-    <!-- Steg 1: Filval -->
+    <!-- Steg 1: Välj lag + ladda upp fil -->
     <div id="importStep1">
+      <div style="margin-bottom:1rem">
+        <label style="font-size:13px;font-weight:700;color:var(--dark);display:block;margin-bottom:.4rem">Vilket lag importerar du?</label>
+        <select id="importTeamSelect" style="width:100%;font-size:14px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit">
+          <option value="">— Välj lag —</option>
+        </select>
+      </div>
       <div id="importDropZone"
         style="border:2px dashed var(--border);border-radius:12px;padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)"
         onclick="document.getElementById('importFileInput').click()"
@@ -1012,7 +1018,7 @@ Hälsningar,
         ondrop="event.preventDefault();this.style.borderColor='var(--border)';this.style.background='var(--bg)';handleImportDrop(event)">
         <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
         <div style="font-weight:700;color:var(--dark);margin-bottom:.25rem">Dra hit en CSV-fil eller klicka</div>
-        <div style="font-size:13px;color:var(--muted)">Kolumner som stöds: Namn, E-post, Telefon, Lag, Barn</div>
+        <div style="font-size:13px;color:var(--muted)">Exportera ett lag i taget från ert medlemssystem</div>
         <input type="file" id="importFileInput" accept=".csv,.txt" style="display:none" onchange="handleImportFile(this.files[0])">
       </div>
       <div style="background:var(--amber-light);border:1px solid rgba(232,160,32,.35);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:#7a5a00;margin-top:.85rem;line-height:1.6">
@@ -1020,18 +1026,21 @@ Hälsningar,
       </div>
     </div>
 
-    <!-- Steg 2: Kolumnmappning + förhandsgranskning -->
+    <!-- Steg 2: Kolumnmappning -->
     <div id="importStep2" style="display:none">
-      <div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:.75rem">Matcha kolumner</div>
-      <div id="importMappingArea" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem"></div>
+      <div style="background:var(--green-light);border:1px solid rgba(26,140,58,.2);border-radius:8px;padding:.6rem 1rem;font-size:13px;color:var(--green);margin-bottom:.85rem">
+        Lag: <strong id="importTeamLabel"></strong> &nbsp;·&nbsp; <span id="importRowCount"></span> rader hittade
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:.5rem">Matcha kolumner</div>
+      <div id="importMappingArea" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem"></div>
       <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">Förhandsgranskning (5 första rader)</div>
-      <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border)">
-        <table style="width:100%;border-collapse:collapse;font-size:13px">
-          <thead id="importPreviewHead" style="background:var(--bg)"></thead>
+      <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border);max-height:180px;overflow-y:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead id="importPreviewHead" style="background:var(--bg);position:sticky;top:0"></thead>
           <tbody id="importPreviewBody"></tbody>
         </table>
       </div>
-      <div id="importStats" style="font-size:13px;color:var(--muted);margin-top:.75rem"></div>
+      <div id="importStats" style="font-size:13px;color:var(--muted);margin-top:.6rem"></div>
     </div>
 
     <!-- Steg 3: Resultat -->
@@ -4847,25 +4856,85 @@ function exportFeedback(){
 let _importData  = [];  // alla rader
 let _importCols  = {};  // { namn, epost, telefon, lag, barn } → kolumnindex
 
+// Import: kolumnsynonymer för auto-detektering
 const _COL_SYNONYMS = {
-  namn:     ['namn','name','fullständigt namn','full name','contact','kontakt','bemannarens namn'],
-  epost:    ['e-post','epost','email','mail','e_post','mejl'],
-  telefon:  ['telefon','tel','phone','mobil','mobile','mob','telefonnummer'],
-  lag:      ['lag','team','grupp','group','sektion','klass','avdelning'],
-  barn:     ['barn','child','barnets namn','spelares namn','spelare','ungdom','kid'],
+  fornamn:    ['förnamn','fornamn','firstname','first name','first_name','förnamn '],
+  efternamn:  ['efternamn','lastname','last name','last_name','surname','efternamn '],
+  namn:       ['namn','name','fullständigt namn','full name','bemannarens namn'],
+  tel1:       ['mobiltelefon','mobil','mobile','cellphone'],
+  tel2:       ['telefon hem','telephone','telefon','tel','phone'],
+  tel3:       ['telefon jobb','work phone','job phone'],
+  epost1:     ['e-post','epost','email','mail','mejl'],
+  malsman1:   ['målsman 1','målsman1','malsman 1','vårdnadshavare 1','förälder 1','guardian 1'],
+  malsman1ep: [],  // detekteras dynamiskt
+  malsman1tel:[],  // detekteras dynamiskt
+  malsman2:   ['målsman 2','målsman2','malsman 2','vårdnadshavare 2','förälder 2','guardian 2'],
+  malsman2ep: [],
+  malsman2tel:[],
 };
 
 function _detectCols(headers) {
   const map = {};
+  // Spåra dubbletter (e-post, telefon kan finnas flera gånger)
+  const byLc = {};
+  headers.forEach((h, i) => {
+    const lc = String(h).toLowerCase().trim();
+    if (!byLc[lc]) byLc[lc] = [];
+    byLc[lc].push(i);
+  });
+
   headers.forEach((h, i) => {
     const lc = String(h).toLowerCase().trim();
     for (const [field, synonyms] of Object.entries(_COL_SYNONYMS)) {
-      if (!map[field] && synonyms.some(s => lc === s || lc.startsWith(s))) {
+      if (!map[field] && synonyms.length && synonyms.some(s => lc === s || lc.startsWith(s))) {
         map[field] = i;
       }
     }
   });
+
+  // E-post: första = barnets, andra = målsman 1, tredje = målsman 2
+  const epIdxs = (byLc['e-post'] || byLc['epost'] || byLc['email'] || []);
+  if (epIdxs[0] !== undefined && !map.epost1) map.epost1 = epIdxs[0];
+  if (epIdxs[1] !== undefined) map.malsman1ep = epIdxs[1];
+  if (epIdxs[2] !== undefined) map.malsman2ep = epIdxs[2];
+
+  // Telefon för målsmän: kolumn direkt efter målsman-namn
+  if (map.malsman1 !== undefined && !map.malsman1tel) {
+    // Hitta "Telefon"-kolumn efter målsman1
+    for (let i = map.malsman1 + 1; i < Math.min(map.malsman1 + 4, headers.length); i++) {
+      const lc = headers[i].toLowerCase().trim();
+      if (lc.includes('telefon') || lc.includes('tel') || lc.includes('phone')) {
+        map.malsman1tel = i; break;
+      }
+    }
+  }
+  if (map.malsman2 !== undefined && !map.malsman2tel) {
+    for (let i = map.malsman2 + 1; i < Math.min(map.malsman2 + 4, headers.length); i++) {
+      const lc = headers[i].toLowerCase().trim();
+      if (lc.includes('telefon') || lc.includes('tel') || lc.includes('phone')) {
+        map.malsman2tel = i; break;
+      }
+    }
+  }
   return map;
+}
+
+function _firstVal(row, ...idxs) {
+  for (const i of idxs) {
+    if (i !== undefined) {
+      const v = String(row[i] || '').trim();
+      if (v) return v;
+    }
+  }
+  return '';
+}
+
+function _populateImportTeams() {
+  const sel = document.getElementById('importTeamSelect');
+  if (!sel) return;
+  const teams = [...new Set((DB.shifts||[]).map(s=>s.team).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">— Välj lag —</option>' +
+    teams.map(t => `<option value="${t}">${t}</option>`).join('');
 }
 
 function handleImportDrop(e) {
@@ -4892,16 +4961,16 @@ function handleImportFile(file) {
       const headers = rows[0].map(h => String(h).trim());
       _importData = rows.slice(1).filter(r => r.some(c => String(c).trim()));
       _importCols = _detectCols(headers);
+      _importHeaders = headers;
       renderImportMapping(headers);
       renderImportPreview(headers, _importData.slice(0, 5));
+      const team = document.getElementById('importTeamSelect').value;
+      document.getElementById('importTeamLabel').textContent = team || '(ej valt)';
+      document.getElementById('importRowCount').textContent = _importData.length;
       document.getElementById('importStep1').style.display = 'none';
       document.getElementById('importStep2').style.display = 'block';
       document.getElementById('importRunBtn').style.display = 'inline-flex';
-      document.getElementById('importStats').textContent =
-        _importData.length + ' rader hittade. ' +
-        (!_importCols.namn ? '⚠️ Kolumn för namn saknas – välj nedan.' :
-         !_importCols.epost ? '⚠️ Kolumn för e-post saknas – välj nedan.' :
-         '✓ Namn och e-post identifierade.');
+      document.getElementById('importStats').textContent = 'Kontrollera att kolumnerna stämmer nedan.';
     },
     error: function(err) { showToast('Kunde inte läsa filen: ' + err.message, 'error'); }
   });
@@ -4909,22 +4978,33 @@ function handleImportFile(file) {
 
 function renderImportMapping(headers) {
   const area = document.getElementById('importMappingArea');
+  const noOpt = '<option value="">— Används ej —</option>';
+  const opts = (sel) => noOpt + headers.map((h, i) =>
+    `<option value="${i}" ${sel===i?'selected':''}>${h||'(kolumn '+(i+1)+')'}</option>`
+  ).join('');
+
   const fields = [
-    { key: 'namn',    label: 'Namn *',     required: true  },
-    { key: 'epost',   label: 'E-post *',   required: true  },
-    { key: 'telefon', label: 'Telefon',    required: false },
-    { key: 'lag',     label: 'Lag/grupp',  required: false },
-    { key: 'barn',    label: 'Barnets namn', required: false },
+    { key: 'fornamn',    label: 'Förnamn' },
+    { key: 'efternamn',  label: 'Efternamn' },
+    { key: 'namn',       label: 'Namn (ett fält)' },
+    { key: 'tel1',       label: 'Telefon 1 (mobil)' },
+    { key: 'tel2',       label: 'Telefon 2 (hem)' },
+    { key: 'tel3',       label: 'Telefon 3 (jobb)' },
+    { key: 'epost1',     label: 'E-post (barnets)' },
+    { key: 'malsman1',   label: 'Målsman 1 namn' },
+    { key: 'malsman1ep', label: 'Målsman 1 e-post' },
+    { key: 'malsman1tel',label: 'Målsman 1 telefon' },
+    { key: 'malsman2',   label: 'Målsman 2 namn' },
+    { key: 'malsman2ep', label: 'Målsman 2 e-post' },
+    { key: 'malsman2tel',label: 'Målsman 2 telefon' },
   ];
+
   area.innerHTML = fields.map(f => {
     const val = _importCols[f.key] !== undefined ? _importCols[f.key] : '';
-    const opts = ['<option value="">— Välj kolumn —</option>',
-      ...headers.map((h, i) => `<option value="${i}" ${val === i ? 'selected' : ''}>${h || '(kolumn ' + (i+1) + ')'}</option>`)
-    ].join('');
     return `<div>
       <label style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:3px;display:block">${f.label}</label>
-      <select onchange="_importCols['${f.key}']=this.value===''?undefined:parseInt(this.value)" style="width:100%;font-size:13px">
-        ${opts}
+      <select onchange="_importCols['${f.key}']=this.value===''?undefined:parseInt(this.value)" style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:6px;padding:4px 6px">
+        ${opts(val === '' ? undefined : val)}
       </select>
     </div>`;
   }).join('');
@@ -4939,13 +5019,15 @@ function renderImportPreview(headers, rows) {
   ).join('');
 }
 
+let _importData = [], _importCols = {}, _importHeaders = [];
 function _genToken() {
   return 'tok-' + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8);
 }
 
 async function runImport() {
-  if (_importCols.namn === undefined || _importCols.epost === undefined) {
-    showToast('Välj minst kolumnerna för Namn och E-post.', 'error');
+  const selectedTeam = document.getElementById('importTeamSelect').value;
+  if (!selectedTeam) {
+    showToast('Välj ett lag innan du importerar.', 'error');
     return;
   }
   const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
@@ -4954,16 +5036,31 @@ async function runImport() {
 
   // Bygg rader
   const rows = _importData
-    .map(r => ({
-      event_id:   EVENT_ID,
-      name:       String(r[_importCols.namn] || '').trim(),
-      email:      String(r[_importCols.epost] || '').trim().toLowerCase(),
-      phone:      _importCols.telefon !== undefined ? (String(r[_importCols.telefon] || '').trim() || null) : null,
-      team:       _importCols.lag     !== undefined ? (String(r[_importCols.lag]     || '').trim() || null) : null,
-      child_name: _importCols.barn    !== undefined ? (String(r[_importCols.barn]    || '').trim() || null) : null,
-      token:      _genToken(),
-    }))
-    .filter(r => r.name && r.email && r.email.includes('@'));
+    .map(r => {
+      const c = _importCols;
+      // Namn: förnamn+efternamn eller ett namnfält
+      const fn = c.fornamn   !== undefined ? String(r[c.fornamn]  ||'').trim() : '';
+      const en = c.efternamn !== undefined ? String(r[c.efternamn]||'').trim() : '';
+      const nn = c.namn      !== undefined ? String(r[c.namn]     ||'').trim() : '';
+      const name = (fn && en) ? fn + ' ' + en : (nn || fn || en);
+
+      // Telefon: leta i flera kolumner, ta första icke-tomma
+      const phone = _firstVal(r, c.tel1, c.tel2, c.tel3, c.malsman1tel, c.malsman2tel) || null;
+
+      // E-post: barnets egna, annars målsman 1, annars målsman 2
+      const rawEmail = _firstVal(r, c.epost1, c.malsman1ep, c.malsman2ep);
+      const email = rawEmail ? rawEmail.toLowerCase() : null;
+
+      // Målsman
+      const parentName  = _firstVal(r, c.malsman1, c.malsman2) || null;
+      const parentPhone = _firstVal(r, c.malsman1tel, c.malsman2tel) || null;
+      const parentEmail = _firstVal(r, c.malsman1ep, c.malsman2ep) || null;
+
+      return { event_id: EVENT_ID, name, email, phone, team: selectedTeam,
+               parent_name: parentName, parent_phone: parentPhone, parent_email: parentEmail,
+               token: _genToken() };
+    })
+    .filter(r => r.name);
 
   const invalid = _importData.length - rows.length;
 
@@ -4984,10 +5081,15 @@ async function runImport() {
   // Riktig import: kolla dubbletter via e-post
   try {
     const existingEmails = new Set(
-      (DB.participants || []).map(p => (p.email||'').toLowerCase())
+      (DB.participants || []).map(p => (p.email||'').toLowerCase()).filter(Boolean)
     );
-    const newRows    = rows.filter(r => !existingEmails.has(r.email));
-    const skipped    = rows.length - newRows.length;
+    const existingNames = new Set(
+      (DB.participants || []).map(p => (p.name||'').toLowerCase())
+    );
+    const newRows = rows.filter(r =>
+      (!r.email || !existingEmails.has(r.email)) && !existingNames.has((r.name||'').toLowerCase())
+    );
+    const skipped = rows.length - newRows.length;
 
     if (!newRows.length) {
       showImportResult('ℹ️', 'Inga nya deltagare', 'Alla ' + rows.length + ' rader finns redan i systemet (samma e-post).', []);
@@ -5035,8 +5137,8 @@ function showImportResult(icon, title, sub) {
 }
 
 function openImportModal() {
-  // Reset state
-  _importData = []; _importCols = {};
+  _importData = []; _importCols = {}; _importHeaders = [];
+  _populateImportTeams();
   document.getElementById('importStep1').style.display = 'block';
   document.getElementById('importStep2').style.display = 'none';
   document.getElementById('importStep3').style.display = 'none';
