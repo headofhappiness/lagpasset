@@ -56,7 +56,10 @@ input:focus{outline:none;border-color:var(--green)}
     <label for="email">E-postadress</label>
     <input type="email" id="email" placeholder="namn@forening.se" autocomplete="email">
     <label for="password">Lösenord</label>
-    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') login()">
+    <div style="position:relative">
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') login()" style="padding-right:44px">
+      <button type="button" onclick="togglePassVis()" id="passToggle" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0;line-height:1">👁</button>
+    </div>
     <button class="btn" id="loginBtn" onclick="login()">Logga in</button>
     <div id="msg" class="msg" style="display:none"></div>
     <div class="forgot"><a onclick="forgotPassword()">Glömt lösenordet?</a></div>
@@ -141,6 +144,13 @@ async function routeUser(user){
     show('loginForm');
     setMsg('Något gick fel. Försök igen.', 'err');
   }
+}
+
+function togglePassVis(){
+  const inp = document.getElementById('password');
+  const btn = document.getElementById('passToggle');
+  if(inp.type === 'password'){ inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
 }
 
 async function login(){
