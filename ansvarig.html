@@ -306,7 +306,10 @@ function render(){
   sel.innerHTML = SHIFTS.map(s => '<option value="'+s.id+'">'+s.title+' · '+fmtDay(s.date)+' '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5)+'</option>').join('') || '<option>Inga pass</option>';
 }
 
-async function mailStation(stName){
+let _mailStationName = null;
+let _mailStationRecipients = [];
+
+function mailStation(stName){
   const stShifts = SHIFTS.filter(s => (s.title||'').toLowerCase() === stName.toLowerCase());
   const recipients = [];
   stShifts.forEach(s => s._crew.forEach(p => {
@@ -314,20 +317,54 @@ async function mailStation(stName){
       recipients.push({ name: p.name, email: p.email });
   }));
   if(!recipients.length){ alert('Inga e-postadresser hittades för ' + stName + '.'); return; }
-  const subject = prompt('Ämnesrad för mejlet till ' + stName + ':',  'Information om ditt pass på ' + stName + ' – ' + ((EVENT && EVENT.name) || 'eventet'));
-  if(!subject) return;
-  const body = prompt('Meddelande:');
-  if(!body) return;
+  _mailStationName = stName;
+  _mailStationRecipients = recipients;
+  document.getElementById('mailStationTitle').textContent = 'Mejla ' + stName + '-teamet';
+  document.getElementById('mailStationSub').textContent = recipients.length + ' mottagare med e-post.';
+  document.getElementById('mailStationSubject').value = 'Information om ditt pass på ' + stName + ' – ' + ((EVENT && EVENT.name) || 'eventet');
+  document.getElementById('mailStationBody').value = '';
+  document.getElementById('mailStationMsg').style.display = 'none';
+  document.getElementById('mailStationBtn').disabled = false;
+  document.getElementById('mailStationBtn').textContent = 'Skicka mejl';
+  document.getElementById('mailStationModal').style.display = 'flex';
+}
+
+function closeMailStationModal(){
+  document.getElementById('mailStationModal').style.display = 'none';
+}
+
+async function submitMailStation(){
+  const subject = document.getElementById('mailStationSubject').value.trim();
+  const body = document.getElementById('mailStationBody').value.trim();
+  const msg = document.getElementById('mailStationMsg');
+  const btn = document.getElementById('mailStationBtn');
+  if(!subject || !body){
+    msg.style.cssText='display:block;background:#fef3f2;color:#c0392b;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem';
+    msg.textContent='Fyll i både ämne och meddelande.'; return;
+  }
+  btn.disabled=true; btn.textContent='Skickar...';
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/send-links', {
       method:'POST',
       headers:{ Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json' },
-      body: JSON.stringify({ mode:'message', includeButton:false, subject, recipients, message:body, eventName:(EVENT&&EVENT.name)||'eventet' })
+      body: JSON.stringify({ mode:'message', includeButton:false, subject, recipients:_mailStationRecipients, message:body, eventName:(EVENT&&EVENT.name)||'eventet', clubName:(window._CLUB&&window._CLUB.name)||((EVENT&&EVENT.club_name)||'Föreningen') })
     });
     const data = await res.json();
-    if(res.ok) alert('✓ ' + (data.sent||recipients.length) + ' mejl skickade till ' + stName + '-teamet!');
-    else alert('Fel: ' + (data.error || 'kunde inte skicka'));
-  } catch(e){ alert('Kunde inte skicka mejlen.'); }
+    if(res.ok){
+      msg.style.cssText='display:block;background:#f0fdf4;color:#1a8c3a;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem';
+      msg.textContent='✓ '+(data.sent||_mailStationRecipients.length)+' mejl skickade!';
+      btn.textContent='Skickat ✓';
+      setTimeout(()=>closeMailStationModal(), 1500);
+    } else {
+      msg.style.cssText='display:block;background:#fef3f2;color:#c0392b;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem';
+      msg.textContent='Fel: '+(data.error||'kunde inte skicka');
+      btn.disabled=false; btn.textContent='Skicka mejl';
+    }
+  } catch(e){
+    msg.style.cssText='display:block;background:#fef3f2;color:#c0392b;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem';
+    msg.textContent='Kunde inte skicka mejlen.';
+    btn.disabled=false; btn.textContent='Skicka mejl';
+  }
 }
 
 function togglePanel(id){
@@ -446,5 +483,26 @@ async function sendResourceRequest(){
 
 load();
 </script>
+  <!-- MEJLA STATION MODAL -->
+  <div id="mailStationModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:1rem">
+    <div style="background:#fff;border-radius:16px;padding:1.5rem;max-width:460px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.15)">
+      <div style="font-size:17px;font-weight:700;color:var(--dark);margin-bottom:.25rem" id="mailStationTitle">Mejla teamet</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:1rem" id="mailStationSub"></div>
+      <div class="form-group">
+        <label class="form-label">Ämnesrad</label>
+        <input type="text" id="mailStationSubject" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;box-sizing:border-box">
+      </div>
+      <div class="form-group" style="margin-top:.75rem">
+        <label class="form-label">Meddelande</label>
+        <textarea id="mailStationBody" rows="5" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <div id="mailStationMsg" style="display:none;font-size:13px;padding:.5rem .75rem;border-radius:8px;margin-top:.5rem"></div>
+      <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1rem">
+        <button class="btn btn-ghost btn-sm" onclick="closeMailStationModal()">Avbryt</button>
+        <button class="btn btn-primary btn-sm" id="mailStationBtn" onclick="submitMailStation()">Skicka mejl</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
