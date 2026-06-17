@@ -1179,13 +1179,42 @@ function closeSickReport(){
   const m = document.getElementById('sickModal');
   if(m) m.style.display = 'none';
 }
-function submitSickReport(){
-  // I LIVE-läge: ta bort bokningen från databasen
+async function submitSickReport(){
+  // I LIVE-läge: ta bort bokningen och skicka mejl
   if(LIVE){
     const myBooking = LIVE.bookings.find(b => b.participant_id === LIVE.participant.id);
+    const myShift = myBooking ? LIVE.shifts.find(s => s.id === myBooking.shift_id) : null;
+    const reason = (document.getElementById('sickReason') && document.getElementById('sickReason').value.trim()) || '';
     if(myBooking){
-      sbDelete('bookings', '?id=eq.' + myBooking.id).catch(e => console.error('Kunde inte ta bort bokning:', e));
+      await sbDelete('bookings', '?id=eq.' + myBooking.id).catch(e => console.error('Kunde inte ta bort bokning:', e));
       LIVE.bookings = LIVE.bookings.filter(b => b.id !== myBooking.id);
+    }
+    // Skicka mejl till admin och stationsansvarig
+    if(myShift){
+      const personName = LIVE.participant.name || 'En deltagare';
+      const shiftLabel = myShift.title + ' · ' + (myShift.date||'') + ' ' + (myShift.time_start||'').slice(0,5) + '–' + (myShift.time_end||'').slice(0,5);
+      const msg = personName + ' har anmält förhinder för passet:\n' + shiftLabel + (reason ? '\n\nAnledning: ' + reason : '') + '\n\nPasset är nu ledigt igen.';
+      const evName = (LIVE.event && LIVE.event.name) || 'eventet';
+      const clubName = (window._CLUB && window._CLUB.name) || ((LIVE.event && LIVE.event.club_name) || 'Föreningen');
+      // Hitta stationsansvarig
+      const stationContacts = (LIVE.contacts||[]).filter(c => c.stations && c.stations.some(st => st.toLowerCase() === (myShift.title||'').toLowerCase()));
+      const recipients = [];
+      // Admin
+      if(LIVE.event && LIVE.event.club_id){
+        try {
+          const clubs = await sbFetch('clubs', '?id=eq.' + LIVE.event.club_id + '&select=contact_email,name');
+          if(clubs.length && clubs[0].contact_email) recipients.push({ name:'Admin', email: clubs[0].contact_email });
+        } catch(e){}
+      }
+      // Stationsansvarig
+      stationContacts.forEach(c => { if(c.email) recipients.push({ name: c.name, email: c.email }); });
+      if(recipients.length){
+        fetch(SUPABASE_URL + '/functions/v1/send-links', {
+          method:'POST',
+          headers:{ Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json' },
+          body: JSON.stringify({ mode:'message', includeButton:false, subject:'🤒 Förhinder: ' + shiftLabel, recipients, message: msg, eventName: evName, clubName })
+        }).catch(e => console.error('Sjukanmälan mejl fel:', e));
+      }
     }
   }
   closeSickReport();
