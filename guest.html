@@ -1356,6 +1356,18 @@ function renderLiveView(){
     }
   }
   document.getElementById('loadingState').style.display='none';
+  // Om länken har en action-hash och personen är bokad — visa bekräftelsesidan direkt
+  const _actionHash = ['#sick','#transfer','#change'].includes(window.location.hash);
+  if(_actionHash && myExisting){
+    const bookedShift = LIVE.shifts.find(s => s.id === myExisting.shift_id);
+    if(bookedShift){
+      currentShift = bookedShift;
+      const name = myExisting.display_name || p.name || '';
+      const phone = myExisting.display_phone || p.phone || '';
+      showLiveConfirmation(name, phone);
+      return;
+    }
+  }
   document.getElementById('mainContent').style.display='block';
   setStep(1);
 }
