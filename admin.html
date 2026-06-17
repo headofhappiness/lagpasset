@@ -3228,7 +3228,7 @@ async function mailAnsvarigLink(contactId){
       body: JSON.stringify({
         mode:'message',
         includeButton:false,
-        subject: 'Din länk som ' + c.area + ' – ' + evName,
+        subject: 'Din länk som ' + c.area + (c.stations && c.stations.length ? ' (' + c.stations.join(', ') + ')' : '') + ' – ' + evName,
         recipients: [{ name:c.name, email:c.email }],
         message: 'Hej ' + c.name + '!\n\nHär är din personliga länk för att hantera ' + c.area + ' under ' + evName + '. Du ser din besättning, kan dela info till dem och be om en extra resurs om ni blir för få. Ingen inloggning behövs – spara länken.\n\n' + url,
         eventName: evName,

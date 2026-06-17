@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Din station – Lagpasset</title>
 <link rel="icon" type="image/png" href="favicon.png">
-<meta name="description" content="Hantera din station. Se besättningen, dela info och be om resurs.">
+<meta name="description" content="Hantera din station. Se teamet, dela info och be om resurs.">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -117,9 +117,9 @@ input,select,textarea{font-size:16px !important}
     <!-- ÅTGÄRDER -->
     <div class="card">
       <div class="card-title">✉️ Hör av dig</div>
-      <div class="card-sub">Skicka ett meddelande till hela din besättning, eller be huvudansvarig om en extra resurs om ni blir för få.</div>
+      <div class="card-sub">Skicka ett meddelande till hela din teamet, eller be huvudansvarig om en extra resurs om ni blir för få.</div>
       <div class="actions">
-        <button class="btn btn-primary btn-sm" onclick="togglePanel('mailPanel')">✉️ Mejla besättningen</button>
+        <button class="btn btn-primary btn-sm" onclick="togglePanel('mailPanel')">✉️ Mejla teamet</button>
         <button class="btn btn-ghost btn-sm" onclick="togglePanel('resourcePanel')">🙋 Be om resurs</button>
       </div>
 
@@ -129,9 +129,9 @@ input,select,textarea{font-size:16px !important}
         <input id="mailSubject" type="text" placeholder="Ex. Inför ert pass på Servering">
         <div style="margin-top:.7rem"></div>
         <label>Meddelande</label>
-        <textarea id="mailBody" rows="4" placeholder="Skriv ditt meddelande till besättningen..."></textarea>
+        <textarea id="mailBody" rows="4" placeholder="Skriv ditt meddelande till teamet..."></textarea>
         <label style="margin-top:.7rem;display:flex;align-items:center;gap:.5rem;font-weight:500;cursor:pointer"><input type="checkbox" id="mailInclInfo" style="width:auto" checked> Inkludera stationsinformationen ovan</label>
-        <div style="margin-top:.8rem"><button class="btn btn-primary btn-block" onclick="sendCrewMail()" id="mailBtn">Skicka till <span id="mailCount">0</span> i besättningen</button></div>
+        <div style="margin-top:.8rem"><button class="btn btn-primary btn-block" onclick="sendCrewMail()" id="mailBtn">Skicka till <span id="mailCount">0</span> i teamet</button></div>
         <div id="mailMsg" class="msg" style="display:none"></div>
       </div>
 
@@ -228,7 +228,7 @@ async function load(){
       if(pids.length) participants = await sbFetch('participants', '?id=in.(' + pids.join(',') + ')');
     }
 
-    // Bygg besättning per pass
+    // Bygg teamet per pass
     CREW = [];
     SHIFTS.forEach(s => {
       s._crew = bookings.filter(b => b.shift_id === s.id).map(b => {
@@ -298,7 +298,10 @@ function render(){
       const mailBtn = stCrew.length > 0
         ? '<button onclick="mailStation(\''+stName+'\')" style="margin-top:.75rem;background:var(--green);color:#fff;border:none;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer">📧 Mejla '+stName+'-teamet ('+stCrew.length+' med e-post)</button>'
         : '';
-      return '<div style="margin-bottom:1.5rem"><div style="font-size:16px;font-weight:700;color:var(--dark);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:2px solid var(--green)">'+stName+'</div>' + passList + mailBtn + '</div>';
+      const bgColor = stationsList.indexOf(stName) % 2 === 0 ? '#fff' : '#f4f9f4';
+      return '<div style="margin-bottom:2rem;background:'+bgColor+';border:1.5px solid var(--border);border-radius:14px;padding:1.25rem">' +
+        '<div style="font-size:17px;font-weight:800;color:var(--dark);margin-bottom:1rem;padding-bottom:.6rem;border-bottom:3px solid var(--green)">📍 '+stName+'</div>' +
+        passList + mailBtn + '</div>';
     }).join('');
   }
 
@@ -309,13 +312,28 @@ function render(){
   sel.innerHTML = SHIFTS.map(s => '<option value="'+s.id+'">'+s.title+' · '+fmtDay(s.date)+' '+s.time_start.slice(0,5)+'–'+s.time_end.slice(0,5)+'</option>').join('') || '<option>Inga pass</option>';
 }
 
-function mailStation(stName){
-  // Bygg mailto med alla med e-post på denna station
+async function mailStation(stName){
   const stShifts = SHIFTS.filter(s => (s.title||'').toLowerCase() === stName.toLowerCase());
-  const emails = [];
-  stShifts.forEach(s => s._crew.forEach(p => { if(p.email && !emails.includes(p.email)) emails.push(p.email); }));
-  if(!emails.length){ alert('Inga e-postadresser hittades för ' + stName + '.'); return; }
-  window.location.href = 'mailto:' + emails.join(',') + '?subject=Information om ' + stName + ' – ' + ((EVENT && EVENT.name) || 'eventet');
+  const recipients = [];
+  stShifts.forEach(s => s._crew.forEach(p => {
+    if(p.email && !recipients.find(r => r.email === p.email))
+      recipients.push({ name: p.name, email: p.email });
+  }));
+  if(!recipients.length){ alert('Inga e-postadresser hittades för ' + stName + '.'); return; }
+  const subject = prompt('Ämnesrad för mejlet till ' + stName + ':',  'Information om ditt pass på ' + stName + ' – ' + ((EVENT && EVENT.name) || 'eventet'));
+  if(!subject) return;
+  const body = prompt('Meddelande:');
+  if(!body) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-links', {
+      method:'POST',
+      headers:{ Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({ mode:'message', includeButton:false, subject, recipients, message:body, eventName:(EVENT&&EVENT.name)||'eventet' })
+    });
+    const data = await res.json();
+    if(res.ok) alert('✓ ' + (data.sent||recipients.length) + ' mejl skickade till ' + stName + '-teamet!');
+    else alert('Fel: ' + (data.error || 'kunde inte skicka'));
+  } catch(e){ alert('Kunde inte skicka mejlen.'); }
 }
 
 function togglePanel(id){
@@ -358,10 +376,10 @@ async function sendCrewMail(){
     const info = document.getElementById('stationInfo').value.trim();
     if(info) body += '\n\n— Information om stationen —\n' + info;
   }
-  if(!CREW.length){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Det finns ingen i besättningen med e-post att skicka till.'; return; }
+  if(!CREW.length){ msg.className='msg err'; msg.style.display='block'; msg.textContent='Det finns ingen i teamet med e-post att skicka till.'; return; }
   const btn = document.getElementById('mailBtn'); btn.disabled=true; btn.textContent='Skickar...';
   if(IS_DEMO){
-    setTimeout(()=>{ msg.className='msg ok'; msg.style.display='block'; msg.textContent='Skulle skickat till '+CREW.length+' personer (skickas inte i demo).'; btn.disabled=false; btn.innerHTML='Skicka till <span id="mailCount">'+CREW.length+'</span> i besättningen'; }, 800);
+    setTimeout(()=>{ msg.className='msg ok'; msg.style.display='block'; msg.textContent='Skulle skickat till '+CREW.length+' personer (skickas inte i demo).'; btn.disabled=false; btn.innerHTML='Skicka till <span id="mailCount">'+CREW.length+'</span> i teamet'; }, 800);
     return;
   }
   try {
@@ -383,7 +401,7 @@ async function sendCrewMail(){
   } catch(e){
     msg.className='msg err'; msg.style.display='block'; msg.textContent='Kunde inte skicka mejlen.';
   }
-  btn.disabled=false; btn.innerHTML='Skicka till <span id="mailCount">'+CREW.length+'</span> i besättningen';
+  btn.disabled=false; btn.innerHTML='Skicka till <span id="mailCount">'+CREW.length+'</span> i teamet';
 }
 
 async function sendResourceRequest(){
