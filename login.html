@@ -206,6 +206,11 @@ async function updatePassword(){
 // Kolla URL:en DIREKT — innan Supabase hinner göra något
 // Supabase skickar SIGNED_IN innan PASSWORD_RECOVERY, så vi måste
 // fånga recovery-länken via hash redan här
+// Hantera ?logout=1 — logga ut och visa loginformuläret direkt
+if(new URLSearchParams(window.location.search).get('logout') === '1'){
+  sb.auth.signOut().then(() => show('loginForm'));
+} else {
+
 const hashParams = new URLSearchParams(window.location.hash.slice(1));
 const isRecoveryLink = hashParams.get('type') === 'recovery';
 
@@ -233,6 +238,7 @@ if(!isRecoveryLink){
     }
   })();
 }
+} // end logout else
 </script>
 </body>
 </html>
