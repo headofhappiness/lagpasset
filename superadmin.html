@@ -267,6 +267,7 @@ function editClub(id, name, contact, email, phone){
 }
 function closeEdit(){
   document.getElementById('editModal').style.display = 'none';
+  document.getElementById('editPassword').value = '';
 }
 async function saveEdit(){
   const id = document.getElementById('editId').value;
@@ -274,17 +275,30 @@ async function saveEdit(){
   const contact = document.getElementById('editContact').value.trim();
   const email = document.getElementById('editEmail').value.trim().toLowerCase();
   const phone = document.getElementById('editPhone').value.trim();
+  const password = document.getElementById('editPassword').value;
   const msg = document.getElementById('editMsg');
   const btn = document.getElementById('editSaveBtn');
   if(!name || !email){ msg.style.display='block'; msg.style.color='#c0392b'; msg.textContent='Namn och e-post krävs.'; return; }
+  if(password && password.length < 8){ msg.style.display='block'; msg.style.color='#c0392b'; msg.textContent='Lösenordet måste vara minst 8 tecken.'; return; }
   btn.disabled=true; btn.textContent='Sparar...';
   try {
     const { error } = await sb.from('clubs').update({
       name, contact_name: contact||null, contact_email: email, contact_phone: phone||null
     }).eq('id', id);
     if(error) throw error;
+    if(password){
+      // Hitta user_id för denna förening
+      const link = _clubUserLinks.find(l => l.club_id === id);
+      if(!link) throw new Error('Hittade ingen admin-användare för föreningen.');
+      const { data: pwData, error: pwErr } = await sb.functions.invoke('update-admin-password', {
+        body: { userId: link.user_id, password }
+      });
+      if(pwErr) throw pwErr;
+      if(pwData && pwData.error) throw new Error(pwData.error);
+    }
     closeEdit();
     await loadClubs();
+    if(password) showMsg('✓ Förening och lösenord uppdaterade.');
   } catch(e){
     msg.style.display='block'; msg.style.color='#c0392b';
     msg.textContent = 'Kunde inte spara: ' + (e.message||'okänt fel');
@@ -292,7 +306,7 @@ async function saveEdit(){
   btn.disabled=false; btn.textContent='Spara →';
 }
 
-function buildWelcomeHtml(adminName, clubName, email){
+function buildWelcomeHtml(adminName, clubName, email, password){
   var green='#1a8c3a',dark='#111c13',txt='#1e2e20',muted='#4a6a4e',bg='#faf8f4',bdr='#c4d8c4',gl='#e8f7ec';
   var steps=[
     ['1','Boka ert uppstartsmöte (30 min)','Välj en tid som passar med knappen nedan. Vi ses på Google Meet.'],
@@ -315,7 +329,7 @@ function buildWelcomeHtml(adminName, clubName, email){
     '<div style="padding:1.5rem 1.75rem 1rem;text-align:center">'+
       '<h1 style="font-size:1.35rem;font-weight:800;color:'+dark+';margin:0 0 .2rem">'+clubName+' är redo!</h1>'+
       '<div style="width:28px;height:3px;background:'+green+';margin:.5rem auto 1rem;border-radius:2px"></div>'+
-      '<p style="font-size:14.5px;line-height:1.8;text-align:left;margin:0">Hej '+(adminName||'')+'!<br><br>Ni är nu upplagda i LagPasset. Logga in med <strong>'+email+'</strong> och kom igång.</p>'+
+      '<p style="font-size:14.5px;line-height:1.8;text-align:left;margin:0">Hej '+(adminName||'')+'!<br><br>Ni är nu upplagda i LagPasset. Logga in med:<br><strong>E-post:</strong> '+email+'<br><strong>Lösenord:</strong> '+(password||'<em style="color:#aaa">[lösenord ej angivet]</em>')+'</p>'+
     '</div>'+
     '<div style="margin:0 1.75rem 1.25rem;background:'+bg+';border:1px solid '+bdr+';border-radius:10px;padding:1rem">'+
       '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:'+muted+';margin-bottom:.75rem">Kom igång</div>'+
@@ -342,7 +356,8 @@ function previewWelcome(clubId, clubName, contactName, email){
 function refreshPreview(){
   var name = document.getElementById('wContactName').value;
   var email = document.getElementById('wEmail').value;
-  document.getElementById('welcomePreviewFrame').srcdoc = buildWelcomeHtml(name, _wClubName||'', email);
+  var password = document.getElementById('wPassword').value;
+  document.getElementById('welcomePreviewFrame').srcdoc = buildWelcomeHtml(name, _wClubName||'', email, password);
 }
 function closeWelcome(){
   document.getElementById('welcomeModal').style.display = 'none';
@@ -350,20 +365,26 @@ function closeWelcome(){
   btn.disabled = false;
   btn.textContent = '📧 Skicka välkomstmejl';
   document.getElementById('wMsg').style.display = 'none';
+  document.getElementById('wPassword').value = '';
 }
 async function doSendWelcome(){
   var contactName = document.getElementById('wContactName').value.trim();
   var email = document.getElementById('wEmail').value.trim();
+  var password = document.getElementById('wPassword').value.trim();
   var msg = document.getElementById('wMsg');
   var btn = document.getElementById('wSendBtn');
   if(!email || !email.includes('@')){
     msg.style.cssText='display:block;background:#fdecea;color:#c0392b;border-radius:8px;padding:.6rem .9rem';
     msg.textContent='Ange en giltig e-postadress.'; return;
   }
+  if(!password || password.length < 8){
+    msg.style.cssText='display:block;background:#fdecea;color:#c0392b;border-radius:8px;padding:.6rem .9rem';
+    msg.textContent='Ange ett lösenord (minst 8 tecken) som skickas med mejlet.'; return;
+  }
   btn.disabled=true; btn.textContent='Skickar...';
   try {
     var { error } = await sb.functions.invoke('send-welcome', {
-      body: { adminName: contactName||null, clubName: _wClubName, email: email }
+      body: { adminName: contactName||null, clubName: _wClubName, email: email, password: password }
     });
     if(error) throw error;
     msg.style.cssText='display:block;background:var(--green-light);color:var(--green);border-radius:8px;padding:.6rem .9rem';
@@ -493,6 +514,10 @@ init();
           <label style="font-size:12px;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem">E-postadress</label>
           <input id="wEmail" type="email" style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff" oninput="refreshPreview()">
         </div>
+        <div style="grid-column:1/-1">
+          <label style="font-size:12px;font-weight:600;color:var(--dark);display:block;margin-bottom:.25rem">Lösenord <span style="font-weight:400;color:#aaa">(visas i mejlet)</span></label>
+          <input id="wPassword" type="text" placeholder="Minst 8 tecken" style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff" oninput="refreshPreview()">
+        </div>
       </div>
     </div>
 
@@ -523,6 +548,7 @@ init();
       <div><label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:.3rem">Admin-e-post</label><input id="editEmail" type="email" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px"></div>
       <div><label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:.3rem">Telefon</label><input id="editPhone" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px"></div>
     </div>
+    <div style="margin-bottom:.75rem"><label style="font-size:13px;font-weight:600;color:var(--dark);display:block;margin-bottom:.3rem">Nytt lösenord <span style="font-weight:400;color:#aaa">(lämna tomt för att behålla befintligt)</span></label><input id="editPassword" type="password" placeholder="Minst 8 tecken" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px"></div>
     <div id="editMsg" style="font-size:13px;margin-bottom:.75rem;display:none;padding:.5rem .75rem;border-radius:8px;background:#fdecea"></div>
     <div style="display:flex;gap:.6rem;justify-content:flex-end">
       <button onclick="closeEdit()" style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:8px 18px;font-family:inherit;font-size:14px;cursor:pointer;color:var(--muted)">Avbryt</button>
