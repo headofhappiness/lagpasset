@@ -1126,6 +1126,10 @@ Hälsningar,
       <label class="form-label">Kontakt (telefon)</label>
       <input type="tel" id="poolPhone" placeholder="070-123 45 67">
     </div>
+    <div class="form-group">
+      <label class="form-label">Kontakt (e-post)</label>
+      <input type="email" id="poolEmail" placeholder="namn@exempel.se">
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalAddPool')">Avbryt</button>
       <button class="btn btn-primary" onclick="addPoolMember()">Spara</button>
@@ -3038,6 +3042,7 @@ async function addPoolMember(){
   const team = document.getElementById('poolTeam').value.trim();
   const can = document.getElementById('poolCan').value.trim();
   const phone = document.getElementById('poolPhone').value.trim();
+  const email = document.getElementById('poolEmail').value.trim();
   if(!name){ showToast('Ange ett namn.', 'error'); return; }
   try {
     const result = await sbInsert('pool_members', {
@@ -3045,6 +3050,7 @@ async function addPoolMember(){
       name: name,
       team: team || null,
       phone: phone || null,
+      email: email || null,
       notes: can || null
     });
     if(result && result.length) DB.pool.push(result[0]);
@@ -3052,7 +3058,7 @@ async function addPoolMember(){
     closeModal('modalAddPool');
     renderPoolTable();
     showToast('Tillagd i poolen');
-    ['poolName','poolTeam','poolCan','poolPhone'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+    ['poolName','poolTeam','poolCan','poolPhone','poolEmail'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
   } catch(e){
     console.error(e);
     showToast('Kunde inte lägga till', 'error');
@@ -3061,7 +3067,7 @@ async function addPoolMember(){
 
 function openNewPoolModal(){
   // Återställ formulär och knapp
-  ['poolName','poolPhone'].forEach(id => {
+  ['poolName','poolPhone','poolEmail'].forEach(id => {
     const e = document.getElementById(id); if(e) e.value = '';
   });
   // Populera lag-dropdown
@@ -3101,6 +3107,7 @@ function editPoolMember(id){
   }
   document.getElementById('poolCan').value = p.notes || '';
   document.getElementById('poolPhone').value = p.phone || '';
+  document.getElementById('poolEmail').value = p.email || '';
   // Byt knapp-text och lägg till id
   const saveBtn = document.querySelector('#modalAddPool .btn-primary');
   if(saveBtn){ saveBtn.textContent = 'Spara ändringar'; saveBtn.onclick = () => savePoolEdit(id); }
@@ -3148,15 +3155,16 @@ async function savePoolEdit(id){
   const team = document.getElementById('poolTeam').value.trim();
   const can = document.getElementById('poolCan').value.trim();
   const phone = document.getElementById('poolPhone').value.trim();
+  const email = document.getElementById('poolEmail').value.trim();
   if(!name){ showToast('Ange ett namn.', 'error'); return; }
   try {
     await fetch(SUPABASE_URL + '/rest/v1/pool_members?id=eq.' + id, {
       method: 'PATCH',
       headers: {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body: JSON.stringify({ name, team: team||null, phone: phone||null, notes: can||null })
+      body: JSON.stringify({ name, team: team||null, phone: phone||null, email: email||null, notes: can||null })
     });
     const idx = DB.pool.findIndex(x=>x.id===id);
-    if(idx>=0) DB.pool[idx] = {...DB.pool[idx], name, team, phone, notes:can};
+    if(idx>=0) DB.pool[idx] = {...DB.pool[idx], name, team, phone, email, notes:can};
     closeModal('modalAddPool');
     renderPoolTable();
     showToast('Uppdaterad ✓');
