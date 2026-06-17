@@ -282,23 +282,23 @@ async function saveEdit(){
   if(password && password.length < 8){ msg.style.display='block'; msg.style.color='#c0392b'; msg.textContent='Lösenordet måste vara minst 8 tecken.'; return; }
   btn.disabled=true; btn.textContent='Sparar...';
   try {
+    // Uppdatera klubbinfo
     const { error } = await sb.from('clubs').update({
       name, contact_name: contact||null, contact_email: email, contact_phone: phone||null
     }).eq('id', id);
     if(error) throw error;
+
+    // Om e-post eller lösenord ändrats — uppdatera auth-användaren via create-admin-user
+    // som hanterar e-postbyte + club_users korrekt
     if(password){
-      // Hitta user_id för denna förening
-      const link = _clubUserLinks.find(l => l.club_id === id);
-      if(!link) throw new Error('Hittade ingen admin-användare för föreningen.');
-      const { data: pwData, error: pwErr } = await sb.functions.invoke('update-admin-password', {
-        body: { userId: link.user_id, password }
+      const { data: fnData, error: fnErr } = await sb.functions.invoke('create-admin-user', {
+        body: { clubName: name, contactName: contact||null, email, phone: phone||null, password, existingClubId: id }
       });
-      if(pwErr) throw pwErr;
-      if(pwData && pwData.error) throw new Error(pwData.error);
+      if(fnErr) throw fnErr;
+      if(fnData && fnData.error) throw new Error(fnData.error);
     }
     closeEdit();
     await loadClubs();
-    if(password) showMsg('✓ Förening och lösenord uppdaterade.');
   } catch(e){
     msg.style.display='block'; msg.style.color='#c0392b';
     msg.textContent = 'Kunde inte spara: ' + (e.message||'okänt fel');
