@@ -761,9 +761,9 @@ Hälsningar,
       </div>
 
       <div class="grid-3" style="margin:1.25rem 0">
-        <div class="stat-card green"><div class="stat-num" id="statAvg">4.2</div><div class="stat-label">Snittbetyg (av 5)</div></div>
-        <div class="stat-card"><div class="stat-num" id="statCount">18</div><div class="stat-label">Svar inkomna</div></div>
-        <div class="stat-card amber"><div class="stat-num" id="statImprove">3</div><div class="stat-label">Med förbättringsförslag</div></div>
+        <div class="stat-card green"><div class="stat-num" id="statAvg">–</div><div class="stat-label">Snitt – Hur fungerade passet</div></div>
+        <div class="stat-card green"><div class="stat-num" id="statStaffingAvg">–</div><div class="stat-label">Snitt – Personalstyrka</div></div>
+        <div class="stat-card"><div class="stat-num" id="statCount">0</div><div class="stat-label">Svar inkomna</div></div>
       </div>
 
       <!-- Filter per station - dynamiskt från DB -->
@@ -4795,8 +4795,8 @@ function renderFeedback(){
       '<div style="font-size:13px">Feedback dyker upp här automatiskt när pass avslutats och bemanningen svarat på sin feedback-länk.</div>' +
       '</div>';
     const sa = document.getElementById('statAvg'); if(sa) sa.textContent = '–';
+    const ssa2 = document.getElementById('statStaffingAvg'); if(ssa2) ssa2.textContent = '–';
     const sc = document.getElementById('statCount'); if(sc) sc.textContent = '0';
-    const si = document.getElementById('statImprove'); if(si) si.textContent = '0';
     return;
   }
   // Riktig data → räkna statistik
@@ -4804,8 +4804,9 @@ function renderFeedback(){
   const ratings = DB.feedback.map(f => f.rating).filter(r => r != null && !isNaN(r));
   const sa = document.getElementById('statAvg');
   if(sa) sa.textContent = ratings.length ? (ratings.reduce((a,b)=>a+Number(b),0)/ratings.length).toFixed(1) : '–';
-  const improveCount = DB.feedback.filter(f => (f.comment||'').toLowerCase().includes('förbättring:')).length;
-  const si = document.getElementById('statImprove'); if(si) si.textContent = improveCount;
+  const staffingRatings = DB.feedback.map(f => f.staffing_score).filter(r => r != null && !isNaN(r));
+  const ssa = document.getElementById('statStaffingAvg');
+  if(ssa) ssa.textContent = staffingRatings.length ? (staffingRatings.reduce((a,b)=>a+Number(b),0)/staffingRatings.length).toFixed(1) : '–';
   list.innerHTML = DB.feedback.map(f => {
     const shift = DB.shifts.find(s => s.id === f.shift_id);
     const participant = DB.participants.find(p => p.id === f.participant_id);
@@ -4819,17 +4820,37 @@ function renderFeedback(){
     const good = f.good || '';
     const improve = f.improve || '';
     const comment = f.comment || '';
-    let bodyHtml = '';
-    if(f.rating) bodyHtml += '<div class="feedback-stars">' + '⭐'.repeat(Math.round(f.rating)) + ' (' + f.rating + '/5)</div>';
-    if(good) bodyHtml += '<div class="feedback-text"><strong>Bra:</strong> ' + good + '</div>';
-    if(improve) bodyHtml += '<div class="feedback-text"><strong>Förbättring:</strong> ' + improve + '</div>';
+    // Hjälpfunktion: stjärnor
+    const stars = n => n ? ('⭐'.repeat(Math.round(n)) + ' (' + n + '/5)') : '';
+    // Bemanningsbetyg: omvandla 1-5 till text
+    const staffingLabel = s => {
+      const n = Number(s);
+      if(n <= 1) return 'För lite folk';
+      if(n === 2) return 'Lite för lite';
+      if(n === 3) return 'Lagom';
+      if(n === 4) return 'Lite för många';
+      return 'För många';
+    };
+    let bodyHtml = '<div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.5rem">';
+    // Bemanning FÖRST
+    if(f.staffing_score){
+      bodyHtml += '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px">Personalstyrka</div>' +
+        '<div class="feedback-stars">' + stars(f.staffing_score) + '</div>' +
+        '<div style="font-size:12px;color:var(--muted)">' + staffingLabel(f.staffing_score) + '</div></div>';
+    }
+    // Sedan passbetyg
+    if(f.rating){
+      bodyHtml += '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px">Hur fungerade passet</div>' +
+        '<div class="feedback-stars">' + stars(f.rating) + '</div></div>';
+    }
+    bodyHtml += '</div>';
+    // Kommentarer
+    if(good) bodyHtml += '<div class="feedback-text"><strong>Vad fungerade bra:</strong> ' + good + '</div>';
+    if(improve) bodyHtml += '<div class="feedback-text"><strong>Vad kan förbättras:</strong> ' + improve + '</div>';
     if(comment && !good && !improve) bodyHtml += '<div class="feedback-text">' + comment + '</div>';
-    const staffingBadge = f.staffing_score
-      ? '<div style="font-size:12px;color:var(--muted);margin-top:2px">Bemanning: ' + f.staffing_score + '/5 (1=för få, 5=för många)</div>'
-      : '';
     const dataType = shift ? shift.title.toLowerCase() : 'annat';
     return '<div class="feedback-row" data-type="' + dataType + '">' +
-      bodyHtml + staffingBadge +
+      bodyHtml +
       '<div class="feedback-meta">' + (meta || 'Okänt pass') + '</div>' +
       '</div>';
   }).join('');
