@@ -587,7 +587,7 @@ setVH(); window.addEventListener('resize',setVH);
               <div style="font-size:14px;font-weight:700;color:var(--dark)">Tack för bokat pass</div>
               <div style="font-size:12.5px;color:var(--muted);margin-top:2px">Skickas automatiskt direkt när en medlem bokat sitt pass. Innehåller passinfo, plats och kontaktperson.</div>
             </div>
-            <span class="badge badge-green" style="flex-shrink:0">Aktiv</span>
+            <span class="badge badge-green" id="autoConfirmBadge" style="flex-shrink:0;cursor:pointer" onclick="toggleAutoConfirm()" title="Klicka för att slå av/på">Aktiv</span>
             <button class="btn btn-ghost btn-sm" onclick="editAutoTemplate('confirm')" style="flex-shrink:0">Redigera</button>
           </div>
 
@@ -4656,6 +4656,25 @@ function applyAutoReminderBadge(){
   }
 }
 
+let autoConfirmEnabled = true;
+try { autoConfirmEnabled = (localStorage.getItem('lp_autoConfirm') !== 'off'); } catch(e){}
+
+function applyAutoConfirmBadge(){
+  const b = document.getElementById('autoConfirmBadge');
+  if(!b) return;
+  b.textContent = autoConfirmEnabled ? 'Aktiv' : 'Avstängd';
+  b.className = autoConfirmEnabled ? 'badge badge-green' : 'badge badge-red';
+  b.style.flexShrink = '0';
+  b.style.cursor = 'pointer';
+}
+
+function toggleAutoConfirm(){
+  autoConfirmEnabled = !autoConfirmEnabled;
+  try { localStorage.setItem('lp_autoConfirm', autoConfirmEnabled ? 'on' : 'off'); } catch(e){}
+  applyAutoConfirmBadge();
+  showToast(autoConfirmEnabled ? 'Bekräftelsemejl påslaget' : 'Bekräftelsemejl avstängt');
+}
+
 function toggleAutoReminder(){
   autoReminderEnabled = !autoReminderEnabled;
   try { localStorage.setItem('lp_autoReminder', autoReminderEnabled ? 'on' : 'off'); } catch(e){}
@@ -4855,7 +4874,6 @@ function exportFeedback(){
 // ════════════════════════════════════════════════════════════
 let _importData  = [];  // alla rader
 let _importCols  = {};  // { namn, epost, telefon, lag, barn } → kolumnindex
-let _importHeaders = [];
 
 // Import: kolumnsynonymer för auto-detektering
 const _COL_SYNONYMS = {
@@ -5020,6 +5038,7 @@ function renderImportPreview(headers, rows) {
   ).join('');
 }
 
+let _importData = [], _importCols = {}, _importHeaders = [];
 function _genToken() {
   return 'tok-' + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 8);
 }
@@ -5345,6 +5364,7 @@ async function init() {
     if(!IS_DEMO) document.title = _displayName + ' – LagPasset';
   }
   if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
+  if(typeof applyAutoConfirmBadge === 'function') applyAutoConfirmBadge();
   // Visa Logga ut-knapp i riktig admin (ej demo)
   if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
     const lb = document.getElementById('logoutBtn');
