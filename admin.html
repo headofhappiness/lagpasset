@@ -2010,7 +2010,7 @@ function renderStationRowsInto(targetId, compact){
       `<span style="font-size:12px;color:var(--muted)"> · svagast ${st.weakest.day} ${st.weakest.time} (${Math.round(st.weakest.pct*100)}%)</span>` : '';
     const sub = compact ? '' :
       `<div style="font-size:12px;color:var(--muted);margin-top:1px">${st.shifts} tillfällen · ${st.taken} av ${st.total} platser bokade</div>`;
-    return `<div onclick="${compact?`openCategory('${st.cat}');showSection('shifts')`:`openCategory('${st.cat}')`}" style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${col.dot}'" onmouseout="this.style.borderColor='var(--border)'">
+    return `<div onclick="${compact?`showSection('shifts');openCategory('${st.cat}')`:`openCategory('${st.cat}')`}" style="display:flex;align-items:center;gap:1rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${col.dot}'" onmouseout="this.style.borderColor='var(--border)'">
       <span style="width:10px;height:10px;border-radius:50%;background:${col.dot};flex-shrink:0"></span>
       <span style="font-size:1.1rem;flex-shrink:0">${st.icon}</span>
       <div style="flex:1;min-width:0">
@@ -2126,7 +2126,7 @@ function renderAttention(){
   }
   // Stationer som behöver fler personer (under 50% fyllt – kritiskt lågt)
   stations.filter(s=>s.pct<50).forEach(st=>{
-    items.push(`<div onclick="openCategory('${st.cat}');showSection('shifts')" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(192,57,43,.25);border-radius:10px;flex-wrap:wrap;cursor:pointer" onmouseover="this.style.background='#fdf5f5'" onmouseout="this.style.background='#fff'">
+    items.push(`<div onclick="showSection('shifts');openCategory('${st.cat}')" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;background:#fff;border:1.5px solid rgba(192,57,43,.25);border-radius:10px;flex-wrap:wrap;cursor:pointer" onmouseover="this.style.background='#fdf5f5'" onmouseout="this.style.background='#fff'">
       <div style="display:flex;align-items:center;gap:.6rem">
         <span style="font-size:1.1rem">${st.icon}</span>
         <span style="font-size:13.5px;color:var(--dark)"><strong>${st.name}</strong> behöver fler personer – bara ${st.pct}% av platserna fyllda</span>
