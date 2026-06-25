@@ -1891,33 +1891,24 @@ function renderDashboard(){
   // ④ Lag-status tabell
   const tbody = document.getElementById('lagStatusTable');
   if(DB.participants.length > 0){
-    // Räkna platser per lag från shifts (slots per lag)
-    const teamSlots = {};
-    DB.shifts.forEach(s => {
-      const t = s.team || '–';
-      if(!teamSlots[t]) teamSlots[t] = 0;
-      teamSlots[t] += (s.slots || 0);
-    });
-    // Räkna bokade per lag från participants+bookings
     const bookedSet = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
-    const teamBooked = {};
+    const teams = {};
     DB.participants.forEach(p => {
       const t = p.team || '–';
-      if(!teamBooked[t]) teamBooked[t] = 0;
-      if(bookedSet.has(p.id)) teamBooked[t] += 1;
+      if(!teams[t]) teams[t] = { name: t, members: 0, booked: 0 };
+      teams[t].members += 1;
+      if(bookedSet.has(p.id)) teams[t].booked += 1;
     });
-    // Samla alla lag
-    const allTeams = new Set([...Object.keys(teamSlots), ...Object.keys(teamBooked)]);
-    const rows = [...allTeams].sort((a,b) => a.localeCompare(b));
+    // Filtrera bort ogiltiga lagkoder (förnamn som Belle, Nova etc)
+    const validTeam = t => /^([FP]\d{2}|FJ|HJ|DU|\u2013)$/.test(t);
+    const rows = Object.values(teams).filter(t => validTeam(t.name)).sort((a,b) => a.name.localeCompare(b.name));
     tbody.innerHTML = rows.map(t => {
-      const total = teamSlots[t] || 0;
-      const booked = teamBooked[t] || 0;
-      const rem = Math.max(0, total - booked);
+      const rem = t.members - t.booked;
       const badgeCls = rem===0?'badge-green':rem<=2?'badge-amber':'badge-red';
       return `<tr>
-        <td class="td-name">${t}</td>
-        <td>${total}</td>
-        <td><strong style="color:var(--green)">${booked}</strong></td>
+        <td class="td-name">${t.name}</td>
+        <td>${t.members}</td>
+        <td><strong style="color:var(--green)">${t.booked}</strong></td>
         <td>${rem}</td>
         <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
       </tr>`;
