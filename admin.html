@@ -1717,7 +1717,12 @@ async function loadFromDB() {
     ]);
     DB.shifts = shifts;
     DB.bookings = bookings;
-    DB.participants = participants;
+    DB.participants = (participants||[]).map(p => ({
+      ...p,
+      phone: p.phone || p.parent_phone || '',
+      email: p.email || p.parent_email || '',
+      name: p.name || p.parent_name || '',
+    }));
     DB.pool = pool;
     DB.contacts = contacts;
     DB.feedback = feedback;
