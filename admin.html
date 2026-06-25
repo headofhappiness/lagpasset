@@ -4757,7 +4757,7 @@ function renderFeedbackTabs(){
   const tabs = document.getElementById('feedbackTabs');
   if(!tabs) return;
   // Hämta unika stationer från shifts
-  const stations = [...new Set(DB.shifts.map(s => s.title ? s.title.split(' ')[0] : '').filter(Boolean))];
+  const stations = [...new Set(DB.shifts.map(s => s.title || '').filter(Boolean))];
   let html = '<div class="tab active" onclick="filterFeedback(\'all\',this)">Alla</div>';
   stations.forEach(st => {
     html += '<div class="tab" onclick="filterFeedback(\''+st.toLowerCase()+'\',this)">'+st+'</div>';
