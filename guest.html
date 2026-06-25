@@ -475,10 +475,30 @@ setVH(); window.addEventListener('resize',setVH);
         <label class="form-label">Vad kan förbättras till nästa gång?</label>
         <textarea class="feedback-text" id="feedbackImprove" placeholder="Ex. behövdes fler händer, varor tog slut, oklara instruktioner..."></textarea>
       </div>
-      <div style="font-size:12.5px;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem"><span>🔒</span> Din feedback är anonym – föreningen ser aldrig vem som svarat vad.</div>
       <button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="submitFeedback()">Skicka feedback</button>
     </div>
-    <div id="feedbackDone" style="display:none" class="msg ok" style="margin-bottom:0">Tack snälla för din feedback! Det hjälper oss att bli bättre till nästa gång!</div>
+    <div id="feedbackDone" style="display:none">
+      <div class="msg ok" style="margin-bottom:1rem">Tack för din feedback! Det hjälper oss att bli bättre till nästa gång.</div>
+      <div id="volunteerBlock" style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.25rem 1.3rem">
+        <div style="font-size:1.3rem;margin-bottom:.4rem">🙋</div>
+        <div style="font-size:15px;font-weight:700;color:var(--dark);margin-bottom:.4rem">Vill du vara med och planera nästa år?</div>
+        <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 1rem">I år var vi få som bar ett stort ansvar. Inför Åsacupen nästa år hoppas vi bli fler som hjälps åt att planera. Kan du tänka dig att bidra? Lämna ditt namn och telefonnummer så hör vi av oss.</p>
+        <div class="form-group" style="margin-bottom:.75rem">
+          <label class="form-label">Namn</label>
+          <input type="text" id="volunteerName" class="form-input" placeholder="Ditt namn">
+        </div>
+        <div class="form-group" style="margin-bottom:.9rem">
+          <label class="form-label">Telefon</label>
+          <input type="tel" id="volunteerPhone" class="form-input" placeholder="07X XXX XX XX">
+        </div>
+        <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary" style="padding:10px 24px" onclick="submitVolunteer()">Ja, jag vill vara med!</button>
+          <button class="btn btn-ghost btn-sm" onclick="skipVolunteer()">Nej tack</button>
+        </div>
+        <div id="volunteerDone" style="display:none;margin-top:.75rem;font-size:13.5px;color:var(--green);font-weight:600">✓ Tack! Vi hör av oss inför nästa år.</div>
+        <div id="volunteerErr" style="display:none;margin-top:.75rem;font-size:13px;color:var(--red)"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1055,6 +1075,32 @@ async function submitFeedback(){
 
   document.getElementById('feedbackForm').style.display='none';
   document.getElementById('feedbackDone').style.display='block';
+}
+
+// ════════════════════════════════════════════════
+// INTRESSEANMÄLAN – planera nästa år
+// ════════════════════════════════════════════════
+async function submitVolunteer(){
+  const name = (document.getElementById('volunteerName').value || '').trim();
+  const phone = (document.getElementById('volunteerPhone').value || '').trim();
+  const err = document.getElementById('volunteerErr');
+  const done = document.getElementById('volunteerDone');
+  if(!name || !phone){ err.textContent = 'Fyll i både namn och telefon.'; err.style.display='block'; return; }
+  err.style.display='none';
+  const eventId = LIVE ? LIVE.event.id : null;
+  try {
+    await sbInsert('volunteer_interest', { event_id: eventId, name, phone });
+    document.getElementById('volunteerBlock').querySelector('.btn.btn-primary').disabled = true;
+    document.getElementById('volunteerBlock').querySelector('.btn.btn-ghost').disabled = true;
+    done.style.display = 'block';
+  } catch(e){
+    err.textContent = 'Något gick fel – försök igen.';
+    err.style.display = 'block';
+    console.error('Volunteer-fel:', e);
+  }
+}
+function skipVolunteer(){
+  document.getElementById('volunteerBlock').style.display = 'none';
 }
 
 // ════════════════════════════════════════════════
