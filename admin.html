@@ -766,25 +766,25 @@ Hälsningar,
         <div class="stat-card amber"><div class="stat-num" id="statImprove">3</div><div class="stat-label">Med förbättringsförslag</div></div>
       </div>
 
-      <!-- Bemanningsanalys – AI:s viktigaste output -->
-      <div class="card" id="staffingCard" style="margin-bottom:1.25rem;display:none">
-        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
-          <span style="font-size:1.15rem">⚖️</span>
-          <div style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Bemanningsanalys – AI:s tips inför nästa gång</div>
-        </div>
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Sammanställt från vad bemanningen svarat om på sina pass. Använd för att sätta rätt antal personer nästa år. <strong style="color:var(--dark)">Tänk på att behovet också beror på hur många lag och besökare som kommer</strong> – blir cupen större kan även "lagom" pass behöva fler.</div>
-        <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
-      </div>
-
       <!-- Filter per station - dynamiskt från DB -->
       <div class="tabs" style="margin-bottom:1rem" id="feedbackTabs">
         <div class="tab active" onclick="filterFeedback('all',this)">Alla</div>
       </div>
 
       <div class="card" style="padding:0">
+        <!-- Bemanningsanalys -->
+        <div id="staffingCard" style="padding:1rem 1.1rem;border-bottom:1px solid var(--border);display:none">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem">
+            <span style="font-size:1.1rem">⚖️</span>
+            <div style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Bemanningsanalys</div>
+          </div>
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Sammanställt från vad bemanningen svarat. Använd för att sätta rätt antal nästa år.</div>
+          <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
+        </div>
+        <!-- AI-sammanfattning -->
         <div id="feedbackSummary" style="padding:1rem 1.1rem;border-bottom:1px solid var(--border);background:#f0f7ff">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:.45rem"><span style="font-size:15px">🤖</span><span style="font-size:13px;font-weight:700;color:#1d4ed8">AI-sammanfattning</span></div>
+            <div style="display:flex;align-items:center;gap:.45rem"><span style="font-size:1.1rem">🤖</span><span style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">AI-sammanfattning</span></div>
             <button class="btn btn-ghost btn-sm" onclick="generateAISummary()" id="aiSummaryBtn">Generera sammanfattning</button>
           </div>
           <div id="feedbackSummaryText" style="font-size:13.5px;color:var(--text);line-height:1.65;margin-top:.5rem"></div>
@@ -5451,8 +5451,9 @@ async function init() {
   if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
   if(typeof applyAutoConfirmBadge === 'function') applyAutoConfirmBadge();
   // Ladda feedback-status från events-data
-  if(DB.event && typeof DB.event.feedback_email_enabled !== 'undefined'){
-    autoFeedbackEnabled = !!DB.event.feedback_email_enabled;
+  const _ev = (typeof EVENT !== 'undefined' && EVENT) || (DB.event);
+  if(_ev && typeof _ev.feedback_email_enabled !== 'undefined'){
+    autoFeedbackEnabled = !!_ev.feedback_email_enabled;
   }
   if(typeof applyAutoFeedbackBadge === 'function') applyAutoFeedbackBadge();
   // Visa Logga ut-knapp i riktig admin (ej demo)
