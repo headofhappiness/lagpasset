@@ -4692,7 +4692,7 @@ function resetAutoTemplate(which){
 
 // På/av för automatisk påminnelse (sparas lokalt i webbläsaren)
 let autoReminderEnabled = (function(){
-  try { return localStorage.getItem('lp_autoReminder') !== 'off'; } catch(e){ return true; }
+  try { return localStorage.getItem('lp_autoReminder') === 'on'; } catch(e){ return false; }
 })();
 
 function applyAutoReminderBadge(){
@@ -4709,8 +4709,8 @@ function applyAutoReminderBadge(){
   }
 }
 
-let autoConfirmEnabled = true;
-try { autoConfirmEnabled = (localStorage.getItem('lp_autoConfirm') !== 'off'); } catch(e){}
+let autoConfirmEnabled = false;
+try { autoConfirmEnabled = (localStorage.getItem('lp_autoConfirm') === 'on'); } catch(e){}
 
 let autoFeedbackEnabled = false; // laddas från events-tabellen
 
