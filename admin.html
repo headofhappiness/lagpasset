@@ -776,19 +776,18 @@ Hälsningar,
         <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
       </div>
 
-      <!-- Filter per station -->
-      <div class="tabs" style="margin-bottom:1rem">
+      <!-- Filter per station - dynamiskt från DB -->
+      <div class="tabs" style="margin-bottom:1rem" id="feedbackTabs">
         <div class="tab active" onclick="filterFeedback('all',this)">Alla</div>
-        <div class="tab" onclick="filterFeedback('servering',this)">Servering</div>
-        <div class="tab" onclick="filterFeedback('frukost',this)">Frukost</div>
-        <div class="tab" onclick="filterFeedback('parkering',this)">Parkering</div>
-        <div class="tab" onclick="filterFeedback('sekretariat',this)">Sekretariat</div>
       </div>
 
       <div class="card" style="padding:0">
         <div id="feedbackSummary" style="padding:1rem 1.1rem;border-bottom:1px solid var(--border);background:#f0f7ff">
-          <div style="display:flex;align-items:center;gap:.45rem;margin-bottom:.4rem"><span style="font-size:15px">🤖</span><span style="font-size:13px;font-weight:700;color:#1d4ed8">AI-sammanfattning</span></div>
-          <div id="feedbackSummaryText" style="font-size:13.5px;color:var(--text);line-height:1.65"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:.45rem"><span style="font-size:15px">🤖</span><span style="font-size:13px;font-weight:700;color:#1d4ed8">AI-sammanfattning</span></div>
+            <button class="btn btn-ghost btn-sm" onclick="generateAISummary()" id="aiSummaryBtn">Generera sammanfattning</button>
+          </div>
+          <div id="feedbackSummaryText" style="font-size:13.5px;color:var(--text);line-height:1.65;margin-top:.5rem"></div>
         </div>
         <div id="feedbackList">
           <div class="feedback-row" data-type="servering">
@@ -4739,9 +4738,48 @@ function showToast(msg, type) {
   setTimeout(function(){ t.remove(); }, 3000);
 }
 
+function renderFeedbackTabs(){
+  const tabs = document.getElementById('feedbackTabs');
+  if(!tabs) return;
+  // Hämta unika stationer från shifts
+  const stations = [...new Set(DB.shifts.map(s => s.title ? s.title.split(' ')[0] : '').filter(Boolean))];
+  let html = '<div class="tab active" onclick="filterFeedback(\'all\',this)">Alla</div>';
+  stations.forEach(st => {
+    html += '<div class="tab" onclick="filterFeedback(\''+st.toLowerCase()+'\',this)">'+st+'</div>';
+  });
+  tabs.innerHTML = html;
+}
+
+async function generateAISummary(){
+  const btn = document.getElementById('aiSummaryBtn');
+  const out = document.getElementById('feedbackSummaryText');
+  if(!DB.feedback || DB.feedback.length === 0){ out.textContent = 'Ingen feedback att sammanfatta.'; return; }
+  btn.textContent = 'Genererar...';
+  btn.disabled = true;
+  const lines = DB.feedback.map(f => {
+    const shift = DB.shifts.find(s => s.id === f.shift_id);
+    return (shift ? shift.title : 'Okänt pass') + ': Betyg ' + (f.rating||'?') + '/5, Bemanning ' + (f.staffing_score||'?') + '/5. ' + (f.comment||'');
+  }).join('\n');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6', max_tokens:600,
+        messages:[{role:'user', content:'Sammanfatta denna feedback från idrottscupens bemanning på svenska. Ge konkreta insikter om vad som fungerade bra och vad som bör förbättras till nästa år. Var kortfattad (max 5 meningar):\n\n' + lines}]
+      })
+    });
+    const data = await res.json();
+    out.textContent = data.content?.[0]?.text || 'Kunde inte generera sammanfattning.';
+  } catch(e){ out.textContent = 'Fel: ' + e.message; }
+  btn.textContent = 'Generera igen';
+  btn.disabled = false;
+}
+
 function renderFeedback(){
   const list = document.getElementById('feedbackList');
   if(!list) return;
+  renderFeedbackTabs();
   renderStaffingAnalysis();
   if(typeof setFeedbackSummary === 'function') setFeedbackSummary('all');
   const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
@@ -4778,12 +4816,14 @@ function renderFeedback(){
       meta = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + (shift.time_end||'–');
       if(participant && participant.team) meta += ' · ' + participant.team;
     }
+    const good = f.good || '';
+    const improve = f.improve || '';
     const comment = f.comment || '';
-    let bodyHtml = comment.split('\n').map(line => {
-      const m = line.match(/^(Bra|Förbättring|Betyg):\s*(.*)$/);
-      if(m) return '<div class="feedback-text"><strong>' + m[1] + ':</strong> ' + m[2] + '</div>';
-      return line ? '<div class="feedback-text">' + line + '</div>' : '';
-    }).join('');
+    let bodyHtml = '';
+    if(f.rating) bodyHtml += '<div class="feedback-stars">' + '⭐'.repeat(Math.round(f.rating)) + ' (' + f.rating + '/5)</div>';
+    if(good) bodyHtml += '<div class="feedback-text"><strong>Bra:</strong> ' + good + '</div>';
+    if(improve) bodyHtml += '<div class="feedback-text"><strong>Förbättring:</strong> ' + improve + '</div>';
+    if(comment && !good && !improve) bodyHtml += '<div class="feedback-text">' + comment + '</div>';
     const staffingBadge = f.staffing_score
       ? '<div style="font-size:12px;color:var(--muted);margin-top:2px">Bemanning: ' + f.staffing_score + '/5 (1=för få, 5=för många)</div>'
       : '';

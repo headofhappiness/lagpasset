@@ -1042,6 +1042,8 @@ async function submitFeedback(){
         participant_id: LIVE.participant.id,
         rating: starRating || null,
         staffing_score: window._staffing || null,
+        good: good || null,
+        improve: improve || null,
         comment: comment || null
       });
     } catch(e){
