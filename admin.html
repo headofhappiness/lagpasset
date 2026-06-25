@@ -4326,7 +4326,20 @@ function renderShiftDetail(cat, day) {
           </div>
         </div>`;
       }).join('');
-      const freeSlotsArr = slotsForShift.slice(taken);
+      // Räkna lediga platser PER LAG: slots per lag minus bokningar per lag
+      const slotTeamCounts = {};
+      slotsForShift.forEach(sl => { slotTeamCounts[sl.team] = (slotTeamCounts[sl.team]||0) + 1; });
+      const bookedTeamCounts = {};
+      bookingsForShift.forEach(b => {
+        const p = DB.participants.find(p => p.id === b.participant_id);
+        const t = p ? (p.team||'') : '';
+        bookedTeamCounts[t] = (bookedTeamCounts[t]||0) + 1;
+      });
+      const freeSlotsArr = [];
+      Object.keys(slotTeamCounts).forEach(team => {
+        const freeForTeam = slotTeamCounts[team] - (bookedTeamCounts[team]||0);
+        for(let k=0; k<freeForTeam; k++) freeSlotsArr.push({team});
+      });
       const emptyRows = freeSlotsArr.length > 0
         ? freeSlotsArr.map(sl =>
           `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .25rem;border-bottom:1px dashed var(--border)">
