@@ -475,6 +475,7 @@ setVH(); window.addEventListener('resize',setVH);
         <label class="form-label">Vad kan förbättras till nästa gång?</label>
         <textarea class="feedback-text" id="feedbackImprove" placeholder="Ex. behövdes fler händer, varor tog slut, oklara instruktioner..."></textarea>
       </div>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 .75rem">🔒 Din feedback är anonym – föreningen ser aldrig vem som svarat vad.</p>
       <button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="submitFeedback()">Skicka feedback</button>
     </div>
     <div id="feedbackDone" style="display:none">
@@ -493,7 +494,7 @@ setVH(); window.addEventListener('resize',setVH);
         </div>
         <div class="form-group" style="margin-bottom:.9rem">
           <label class="form-label">Vad kan du tänka dig att hjälpa till med? <span style="font-weight:400;color:var(--muted)">(frivilligt)</span></label>
-          <textarea id="volunteerRole" class="form-input" rows="3" placeholder="T.ex. planering, tidtagning, servering..." style="resize:none;width:100%;box-sizing:border-box"></textarea>
+          <textarea id="volunteerRole" class="form-input" rows="3" placeholder="T.ex. planering, tidtagning, servering..." style="resize:vertical"></textarea>
         </div>
         <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
           <button class="btn btn-primary" style="padding:10px 24px" onclick="submitVolunteer()">Ja, jag vill vara med!</button>
