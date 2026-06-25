@@ -447,13 +447,6 @@ setVH(); window.addEventListener('resize',setVH);
 
   <div class="card">
     <div id="feedbackForm">
-      <div class="stars" id="stars">
-        <span class="star" onclick="setStar(1)">⭐</span>
-        <span class="star" onclick="setStar(2)">⭐</span>
-        <span class="star" onclick="setStar(3)">⭐</span>
-        <span class="star" onclick="setStar(4)">⭐</span>
-        <span class="star" onclick="setStar(5)">⭐</span>
-      </div>
       <div class="form-group">
         <label class="form-label">Hur var personalstyrkan på ditt pass?</label>
         <div class="staffing-scale" id="staffingScale">
@@ -467,6 +460,13 @@ setVH(); window.addEventListener('resize',setVH);
         </div>
       </div>
       <div class="feedback-title" style="margin-top:.75rem">Hur fungerade passet överlag?</div>
+      <div class="stars" id="stars">
+        <span class="star" onclick="setStar(1)">⭐</span>
+        <span class="star" onclick="setStar(2)">⭐</span>
+        <span class="star" onclick="setStar(3)">⭐</span>
+        <span class="star" onclick="setStar(4)">⭐</span>
+        <span class="star" onclick="setStar(5)">⭐</span>
+      </div>
       <div class="form-group">
         <label class="form-label">Vad fungerade bra?</label>
         <textarea class="feedback-text" id="feedbackGood" placeholder="Ex. bra upplägg, lagom bemanning..."></textarea>
