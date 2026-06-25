@@ -491,6 +491,10 @@ setVH(); window.addEventListener('resize',setVH);
           <label class="form-label">Telefon</label>
           <input type="tel" id="volunteerPhone" class="form-input" placeholder="07X XXX XX XX">
         </div>
+        <div class="form-group" style="margin-bottom:.9rem">
+          <label class="form-label">Vad kan du tänka dig att hjälpa till med? <span style="font-weight:400;color:var(--muted)">(frivilligt)</span></label>
+          <textarea id="volunteerRole" class="form-input" rows="3" placeholder="T.ex. planering, tidtagning, servering..." style="resize:vertical"></textarea>
+        </div>
         <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
           <button class="btn btn-primary" style="padding:10px 24px" onclick="submitVolunteer()">Ja, jag vill vara med!</button>
           <button class="btn btn-ghost btn-sm" onclick="skipVolunteer()">Nej tack</button>
@@ -1083,13 +1087,15 @@ async function submitFeedback(){
 async function submitVolunteer(){
   const name = (document.getElementById('volunteerName').value || '').trim();
   const phone = (document.getElementById('volunteerPhone').value || '').trim();
+  const roleEl = document.getElementById('volunteerRole');
+  const role = roleEl ? (roleEl.value || '').trim() : '';
   const err = document.getElementById('volunteerErr');
   const done = document.getElementById('volunteerDone');
   if(!name || !phone){ err.textContent = 'Fyll i både namn och telefon.'; err.style.display='block'; return; }
   err.style.display='none';
   const eventId = LIVE ? LIVE.event.id : null;
   try {
-    await sbInsert('volunteer_interest', { event_id: eventId, name, phone });
+    await sbInsert('volunteer_interest', { event_id: eventId, name, phone, role: role || null });
     document.getElementById('volunteerBlock').querySelector('.btn.btn-primary').disabled = true;
     document.getElementById('volunteerBlock').querySelector('.btn.btn-ghost').disabled = true;
     done.style.display = 'block';
