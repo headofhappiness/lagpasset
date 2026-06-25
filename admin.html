@@ -608,6 +608,7 @@ setVH(); window.addEventListener('resize',setVH);
               <div style="font-size:12.5px;color:var(--muted);margin-top:2px">Skickas automatiskt när ett pass precis har slutat (kontrolleras var 10:e minut). Skickas bara en gång per bokning.</div>
             </div>
             <span class="badge badge-red" id="autoFeedbackBadge" style="flex-shrink:0;cursor:pointer" onclick="toggleAutoFeedback()" title="Klicka för att slå på">Avstängd</span>
+            <button class="btn btn-ghost btn-sm" onclick="editAutoTemplate('feedback')" style="flex-shrink:0">Redigera</button>
           </div>
         </div>
       </div>
@@ -4585,6 +4586,16 @@ ${clubN}`
       body: `Hej!
 
 Du har ännu inte valt pass inför ${evName}. Det tar bara en minut – klicka på knappen nedan och välj ett pass som passar dig.
+
+Hälsningar,
+${clubN}`
+    },
+    feedback: {
+      title: 'Feedbackmejl efter avslutat pass',
+      subj: `Tack för din insats – ${evName}! Ge oss feedback`,
+      body: `Tack för att du hjälpte till under ${evName}! Vi hoppas allt gick bra.
+
+Det skulle betyda mycket om du kunde ta en minut och ge oss feedback om ditt pass.
 
 Hälsningar,
 ${clubN}`
