@@ -1561,6 +1561,9 @@ async function bootstrap(){
   const isFeedback = params.get('feedback')==='1';
 
   if(isFeedback){
+    // Dölj spinner direkt
+    const ls = document.getElementById('loadingState');
+    if(ls) ls.style.display='none';
     // Feedback-vyn visas redan av separat script.
     // Om token finns: ladda deltagaren så feedbacken kan sparas mot rätt pass.
     if(token){
