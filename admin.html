@@ -610,6 +610,15 @@ setVH(); window.addEventListener('resize',setVH);
             <span class="badge badge-red" id="autoFeedbackBadge" style="flex-shrink:0;cursor:pointer" onclick="toggleAutoFeedback()" title="Klicka för att slå på">Avstängd</span>
             <button class="btn btn-ghost btn-sm" onclick="editAutoTemplate('feedback')" style="flex-shrink:0">Redigera</button>
           </div>
+
+          <div style="display:flex;align-items:flex-start;gap:.75rem;background:#fff;border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem">
+            <span style="font-size:1.2rem">📱</span>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:var(--dark)">Feedback-SMS efter avslutat pass</div>
+              <div style="font-size:12.5px;color:var(--muted);margin-top:2px">Skickas automatiskt när ett pass precis har slutat, till de som har ett giltigt mobilnummer. Skickas bara en gång per bokning. Fungerar oberoende av feedbackmejlet.</div>
+            </div>
+            <span class="badge badge-red" id="autoSmsBadge" style="flex-shrink:0;cursor:pointer" onclick="toggleAutoSms()" title="Klicka för att slå på">Avstängd</span>
+          </div>
         </div>
       </div>
 
@@ -4713,6 +4722,7 @@ let autoConfirmEnabled = false;
 try { autoConfirmEnabled = (localStorage.getItem('lp_autoConfirm') === 'on'); } catch(e){}
 
 let autoFeedbackEnabled = false; // laddas från events-tabellen
+let autoSmsEnabled = false; // laddas från events-tabellen (feedback_sms_enabled)
 
 function applyAutoConfirmBadge(){
   const b = document.getElementById('autoConfirmBadge');
@@ -4752,6 +4762,30 @@ async function toggleAutoFeedback(){
   } catch(e){}
   applyAutoFeedbackBadge();
   showToast(autoFeedbackEnabled ? 'Feedbackmejl påslaget – skickas automatiskt efter varje pass' : 'Feedbackmejl avstängt');
+}
+
+function applyAutoSmsBadge(){
+  const b = document.getElementById('autoSmsBadge');
+  if(!b) return;
+  const on = autoSmsEnabled;
+  b.textContent = on ? 'Aktiv' : 'Avstängd';
+  b.className = on ? 'badge badge-green' : 'badge badge-red';
+  b.style.flexShrink = '0';
+  b.style.cursor = 'pointer';
+}
+
+async function toggleAutoSms(){
+  autoSmsEnabled = !autoSmsEnabled;
+  // Spara i events-tabellen (egen flagga, oberoende av mejl)
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/events?id=eq.' + EVENT_ID, {
+      method: 'PATCH',
+      headers: {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({ feedback_sms_enabled: autoSmsEnabled })
+    });
+  } catch(e){}
+  applyAutoSmsBadge();
+  showToast(autoSmsEnabled ? 'Feedback-SMS påslaget – skickas automatiskt efter varje pass' : 'Feedback-SMS avstängt');
 }
 
 function toggleAutoReminder(){
@@ -5496,7 +5530,11 @@ async function init() {
   if(_ev && typeof _ev.feedback_email_enabled !== 'undefined'){
     autoFeedbackEnabled = !!_ev.feedback_email_enabled;
   }
+  if(_ev && typeof _ev.feedback_sms_enabled !== 'undefined'){
+    autoSmsEnabled = !!_ev.feedback_sms_enabled;
+  }
   if(typeof applyAutoFeedbackBadge === 'function') applyAutoFeedbackBadge();
+  if(typeof applyAutoSmsBadge === 'function') applyAutoSmsBadge();
   // Visa Logga ut-knapp i riktig admin (ej demo)
   if(typeof IS_DEMO !== 'undefined' && !IS_DEMO){
     const lb = document.getElementById('logoutBtn');
