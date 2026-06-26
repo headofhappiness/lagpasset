@@ -240,11 +240,36 @@ sb.auth.onAuthStateChange(async (event, session) => {
 // Kolla om redan inloggad (bara vid vanlig sidladdning)
 if(!isRecoveryLink){
   (async () => {
-    const { data: { session } } = await sb.auth.getSession();
-    if(session){
-      await routeUser(session.user);
-    } else {
-      show('loginForm');
+    // Säkerhetstimeout: om sessionskollen hänger (t.ex. korrupt session),
+    // falla tillbaka till inloggningsformuläret istället för att snurra för evigt.
+    let settled = false;
+    const fallback = setTimeout(() => {
+      if(!settled){
+        settled = true;
+        show('loginForm');
+      }
+    }, 8000);
+    try {
+      const sessionPromise = sb.auth.getSession();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('getSession timeout')), 7000)
+      );
+      const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+      if(settled) return; // timeouten hann redan visa loginForm
+      settled = true;
+      clearTimeout(fallback);
+      if(session){
+        await routeUser(session.user);
+      } else {
+        show('loginForm');
+      }
+    } catch(e){
+      console.error('Inloggningskoll misslyckades:', e);
+      if(!settled){
+        settled = true;
+        clearTimeout(fallback);
+        show('loginForm');
+      }
     }
   })();
 }
