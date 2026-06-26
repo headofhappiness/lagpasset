@@ -3425,15 +3425,15 @@ function printStations(stationList){
       html += '<div class="shift">';
       html += '<div class="shift-head"><span>' + dag + ' · ' + tid + (s.location ? ' · ' + s.location : '') + '</span>';
       html += '<span class="shift-meta">' + bookings.length + '/' + s.slots + ' platser</span></div>';
-      html += '<table><thead><tr><th>Namn</th><th>Lag</th><th>Telefon</th></tr></thead><tbody>';
+      html += '<table><thead><tr><th>Namn</th><th>Lag</th><th>Telefon</th><th>E-post</th></tr></thead><tbody>';
       bookings.forEach(b => {
         const p = DB.participants.find(p => p.id === b.participant_id);
         const name = p ? p.name : (b.display_name || 'Okänd');
-        html += '<tr><td>' + name + '</td><td>' + (p && p.team ? p.team : '–') + '</td><td>' + (p && p.phone ? p.phone : '–') + '</td></tr>';
+        html += '<tr><td>' + name + '</td><td>' + (p && p.team ? p.team : '–') + '</td><td>' + (p && p.phone ? p.phone : '–') + '</td><td>' + (p && p.email ? p.email : '–') + '</td></tr>';
       });
       const free = s.slots - bookings.length;
       for(let i=0; i<free; i++){
-        html += '<tr><td class="empty">___________________</td><td class="empty">___</td><td class="empty">___________</td></tr>';
+        html += '<tr><td class="empty">___________________</td><td class="empty">___</td><td class="empty">___________</td><td class="empty">___________________</td></tr>';
       }
       html += '</tbody></table>';
       if(s.contact_name){
