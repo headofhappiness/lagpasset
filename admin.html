@@ -4906,6 +4906,7 @@ async function loadVolunteerInterest(){
         <th style="padding:.5rem .75rem;font-weight:700;color:var(--dark)">E-post</th>
         <th style="padding:.5rem .75rem;font-weight:700;color:var(--dark)">Kan hjälpa med</th>
         <th style="padding:.5rem .75rem;font-weight:700;color:var(--dark)">Datum</th>
+        <th style="padding:.5rem .75rem"></th>
       </tr></thead>
       <tbody>` +
       rows.map(r => `<tr style="border-bottom:1px solid var(--border)">
@@ -4914,9 +4915,21 @@ async function loadVolunteerInterest(){
         <td style="padding:.5rem .75rem;color:var(--muted)">${r.email || '–'}</td>
         <td style="padding:.5rem .75rem;color:var(--muted)">${r.role || '–'}</td>
         <td style="padding:.5rem .75rem;color:var(--muted);white-space:nowrap">${r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('sv-SE') : '–'}</td>
+        <td style="padding:.5rem .75rem;text-align:right"><button onclick="deleteVolunteerInterest('${r.id}','${(r.name||'').replace(/'/g,'').replace(/"/g,'')}')" style="background:none;border:1px solid #e8c0c0;color:var(--red);border-radius:6px;padding:3px 9px;font-size:12px;cursor:pointer;font-family:inherit">Ta bort</button></td>
       </tr>`).join('') +
       `</tbody></table>`;
   } catch(e){ el.innerHTML='<span style="color:var(--red)">Kunde inte ladda.</span>'; console.error(e); }
+}
+
+async function deleteVolunteerInterest(id, name){
+  if(!confirm('Ta bort ' + (name || 'den här personen') + ' från listan?')) return;
+  try {
+    await sbDelete('volunteer_interest', id);
+    loadVolunteerInterest();
+  } catch(e){
+    console.error(e);
+    alert('Kunde inte ta bort. Försök igen.');
+  }
 }
 
 async function addVolunteerInterest(){
