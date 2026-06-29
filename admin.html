@@ -775,6 +775,21 @@ Hälsningar,
         <div class="stat-card"><div class="stat-num" id="statCount">0</div><div class="stat-label">Svar inkomna</div></div>
       </div>
 
+      <!-- Intresseanmälningar - kollapsbar -->
+      <div style="margin-bottom:1rem">
+        <div onclick="toggleVolunteerPanel()" style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;user-select:none">
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <span style="font-size:1rem">🙋</span>
+            <span style="font-size:14px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Vill hjälpa till nästa år</span>
+            <span id="volunteerBadge" style="background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px">–</span>
+          </div>
+          <span id="volunteerChevron" style="font-size:12px;color:var(--muted);transition:transform .2s">▼</span>
+        </div>
+        <div id="volunteerPanel" style="display:none;border:1.5px solid var(--border);border-top:none;border-radius:0 0 10px 10px;overflow:hidden">
+          <div id="volunteerInterestList" style="padding:1rem 1.1rem;font-size:13.5px;color:var(--muted)">Laddar…</div>
+        </div>
+      </div>
+
       <!-- Filter per station - dynamiskt från DB -->
       <div class="tabs" style="margin-bottom:1rem" id="feedbackTabs">
         <div class="tab active" onclick="filterFeedback('all',this)">Alla</div>
@@ -856,18 +871,6 @@ Hälsningar,
         </div>
       </div>
 
-      <!-- Intresseanmälningar -->
-      <div style="margin-top:1.5rem">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-          <div>
-            <h3 style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">🙋 Vill hjälpa till nästa år</h3>
-            <p style="font-size:12.5px;color:var(--muted);margin-top:2px">Insamlat via feedback-länken efter avslutat pass.</p>
-          </div>
-        </div>
-        <div class="card" style="padding:0;overflow:hidden">
-          <div id="volunteerInterestList" style="padding:1rem 1.1rem;font-size:13.5px;color:var(--muted)">Laddar…</div>
-        </div>
-      </div>
     </div>
 
 
@@ -1869,7 +1872,7 @@ function showSection(id){
   if(id==='pool'){ renderPoolTable(); renderResourceRequests(); }
   if(id==='settings'){ renderContactsTable(); renderSections(); }
   if(id==='email'){ renderFaqList(); renderLagChips(); renderStationChips(); updateRecipientCount(); }
-  if(id==='feedback'){ renderFeedback(); loadVolunteerInterest(); }
+  if(id==='feedback'){ renderFeedback(); const b=document.getElementById('volunteerBadge'); if(b&&b.textContent==='–') loadVolunteerBadge(); }
   if(id==='shifts'){ renderStationRows(); const cv=document.getElementById('shiftCategoryView'); const dv=document.getElementById('shiftDetailView'); if(cv) cv.style.display='block'; if(dv) dv.style.display='none'; }
   if(id==='dashboard') renderDashboard();
   if(window.innerWidth<900) setTimeout(closeSidebar, 50);
@@ -4831,11 +4834,30 @@ function renderFeedbackTabs(){
   tabs.innerHTML = html;
 }
 
+async function loadVolunteerBadge(){
+  try {
+    const rows = await sbFetch('volunteer_interest', '?event_id=eq.' + EVENT_ID + '&select=id');
+    const b = document.getElementById('volunteerBadge');
+    if(b) b.textContent = rows.length;
+  } catch(e){}
+}
+
+function toggleVolunteerPanel(){
+  const panel = document.getElementById('volunteerPanel');
+  const chevron = document.getElementById('volunteerChevron');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  chevron.style.transform = open ? 'rotate(180deg)' : '';
+  if(open) loadVolunteerInterest();
+}
+
 async function loadVolunteerInterest(){
   const el = document.getElementById('volunteerInterestList');
   if(!el) return;
   try {
     const rows = await sbFetch('volunteer_interest', '?event_id=eq.' + currentEventId + '&order=submitted_at.desc');
+    const badge = document.getElementById('volunteerBadge');
+    if(badge) badge.textContent = rows.length;
     if(!rows.length){ el.innerHTML='<span style="color:var(--muted)">Inga intresseanmälningar ännu.</span>'; return; }
     el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13.5px">
       <thead><tr style="border-bottom:1.5px solid var(--border);text-align:left">
