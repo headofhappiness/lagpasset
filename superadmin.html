@@ -184,6 +184,7 @@ async function loadClubs(){
               '<button onclick="previewWelcome(\'' + c.id + '\',\'' + c.name + '\',\'' + (c.contact_name||'') + '\',\'' + (c.contact_email||'') + '\')" style="background:none;border:1px solid var(--border);color:var(--green);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">📧 Välkomstmejl</button>' +
               '<button onclick="archiveClub(\''+c.id+'\',\''+(c.name||'').replace(/\x27/g,'')+'\')" style="background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">📦 Arkivera</button>';
           }
+          if(!_showArchived && hasLoggedIn){ actions += '<button onclick="loginAsAdmin(\'' + uid + '\',\'' + (c.name||'').replace(/\x27/g,'') + '\',\'' + c.id + '\')" style="background:none;border:1px solid var(--green);color:var(--green);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit">🔑 Logga in som</button>'; }
           return '<tr>' +
             '<td><strong>' + (c.name || '(namnlös)') + '</strong>' + (c.contact_name ? '<br><span class="muted">' + c.contact_name + '</span>' : '') + '</td>' +
             '<td>' + (c.contact_email || '<span class="muted">–</span>') + (c.contact_phone ? '<br><span class="muted">' + c.contact_phone + '</span>' : '') + '</td>' +
@@ -203,6 +204,40 @@ async function loadClubs(){
     wrap.innerHTML = html;
   } catch(e){
     wrap.innerHTML = '<div class="msg err">Kunde inte ladda föreningar: ' + (e.message||'') + '</div>';
+  }
+}
+
+async function loginAsAdmin(uid, clubName, clubId){
+  if(!uid){ alert('Den här föreningen har ingen admin-inloggning ännu.'); return; }
+  if(!confirm('Logga in som "' + clubName + '"? Du blir inloggad som deras admin tills du avslutar.')) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){ alert('Du måste vara inloggad som superadmin.'); return; }
+    // Spara superadmins egen session så vi kan återgå efteråt
+    sessionStorage.setItem('superadmin_session', JSON.stringify({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+      label: clubName
+    }));
+    const resp = await fetch(SUPABASE_URL + '/functions/v1/impersonate-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ targetUserId: uid })
+    });
+    const out = await resp.json();
+    if(!resp.ok) throw new Error(out.error || ('Fel ' + resp.status));
+    const { error } = await sb.auth.verifyOtp({ token_hash: out.token_hash, type: 'magiclink' });
+    if(error) throw error;
+    // Landa på föreningens senaste event (annars visar admin.html demo-data)
+    let dest = 'admin.html';
+    try {
+      const { data: evs } = await sb.from('events').select('id').eq('club_id', clubId).order('date_start', { ascending: false }).limit(1);
+      if(evs && evs.length) dest = 'admin.html?event=' + evs[0].id;
+    } catch(_e){}
+    window.location.href = dest;
+  } catch(e){
+    sessionStorage.removeItem('superadmin_session');
+    alert('Kunde inte logga in som admin: ' + (e.message || e));
   }
 }
 

@@ -1489,6 +1489,35 @@ const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
 const _sbAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 async function adminLogout(){ await _sbAuth.auth.signOut(); window.location.href = 'login.html'; }
+
+async function exitImpersonation(){
+  try {
+    var raw = sessionStorage.getItem('superadmin_session');
+    if(!raw){ window.location.href = 'superadmin.html'; return; }
+    var info = JSON.parse(raw);
+    await _sbAuth.auth.setSession({ access_token: info.access_token, refresh_token: info.refresh_token });
+    sessionStorage.removeItem('superadmin_session');
+    window.location.href = 'superadmin.html';
+  } catch(e){ alert('Kunde inte återgå: ' + (e.message || e)); }
+}
+window.addEventListener('load', function(){
+  try {
+    var raw = sessionStorage.getItem('superadmin_session');
+    if(!raw) return;
+    var info = JSON.parse(raw);
+    var bar = document.createElement('div');
+    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#111c13;color:#fff;padding:8px 14px;display:flex;align-items:center;justify-content:center;gap:12px;font-family:Outfit,sans-serif;font-size:13.5px;box-shadow:0 2px 8px rgba(0,0,0,.25)';
+    var span = document.createElement('span');
+    span.innerHTML = '👁 Du är inloggad som <strong>' + ((info.label||'kund')+'').replace(/</g,'') + '</strong> via superadmin';
+    var btn = document.createElement('button');
+    btn.textContent = 'Avsluta och återgå';
+    btn.style.cssText = 'background:#22c55e;color:#fff;border:none;border-radius:6px;padding:5px 14px;font-family:Outfit,sans-serif;font-size:13px;font-weight:700;cursor:pointer';
+    btn.onclick = exitImpersonation;
+    bar.appendChild(span); bar.appendChild(btn);
+    document.body.appendChild(bar);
+    document.body.style.paddingTop = '40px';
+  } catch(e){ console.error('Impersonation-banner:', e); }
+});
 const _eventParam = (new URLSearchParams(window.location.search)).get('event');
 const _demoName = (new URLSearchParams(window.location.search)).get('namn');
 const DEMO_EVENT_ID = '00000000-0000-0000-0000-000000000002';
