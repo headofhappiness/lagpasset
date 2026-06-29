@@ -4855,7 +4855,7 @@ async function loadVolunteerInterest(){
   const el = document.getElementById('volunteerInterestList');
   if(!el) return;
   try {
-    const rows = await sbFetch('volunteer_interest', '?event_id=eq.' + currentEventId + '&order=submitted_at.desc');
+    const rows = await sbFetch('volunteer_interest', '?event_id=eq.' + EVENT_ID + '&order=submitted_at.desc');
     const badge = document.getElementById('volunteerBadge');
     if(badge) badge.textContent = rows.length;
     if(!rows.length){ el.innerHTML='<span style="color:var(--muted)">Inga intresseanmälningar ännu.</span>'; return; }
