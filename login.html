@@ -221,11 +221,51 @@ if(new URLSearchParams(window.location.search).get('logout') === '1'){
   sb.auth.signOut().then(() => show('loginForm'));
 } else {
 
-const hashParams = new URLSearchParams(window.location.hash.slice(1));
-const isRecoveryLink = hashParams.get('type') === 'recovery';
+// Återställningslänkar kan komma i tre format beroende på Auth-konfiguration:
+//   1. Implicit (standard för JS-klienten):  #access_token=...&type=recovery
+//   2. Token-hash (nyare mallformat):         ?token_hash=...&type=recovery
+//   3. PKCE:                                  ?code=...
+// Alla tre måste fångas så att resetForm visas i stället för att routa vidare.
+const hashParams  = new URLSearchParams(window.location.hash.slice(1));
+const queryParams = new URLSearchParams(window.location.search);
 
-if(isRecoveryLink){
-  // Visa resetForm direkt, innan auth-events triggas
+const hashType  = hashParams.get('type');
+const queryType = queryParams.get('type');
+const tokenHash = queryParams.get('token_hash');
+const code      = queryParams.get('code');
+
+// Fel i länken (t.ex. förbrukad eller utgången token) kommer som error-parametrar
+const linkError     = hashParams.get('error')             || queryParams.get('error');
+const linkErrorDesc = hashParams.get('error_description') || queryParams.get('error_description');
+
+// Är detta en återställningslänk i någon form?
+const isRecoveryLink =
+  hashType  === 'recovery' ||   // implicit-flöde (#...type=recovery)
+  queryType === 'recovery' ||   // token-hash-flöde (?...type=recovery)
+  !!tokenHash ||                // token-hash utan explicit type
+  !!code;                       // PKCE (?code=...) – PASSWORD_RECOVERY-eventet bekräftar
+
+function showResetError(text){
+  show('resetForm');
+  const m = document.getElementById('resetMsg');
+  m.className = 'msg err'; m.style.display = 'block'; m.textContent = text;
+  document.getElementById('resetBtn').disabled = true; // ingen giltig session att uppdatera med
+}
+
+if(linkError){
+  // Länken kunde inte användas – visa ett tydligt felmeddelande
+  const extra = linkErrorDesc ? decodeURIComponent(linkErrorDesc.replace(/\+/g,' ')) + ' ' : '';
+  showResetError(extra + 'Återställningslänken är ogiltig eller har gått ut. Begär en ny via "Glömt lösenordet?".');
+} else if(tokenHash){
+  // Token-hash-flödet hanteras INTE automatiskt av supabase-js – verifiera manuellt
+  show('resetForm');
+  (async () => {
+    const { error } = await sb.auth.verifyOtp({ token_hash: tokenHash, type: queryType || 'recovery' });
+    if(error) showResetError('Återställningslänken är ogiltig eller har gått ut. Begär en ny länk.');
+  })();
+} else if(isRecoveryLink){
+  // Implicit- eller PKCE-flöde: supabase-js sätter sessionen automatiskt (detectSessionInUrl).
+  // Visa resetForm direkt; PASSWORD_RECOVERY-eventet nedan bekräftar.
   show('resetForm');
 }
 
