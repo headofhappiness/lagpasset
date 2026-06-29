@@ -786,6 +786,17 @@ Hälsningar,
           <span id="volunteerChevron" style="font-size:12px;color:var(--muted);transition:transform .2s">▼</span>
         </div>
         <div id="volunteerPanel" style="display:none;border:1.5px solid var(--border);border-top:none;border-radius:0 0 10px 10px;overflow:hidden">
+          <div style="padding:.9rem 1.1rem;border-bottom:1px solid var(--border);background:var(--bg)">
+            <div style="font-size:12.5px;font-weight:700;color:var(--dark);margin-bottom:.55rem">Lägg till någon manuellt</div>
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem">
+              <input id="viName" type="text" placeholder="Namn *" style="flex:1 1 130px;min-width:110px;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px">
+              <input id="viPhone" type="tel" placeholder="Telefon *" style="flex:1 1 130px;min-width:110px;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px">
+              <input id="viEmail" type="email" placeholder="E-post *" style="flex:1 1 150px;min-width:130px;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px">
+              <input id="viRole" type="text" placeholder="Kan hjälpa med (frivilligt)" style="flex:1 1 170px;min-width:130px;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px">
+              <button id="viAddBtn" onclick="addVolunteerInterest()" style="flex:0 0 auto;padding:.5rem 1.1rem;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Lägg till</button>
+            </div>
+            <div id="viMsg" style="font-size:12.5px;margin-top:.5rem;display:none"></div>
+          </div>
           <div id="volunteerInterestList" style="padding:1rem 1.1rem;font-size:13.5px;color:var(--muted)">Laddar…</div>
         </div>
       </div>
@@ -4863,6 +4874,7 @@ async function loadVolunteerInterest(){
       <thead><tr style="border-bottom:1.5px solid var(--border);text-align:left">
         <th style="padding:.5rem .75rem;font-weight:700;color:var(--dark)">Namn</th>
         <th style="padding:.5rem .75rem;font-weight:700;color:var(--dark)">Telefon</th>
+        <th style="padding:.5rem .75rem;font-weight:700;color:var(--dark)">E-post</th>
         <th style="padding:.5rem .75rem;font-weight:700;color:var(--dark)">Kan hjälpa med</th>
         <th style="padding:.5rem .75rem;font-weight:700;color:var(--dark)">Datum</th>
       </tr></thead>
@@ -4870,11 +4882,38 @@ async function loadVolunteerInterest(){
       rows.map(r => `<tr style="border-bottom:1px solid var(--border)">
         <td style="padding:.5rem .75rem">${r.name}</td>
         <td style="padding:.5rem .75rem">${r.phone || '–'}</td>
+        <td style="padding:.5rem .75rem;color:var(--muted)">${r.email || '–'}</td>
         <td style="padding:.5rem .75rem;color:var(--muted)">${r.role || '–'}</td>
         <td style="padding:.5rem .75rem;color:var(--muted);white-space:nowrap">${r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('sv-SE') : '–'}</td>
       </tr>`).join('') +
       `</tbody></table>`;
   } catch(e){ el.innerHTML='<span style="color:var(--red)">Kunde inte ladda.</span>'; console.error(e); }
+}
+
+async function addVolunteerInterest(){
+  const name  = (document.getElementById('viName').value  || '').trim();
+  const phone = (document.getElementById('viPhone').value || '').trim();
+  const email = (document.getElementById('viEmail').value || '').trim();
+  const role  = (document.getElementById('viRole').value  || '').trim();
+  const msg = document.getElementById('viMsg');
+  const setMsg = (t, ok) => { msg.style.display='block'; msg.style.color = ok ? 'var(--green)' : 'var(--red)'; msg.textContent = t; };
+  if(!name || !phone || !email){ setMsg('Fyll i namn, telefon och e-post.', false); return; }
+  const btn = document.getElementById('viAddBtn');
+  btn.disabled = true; btn.textContent = 'Lägger till…';
+  try {
+    await sbInsert('volunteer_interest', { event_id: EVENT_ID, name, phone, email, role: role || null });
+    document.getElementById('viName').value = '';
+    document.getElementById('viPhone').value = '';
+    document.getElementById('viEmail').value = '';
+    document.getElementById('viRole').value = '';
+    setMsg('✓ Tillagd!', true);
+    setTimeout(() => { msg.style.display='none'; }, 2500);
+    loadVolunteerInterest();
+  } catch(e){
+    console.error(e);
+    setMsg('Kunde inte spara. Försök igen.', false);
+  }
+  btn.disabled = false; btn.textContent = 'Lägg till';
 }
 
 async function generateAISummary(){
