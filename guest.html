@@ -1097,7 +1097,7 @@ async function submitVolunteer(){
   const done = document.getElementById('volunteerDone');
   if(!name || !phone){ err.textContent = 'Fyll i både namn och telefon.'; err.style.display='block'; return; }
   err.style.display='none';
-  const eventId = LIVE ? LIVE.event.id : null;
+  const eventId = LIVE ? (LIVE.event ? LIVE.event.id : (LIVE.participant ? LIVE.participant.event_id : null)) : null;
   try {
     await sbInsert('volunteer_interest', { event_id: eventId, name, phone, role: role || null });
     document.getElementById('volunteerBlock').querySelector('.btn.btn-primary').disabled = true;
