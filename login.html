@@ -118,6 +118,8 @@ async function routeUser(user){
     if(!data){
       const { data:club } = await sb.from('clubs').select('id').eq('contact_email', user.email).maybeSingle();
       if(club){
+        // Städa bort ev. gamla admin-kopplingar för föreningen — varje förening ska ha exakt EN admin
+        await sb.from('club_users').delete().eq('club_id', club.id).eq('role', 'admin');
         await sb.from('club_users').insert({ user_id: user.id, club_id: club.id, role: 'admin' });
         data = { club_id: club.id, role: 'admin' };
       }
