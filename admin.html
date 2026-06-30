@@ -5101,24 +5101,83 @@ async function loadReminderCount(){
     }
   } catch(e){ console.error('loadReminderCount:', e); }
 }
+function _reminderDefaults(){
+  const ev = (EVENT && EVENT.name) || 'eventet';
+  return {
+    subject: 'Påminnelse: dela din feedback från ' + ev,
+    message: 'Vi saknar din feedback från ' + ev + '! Du hjälpte till – men vi har inte fått din feedback än. Det tar bara 1 minut och hjälper oss att bemanna bättre nästa år.\n\nTack för din insats! ⚽☀️\n\n' + ((CLUB && CLUB.name) || '')
+  };
+}
+function _reminderPreviewHtml(message){
+  const clubName = (CLUB && CLUB.name) || 'Din förening';
+  const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const body = esc(message).replace(/\n/g,'<br>');
+  return '<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;color:#1e2e20">' +
+    '<div style="background:#111c13;padding:16px 24px;border-radius:12px 12px 0 0"><span style="color:#fff;font-size:15px;font-weight:700">' + esc(clubName) + '</span><span style="color:#4ade80;font-size:13px;font-weight:600"> &nbsp;·&nbsp; via LagPasset</span></div>' +
+    '<div style="border:1px solid #dde8dd;border-top:none;border-radius:0 0 12px 12px;padding:28px 24px">' +
+    '<p style="font-size:16px;margin:0 0 12px">Hej Anna!</p>' +
+    '<p style="font-size:15px;line-height:1.6;color:#2d4a30;margin:0 0 20px">' + body + '</p>' +
+    '<a href="#" onclick="return false" style="display:inline-block;background:#1a8c3a;color:#fff;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:bold;font-size:15px">Ge feedback →</a>' +
+    '<p style="font-size:13px;color:#6a8a6e;margin:24px 0 0;line-height:1.6">Fungerar inte knappen? Kopiera länken:<br><span style="color:#1a8c3a">https://lagpasset.se/guest.html?token=…&feedback=1</span></p>' +
+    '</div><p style="text-align:center;font-size:12px;color:#aac0aa;margin-top:16px">Skickat via LagPasset.se</p></div>';
+}
+function _updateReminderPreview(){
+  const msg = document.getElementById('remMessage'), prev = document.getElementById('remPreview');
+  if(msg && prev) prev.innerHTML = _reminderPreviewHtml(msg.value);
+}
 async function sendFeedbackReminders(){
   const token = await _reminderAuth();
   if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
   const cEl = document.getElementById('reminderCount');
-  const n = cEl ? cEl.textContent : '';
-  if(!confirm(n + ' personer har inte lämnat feedback – skicka påminnelse till alla med e-post?')) return;
-  const btn = document.getElementById('reminderBtn'); btn.disabled = true; btn.textContent = 'Skickar…';
+  const n = cEl ? cEl.textContent : '0';
+  const d = _reminderDefaults();
+  const ex = document.getElementById('modalReminder'); if(ex) ex.remove();
+  const modal = document.createElement('div');
+  modal.id = 'modalReminder';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal" style="max-width:600px;width:100%">
+      <div class="modal-header">
+        <div class="modal-title">📧 Påminnelse till ${n} personer</div>
+        <button class="modal-close" onclick="document.getElementById('modalReminder').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Ändra ämne och text fritt nedan – förhandsgranskningen uppdateras live. "Hej [namn]!", feedback-knappen och varje persons egen länk läggs till automatiskt.</div>
+        <div class="form-group"><label class="form-label">Ämnesrad</label><input type="text" id="remSubject" value="${d.subject.replace(/"/g,'&quot;')}" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">Meddelande</label><textarea id="remMessage" rows="6" style="width:100%;resize:vertical" oninput="_updateReminderPreview()">${d.message}</textarea></div>
+        <div class="form-label" style="margin-bottom:.4rem">Så här ser mejlet ut</div>
+        <div id="remPreview" style="border:1px solid var(--border);border-radius:8px;padding:1rem;background:#f3f6f3;max-height:40vh;overflow:auto"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.getElementById('modalReminder').remove()">Avbryt</button>
+        <button class="btn btn-primary" id="remSendBtn" onclick="_doSendReminders()">Skicka till ${n} personer</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  _updateReminderPreview();
+}
+async function _doSendReminders(){
+  const token = await _reminderAuth();
+  if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
+  const subject = (document.getElementById('remSubject').value||'').trim();
+  const message = (document.getElementById('remMessage').value||'').trim();
+  if(!subject || !message){ showToast('Fyll i ämne och meddelande', 'error'); return; }
+  const cEl = document.getElementById('reminderCount'); const n = cEl ? cEl.textContent : '';
+  if(!confirm('Skicka påminnelse till ' + n + ' personer nu?')) return;
+  const btn = document.getElementById('remSendBtn'); btn.disabled = true; btn.textContent = 'Skickar…';
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/send-feedback-reminders', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event_id: EVENT_ID, dry_run: false })
+      body: JSON.stringify({ event_id: EVENT_ID, dry_run: false, subject: subject, message: message })
     });
     const out = await res.json();
     if(!res.ok) throw new Error(out.error || ('Fel ' + res.status));
+    const m = document.getElementById('modalReminder'); if(m) m.remove();
     showToast('Påminnelse skickad till ' + (out.sent||0) + ' av ' + (out.recipients||0) + ' personer');
     loadReminderCount();
-  } catch(e){ console.error(e); showToast('Kunde inte skicka: ' + (e.message||e), 'error'); btn.disabled = false; }
+  } catch(e){ console.error(e); showToast('Kunde inte skicka: ' + (e.message||e), 'error'); btn.disabled = false; btn.textContent = 'Skicka'; }
 }
 
 function showToast(msg, type) {
