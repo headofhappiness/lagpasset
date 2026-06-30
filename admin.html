@@ -5104,7 +5104,7 @@ async function loadReminderCount(){
 function _reminderDefaults(vcount){
   return {
     subject: 'Snälla lämna feedback 🫶',
-    message: 'Hej [namn]!\nVilken härlig fotbollshelg vi haft! ⚽☀️\n\nVi vet att det i år ibland varit underbemannat och ibland överbemannat. För att kunna använda er tid på bästa sätt framöver och bli ännu bättre så behöver vi din feed-back.\n\nDet tar max 1 minut.\n\n[Knapp: Lämna din feedback]\n\nVi behöver också bli fler som hjälps åt nästa år (fetstil)\nRedan 4 personer har anmält att de vill hjälpa till nästa år – vi skulle behöva bli fler! Häng på, det kommer bli kul 🙌\nTack för helgen alla grymma spelare, ledare och föräldrar!\nLisa, förälder'
+    message: 'Hej [namn]!\nVilken härlig fotbollshelg vi haft! ⚽☀️\n\nVi vet att det i år ibland varit underbemannat och ibland överbemannat. För att kunna använda er tid på bästa sätt framöver och bli ännu bättre så behöver vi din feed-back.\n\nDet tar max 1 minut.\n\n[Knapp: Lämna din feedback]\n\nVi behöver också bli fler som hjälps åt nästa år (fetstil)\nRedan 4 personer har anmält att de vill hjälpa till nästa år – vi skulle behöva bli fler! Häng på, det kommer bli kul 🙌\n\nTack för helgen alla grymma spelare, ledare och föräldrar!\nLisa, förälder'
   };
 }
 function _reminderPreviewHtml(message){
@@ -5151,6 +5151,13 @@ async function sendFeedbackReminders(){
         <div class="form-group"><label class="form-label">Meddelande</label><textarea id="remMessage" rows="6" style="width:100%;resize:vertical" oninput="_updateReminderPreview()">${d.message}</textarea></div>
         <div class="form-label" style="margin-bottom:.4rem">Så här ser mejlet ut</div>
         <div id="remPreview" style="border:1px solid var(--border);border-radius:8px;padding:1rem;background:#f3f6f3;max-height:40vh;overflow:auto"></div>
+        <div style="margin-top:1rem;padding-top:.85rem;border-top:1px solid var(--border)">
+          <div class="form-label" style="margin-bottom:.4rem">🧪 Skicka ett testmejl till dig själv först</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <input type="email" id="remTestEmail" placeholder="din@epost.se" style="flex:1 1 200px;min-width:160px">
+            <button class="btn btn-ghost" id="remTestBtn" onclick="_sendReminderTest()">Skicka testmejl</button>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.getElementById('modalReminder').remove()">Avbryt</button>
@@ -5160,6 +5167,27 @@ async function sendFeedbackReminders(){
   document.body.appendChild(modal);
   _updateReminderPreview();
 }
+async function _sendReminderTest(){
+  const token = await _reminderAuth();
+  if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
+  const email = (document.getElementById('remTestEmail').value||'').trim();
+  if(!email || email.indexOf('@') < 0){ showToast('Ange en giltig e-postadress', 'error'); return; }
+  const subject = (document.getElementById('remSubject').value||'').trim();
+  const message = (document.getElementById('remMessage').value||'').trim();
+  const btn = document.getElementById('remTestBtn'); btn.disabled = true; btn.textContent = 'Skickar…';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-feedback-reminders', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_id: EVENT_ID, test_email: email, subject: subject, message: message })
+    });
+    const out = await res.json();
+    if(!res.ok) throw new Error(out.error || ('Fel ' + res.status));
+    showToast('✓ Testmejl skickat till ' + email);
+  } catch(e){ console.error(e); showToast('Kunde inte skicka testmejl: ' + (e.message||e), 'error'); }
+  btn.disabled = false; btn.textContent = 'Skicka testmejl';
+}
+
 async function _doSendReminders(){
   const token = await _reminderAuth();
   if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
