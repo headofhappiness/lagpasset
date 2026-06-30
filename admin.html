@@ -4755,10 +4755,8 @@ function resetAutoTemplate(which){
   showToast('Standardtext återställd');
 }
 
-// På/av för automatisk påminnelse (sparas lokalt i webbläsaren)
-let autoReminderEnabled = (function(){
-  try { return localStorage.getItem('lp_autoReminder') === 'on'; } catch(e){ return false; }
-})();
+// På/av för automatisk påminnelse (laddas från/sparas i events-tabellen: auto_reminder)
+let autoReminderEnabled = false;
 
 function applyAutoReminderBadge(){
   const badge = document.getElementById('autoReminderBadge');
@@ -4774,8 +4772,7 @@ function applyAutoReminderBadge(){
   }
 }
 
-let autoConfirmEnabled = false;
-try { autoConfirmEnabled = (localStorage.getItem('lp_autoConfirm') === 'on'); } catch(e){}
+let autoConfirmEnabled = false; // laddas från/sparas i events-tabellen: auto_confirm
 
 let autoFeedbackEnabled = false; // laddas från events-tabellen
 let autoSmsEnabled = false; // laddas från events-tabellen (feedback_sms_enabled)
@@ -4789,9 +4786,16 @@ function applyAutoConfirmBadge(){
   b.style.cursor = 'pointer';
 }
 
-function toggleAutoConfirm(){
+async function toggleAutoConfirm(){
   autoConfirmEnabled = !autoConfirmEnabled;
-  try { localStorage.setItem('lp_autoConfirm', autoConfirmEnabled ? 'on' : 'off'); } catch(e){}
+  // Spara i events-tabellen (samma mönster som feedback-togglarna)
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/events?id=eq.' + EVENT_ID, {
+      method: 'PATCH',
+      headers: {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({ auto_confirm: autoConfirmEnabled })
+    });
+  } catch(e){}
   applyAutoConfirmBadge();
   showToast(autoConfirmEnabled ? 'Bekräftelsemejl påslaget' : 'Bekräftelsemejl avstängt');
 }
@@ -4844,9 +4848,16 @@ async function toggleAutoSms(){
   showToast(autoSmsEnabled ? 'Feedback-SMS påslaget – skickas automatiskt efter varje pass' : 'Feedback-SMS avstängt');
 }
 
-function toggleAutoReminder(){
+async function toggleAutoReminder(){
   autoReminderEnabled = !autoReminderEnabled;
-  try { localStorage.setItem('lp_autoReminder', autoReminderEnabled ? 'on' : 'off'); } catch(e){}
+  // Spara i events-tabellen (samma mönster som feedback-togglarna)
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/events?id=eq.' + EVENT_ID, {
+      method: 'PATCH',
+      headers: {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({ auto_reminder: autoReminderEnabled })
+    });
+  } catch(e){}
   applyAutoReminderBadge();
   showToast(autoReminderEnabled ? 'Automatisk påminnelse påslagen' : 'Automatisk påminnelse avstängd');
   if(typeof renderAttention === 'function') renderAttention();
@@ -5673,6 +5684,10 @@ async function init() {
   if(_ev && typeof _ev.feedback_sms_enabled !== 'undefined'){
     autoSmsEnabled = !!_ev.feedback_sms_enabled;
   }
+  if(_ev && typeof _ev.auto_reminder !== 'undefined'){ autoReminderEnabled = !!_ev.auto_reminder; }
+  if(_ev && typeof _ev.auto_confirm !== 'undefined'){ autoConfirmEnabled = !!_ev.auto_confirm; }
+  if(typeof applyAutoReminderBadge === 'function') applyAutoReminderBadge();
+  if(typeof applyAutoConfirmBadge === 'function') applyAutoConfirmBadge();
   if(typeof applyAutoFeedbackBadge === 'function') applyAutoFeedbackBadge();
   if(typeof applyAutoSmsBadge === 'function') applyAutoSmsBadge();
   // Visa Logga ut-knapp i riktig admin (ej demo)
