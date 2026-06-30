@@ -82,6 +82,9 @@ tr:hover td{background:var(--green-pale)}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:100px}
+.att-btn{border:1.5px solid var(--border);background:#fff;color:var(--muted);border-radius:100px;padding:3px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;line-height:1.5}
+.att-present.on{background:var(--green);border-color:var(--green);color:#fff}
+.att-absent.on{background:var(--red);border-color:var(--red);color:#fff}
 .badge-green{background:var(--green-light);color:var(--green)}
 .badge-amber{background:var(--amber-light);color:var(--amber)}
 .badge-red{background:var(--red-light);color:var(--red)}
@@ -2556,7 +2559,7 @@ function renderShiftDetailInline(shiftId){
   const bookings = DB.bookings.filter(b => b.shift_id === shiftId);
   const participants = bookings.map(b => {
     const p = DB.participants.find(p => p.id === b.participant_id);
-    return p ? {...p, ...b, bookingId: b.id} : {name: b.display_name || 'Okänd', team:'–', phone:'', email:'', bookingId: b.id};
+    return p ? {...p, ...b, bookingId: b.id} : {name: b.display_name || 'Okänd', team:'–', phone:'', email:'', bookingId: b.id, attendance: b.attendance};
   });
   const free = (shift ? shift.slots : 0) - bookings.length;
   let html = '<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem">';
@@ -2566,6 +2569,10 @@ function renderShiftDetailInline(shiftId){
       <strong>${p.name}</strong> <span style="color:var(--muted)">${p.team || ''}</span><br>
       ${p.phone ? '<a href="tel:' + p.phone + '" style="color:var(--green);text-decoration:none">📞 ' + p.phone + '</a> ' : ''}
       ${p.email ? '<a href="mailto:' + p.email + '" style="color:var(--green);text-decoration:none">✉️ ' + p.email + '</a>' : ''}
+      <div style="display:flex;gap:.35rem;margin-top:.45rem">
+        <button type="button" class="att-btn att-present${p.attendance==='present'?' on':''}" onclick="setShiftAttendance(this,'${p.bookingId}','present')">✓ Kom</button>
+        <button type="button" class="att-btn att-absent${p.attendance==='absent'?' on':''}" onclick="setShiftAttendance(this,'${p.bookingId}','absent')">✕ Kom inte</button>
+      </div>
     </div>`;
   });
   for(let i=0; i<free; i++){
@@ -2575,6 +2582,24 @@ function renderShiftDetailInline(shiftId){
   }
   html += '</div>';
   content.innerHTML = html;
+}
+
+async function setShiftAttendance(btn, bookingId, value){
+  const wrap = btn.parentNode;
+  const pres = wrap.querySelector('.att-present');
+  const abs = wrap.querySelector('.att-absent');
+  const prevP = pres.classList.contains('on'), prevA = abs.classList.contains('on');
+  const newVal = btn.classList.contains('on') ? null : value;
+  pres.classList.toggle('on', newVal === 'present');
+  abs.classList.toggle('on', newVal === 'absent');
+  try {
+    await sbUpdate('bookings', bookingId, { attendance: newVal });
+    const bk = DB.bookings.find(b => b.id === bookingId); if(bk) bk.attendance = newVal;
+  } catch(e){
+    console.error(e);
+    pres.classList.toggle('on', prevP); abs.classList.toggle('on', prevA);
+    showToast('Kunde inte spara närvaron', 'error');
+  }
 }
 
 function onMemberCheckChange(){
