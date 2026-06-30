@@ -5148,7 +5148,10 @@ function _kbTipsHtml(tips){
 function _kbCard(station, i, tips){
   const esc = function(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
   return '<div class="card" style="margin-bottom:1rem">' +
-    '<div class="card-title">' + esc(station) + '</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem">' +
+      '<div class="card-title">' + esc(station) + '</div>' +
+      '<button class="btn btn-ghost btn-sm" onclick="printStation(' + i + ')">🖨 Skriv ut</button>' +
+    '</div>' +
     '<div id="kbTips' + i + '" style="margin:.5rem 0">' + _kbTipsHtml(tips) + '</div>' +
     '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem">' +
       '<input id="kbInput' + i + '" type="text" placeholder="Nytt kom ihåg…" style="flex:1 1 220px;min-width:160px" onkeydown="if(event.key===\'Enter\')addStationTip(' + i + ')">' +
@@ -5249,6 +5252,64 @@ async function saveCheckedSuggestions(i){
     await _refreshKbTips(i, station);
     if(!box.querySelectorAll('input[type=checkbox][data-j]').length) box.innerHTML = '<div style="font-size:13px;color:var(--muted)">Sparat ✓</div>';
   } catch(e){ console.error(e); showToast('Kunde inte spara', 'error'); }
+}
+
+async function printStation(i){
+  const station = _kbStations[i];
+  const esc = function(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  const hhmm = function(t){ return (t||'').slice(0,5); };
+  const partById = {}; (DB.participants||[]).forEach(function(p){ partById[p.id] = p; });
+  const shifts = (DB.shifts||[]).filter(function(s){ return _stationBase(s.title) === station; })
+    .sort(function(a,b){ return (a.date||'').localeCompare(b.date||'') || (a.time_start||'').localeCompare(b.time_start||''); });
+  let bemRows = '';
+  shifts.forEach(function(s){
+    const people = (DB.bookings||[]).filter(function(b){ return b.shift_id === s.id; })
+      .map(function(b){ return partById[b.participant_id] || (b.name ? { name:b.name, phone:b.phone||'' } : null); }).filter(Boolean);
+    const when = esc(s.date || '') + ' ' + hhmm(s.time_start) + (s.time_end ? '–' + hhmm(s.time_end) : '');
+    if(!people.length){
+      bemRows += '<tr><td>' + when + '</td><td colspan="2" class="muted">— ingen bokad —</td></tr>';
+    } else {
+      people.forEach(function(p, idx){ bemRows += '<tr><td>' + (idx===0 ? when : '') + '</td><td>' + esc(p.name||'') + '</td><td>' + esc(p.phone||'') + '</td></tr>'; });
+    }
+  });
+  const bemHtml = shifts.length
+    ? '<table class="bem"><thead><tr><th>Pass</th><th>Namn</th><th>Telefon</th></tr></thead><tbody>' + bemRows + '</tbody></table>'
+    : '<p class="muted">Inga pass för den här stationen.</p>';
+  let tips = [];
+  try { const all = await _loadStationTips(); tips = all.filter(function(t){ return t.station === station; }); } catch(e){}
+  const tipsHtml = tips.length
+    ? '<ul class="tips">' + tips.map(function(t){ return '<li>' + esc(t.text) + '</li>'; }).join('') + '</ul>'
+    : '<p class="muted">Inga kom ihåg sparade för den här stationen.</p>';
+  const doc = [
+    '<!doctype html><html lang="sv"><head><meta charset="utf-8"><title>' + esc(station) + ' – utskrift</title>',
+    '<style>',
+    'body{font-family:system-ui,Arial,sans-serif;color:#1c2a24;max-width:760px;margin:1.5rem auto;padding:0 1rem;line-height:1.45}',
+    'h1{font-size:22px;margin:0 0 .2rem}h2{font-size:16px;border-bottom:2px solid #2e7d52;padding-bottom:.2rem;margin:1.4rem 0 .6rem}',
+    '.sub{color:#666;font-size:13px;margin-bottom:1rem}',
+    'table.bem{width:100%;border-collapse:collapse;font-size:13.5px}',
+    'table.bem th,table.bem td{text-align:left;padding:5px 8px;border-bottom:1px solid #ddd;vertical-align:top}',
+    'table.bem th{background:#f0f5f2}',
+    'ul.tips{margin:.3rem 0;padding-left:1.2rem}ul.tips li{margin-bottom:.35rem;font-size:14px}',
+    '.muted{color:#888;font-style:italic}',
+    '.controls{position:sticky;top:0;background:#fff;padding:.6rem 0;border-bottom:1px solid #ddd;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}',
+    '.controls label{font-size:14px;cursor:pointer}.controls button{padding:7px 16px;background:#2e7d52;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer}',
+    '@media print{.controls{display:none}body{margin:0}}',
+    '</style></head><body>',
+    '<div class="controls">',
+      '<label><input type="checkbox" id="cbBem" checked onchange="_tg()"> Bemanningslista</label>',
+      '<label><input type="checkbox" id="cbTips" checked onchange="_tg()"> Viktiga kom ihåg</label>',
+      '<button onclick="window.print()">🖨 Skriv ut</button>',
+    '</div>',
+    '<h1>' + esc(station) + '</h1>',
+    '<div class="sub">' + esc((EVENT && EVENT.name) || '') + ((CLUB && CLUB.name) ? ' · ' + esc(CLUB.name) : '') + '</div>',
+    '<section id="secBem"><h2>Bemanning</h2>' + bemHtml + '</section>',
+    '<section id="secTips"><h2>Viktiga kom ihåg</h2>' + tipsHtml + '</section>',
+    '<scr' + 'ipt>function _tg(){document.getElementById("secBem").style.display=document.getElementById("cbBem").checked?"":"none";document.getElementById("secTips").style.display=document.getElementById("cbTips").checked?"":"none";}</scr' + 'ipt>',
+    '</body></html>'
+  ].join('');
+  const w = window.open('', '_blank');
+  if(!w){ showToast('Tillåt popup-fönster för att skriva ut', 'error'); return; }
+  w.document.open(); w.document.write(doc); w.document.close();
 }
 
 /* ═══════════ FEEDBACK-PÅMINNELSE ═══════════ */
