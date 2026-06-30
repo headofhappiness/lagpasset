@@ -485,6 +485,7 @@ setVH(); window.addEventListener('resize',setVH);
       <div class="msg ok" style="margin-bottom:1rem">Tack för din feedback! Det hjälper oss att bli bättre till nästa gång.</div>
       <div id="volunteerBlock" style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1.25rem 1.3rem">
         <div style="font-size:1.3rem;margin-bottom:.4rem">🙋</div>
+        <div id="volunteerSocialProof" style="display:none;background:#e8f7ec;border-radius:10px;padding:.6rem .9rem;margin-bottom:.85rem;font-size:13.5px;color:#1a8c3a;font-weight:600;line-height:1.45"></div>
         <p style="font-size:15px;font-weight:700;color:var(--dark);line-height:1.5;margin:0 0 .75rem">🙌 Inför Åsacupen nästa år behöver vi bli fler som hjälps åt att planera!</p>
         <p style="font-size:13.5px;color:var(--text);line-height:1.6;margin:0 0 1rem">Kan du tänka dig att vara med? Lämna ditt namn, telefon och e-post så hör vi av oss så vi kan prata vidare.</p>
         <div class="form-group" style="margin-bottom:.75rem">
@@ -1372,8 +1373,25 @@ function liveDayLabel(dateStr){
   return dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1);
 }
 
+async function loadVolunteerSocialProof(){
+  try {
+    const ev = LIVE && LIVE.event;
+    const eventId = ev ? ev.id : (LIVE && LIVE.participant ? LIVE.participant.event_id : null);
+    if(!eventId) return;
+    const rows = await sbFetch('volunteer_interest', '?event_id=eq.' + eventId + '&select=id');
+    const n = (rows || []).length;
+    const box = document.getElementById('volunteerSocialProof');
+    if(!box) return;
+    if(n > 0){
+      box.textContent = '🙌 ' + n + (n === 1 ? ' person har' : ' personer har') + ' redan anmält sitt intresse – bli en av dem!';
+      box.style.display = 'block';
+    } else { box.style.display = 'none'; }
+  } catch(e){ console.error('socialProof:', e); }
+}
+
 function renderLiveView(){
   const p = LIVE.participant, ev = LIVE.event;
+  if(typeof loadVolunteerSocialProof === 'function') loadVolunteerSocialProof();
   document.documentElement.style.setProperty('--green', '#1a8c3a');
   document.getElementById('navClub').textContent = 'Åsa IF';
   document.title = 'Åsa IF – ' + ev.name;

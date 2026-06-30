@@ -5101,11 +5101,14 @@ async function loadReminderCount(){
     }
   } catch(e){ console.error('loadReminderCount:', e); }
 }
-function _reminderDefaults(){
+function _reminderDefaults(vcount){
   const ev = (EVENT && EVENT.name) || 'eventet';
+  const social = (vcount && vcount > 0)
+    ? ('\n\nRedan ' + vcount + (vcount === 1 ? ' person har' : ' personer har') + ' anmält att de vill hjälpa till nästa år – var med du också!')
+    : '';
   return {
     subject: 'Påminnelse: dela din feedback från ' + ev,
-    message: 'Vi saknar din feedback från ' + ev + '! Du hjälpte till – men vi har inte fått din feedback än. Det tar bara 1 minut och hjälper oss att bemanna bättre nästa år.\n\nTack för din insats! ⚽☀️\n\n' + ((CLUB && CLUB.name) || '')
+    message: 'Vi saknar din feedback från ' + ev + '! Du hjälpte till – men vi har inte fått din feedback än. Det tar bara 1 minut och hjälper oss att bemanna bättre nästa år.' + social + '\n\nTack för din insats! ⚽☀️\n\n' + ((CLUB && CLUB.name) || '')
   };
 }
 function _reminderPreviewHtml(message){
@@ -5130,7 +5133,9 @@ async function sendFeedbackReminders(){
   if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
   const cEl = document.getElementById('reminderCount');
   const n = cEl ? cEl.textContent : '0';
-  const d = _reminderDefaults();
+  let vcount = 0;
+  try { vcount = (await sbFetch('volunteer_interest', '?event_id=eq.' + EVENT_ID + '&select=id')).length; } catch(e){}
+  const d = _reminderDefaults(vcount);
   const ex = document.getElementById('modalReminder'); if(ex) ex.remove();
   const modal = document.createElement('div');
   modal.id = 'modalReminder';
