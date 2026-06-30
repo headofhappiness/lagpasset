@@ -5121,6 +5121,33 @@ function _recalcCopyRow(i){
   if(sel) r.basis = sel.value;
   const inp = document.getElementById('ceSlot' + i);
   if(inp) inp.value = _copyRowSuggested(r, r.basis);
+  _updateCopyBasisSummary();
+}
+function _setAllCopyBasis(basis){
+  if(!_copyState) return;
+  _copyState.rows.forEach(function(r, i){
+    const sel = document.getElementById('ceBasis' + i);
+    if(sel) sel.value = basis;
+    r.basis = basis;
+    const inp = document.getElementById('ceSlot' + i);
+    if(inp) inp.value = _copyRowSuggested(r, basis);
+  });
+  _updateCopyBasisSummary();
+}
+function _updateCopyBasisSummary(){
+  const el = document.getElementById('copyBasisSummary');
+  if(!el || !_copyState) return;
+  let att = 0, bok = 0, old = 0;
+  _copyState.rows.forEach(function(r){
+    const base = r.basis === 'attendance' ? r.presentN : r.bookedN;
+    if(base === 0) old++;
+    else if(r.basis === 'attendance') att++;
+    else bok++;
+  });
+  el.innerHTML = 'Rekommendationen baseras nu på: ' +
+    '<span style="color:var(--green);font-weight:700">' + att + ' pass avprickade</span> · ' +
+    '<span style="color:var(--dark);font-weight:700">' + bok + ' pass uppskrivna</span> · ' +
+    '<span style="color:#c0392b;font-weight:700">' + old + ' pass förra året</span>';
 }
 function _renderPreview(){
   const st = _copyState;
@@ -5146,9 +5173,16 @@ function _renderPreview(){
   }).join('');
   document.getElementById('copyModalBody').innerHTML =
     '<div style="font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.5"><strong>Välj per pass</strong> vad förslaget ska räknas på – <strong>avprickade</strong> (de som faktiskt kom) eller <strong>uppskrivna</strong> (bokade). Avprickade är tryggast där det finns; uppskrivna är basen för t.ex. Åsacupen 2026 (papperslistor). Sedan justeras det <strong>±1 från snittbetyget</strong> (3 = lagom; &lt;2,5 → +1, &gt;3,5 → −1). Saknas båda används förra årets antal platser. Justera siffran för hand om du vill, eller sätt 0 om passet inte behövs.</div>' +
+    '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">' +
+      '<span style="font-size:12.5px;font-weight:700;color:var(--muted)">Räkna alla på:</span>' +
+      '<button type="button" class="btn btn-ghost btn-sm" onclick="_setAllCopyBasis(\'attendance\')">Avprickade</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" onclick="_setAllCopyBasis(\'bookings\')">Uppskrivna</button>' +
+    '</div>' +
+    '<div id="copyBasisSummary" style="font-size:13px;margin-bottom:.6rem;padding:.5rem .7rem;background:var(--bg);border-radius:8px"></div>' +
     '<div style="overflow:auto;max-height:50vh;border:1px solid var(--border);border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:13px">' +
     '<thead><tr style="text-align:left;background:var(--bg)"><th style="padding:.5rem">Pass</th><th style="padding:.5rem">Dag/tid</th><th style="padding:.5rem;text-align:center">Förra</th><th style="padding:.5rem;text-align:center">Räkna på</th><th style="padding:.5rem;text-align:center">Snitt</th><th style="padding:.5rem;text-align:center">Just.</th><th style="padding:.5rem;text-align:center">Förslag</th></tr></thead>' +
     '<tbody>' + rowsHtml + '</tbody></table></div>';
+  _updateCopyBasisSummary();
   const btn = document.getElementById('ceNextBtn');
   btn.textContent = st.fields ? 'Skapa event (' + st.rows.length + ' pass)' : 'Kopiera in ' + st.rows.length + ' pass';
   btn.disabled = false;
