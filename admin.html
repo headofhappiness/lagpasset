@@ -5813,7 +5813,8 @@ function renderStaffingAnalysis(){
     const oldSlots = shift ? (shift.slots||0) : 0;
     const rec = base === 0 ? oldSlots : Math.max(0, base + adj);
     const komTxt = usedAtt ? (present + ' kom / ' + booked + ' bokade') : (booked + ' bokade');
-    const recTxt = '<strong style="color:#1a8c3a">Rekommenderat nästa år: ' + rec + ' platser</strong>';
+    const basisLabel = (base === 0) ? 'förra årets antal platser' : (usedAtt ? 'avprickade (kom)' : 'antal bokade');
+    const recTxt = '<strong style="color:#1a8c3a">Rekommenderat nästa år: ' + rec + ' platser</strong> <span style="color:var(--muted);font-weight:400">(baserat på ' + basisLabel + ')</span>';
     if(avg <= 2.4){
       html += row('FÖR LITE', '#c0392b', '#fdecea', name, scores.length + ' svar · ' + komTxt + ' · upplevdes underbemannat. ' + recTxt);
     } else if(avg >= 3.6){
