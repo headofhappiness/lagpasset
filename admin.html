@@ -944,6 +944,15 @@ Hälsningar,
       </div>
 
       <div class="card">
+        <div class="card-title" style="margin-bottom:.5rem">📋 Nytt event / kopiera upplägg</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:1rem">Skapa nästa års event från grunden eller utgå från ett tidigare års upplägg. Pass, tider och föreslaget antal platser fylls i automatiskt – baserat på förra årets faktiska bokningar och feedback. Du granskar och justerar innan något skapas.</div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openNewEventModal()">➕ Skapa nytt event</button>
+          <button class="btn btn-ghost" onclick="openCopyLayoutModal()">📋 Kopiera upplägg hit (till detta event)</button>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-title" style="margin-bottom:.5rem">Föreningsprofil</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Visas i medlemsvyn och på utskrifter.</p>
         <div class="inline-2">
@@ -4862,6 +4871,184 @@ async function toggleAutoReminder(){
   showToast(autoReminderEnabled ? 'Automatisk påminnelse påslagen' : 'Automatisk påminnelse avstängd');
   if(typeof renderAttention === 'function') renderAttention();
 }
+/* ═══════════ KOPIERA / SKAPA EVENT ═══════════ */
+let _copyState = null;
+
+async function _getClubEvents(){
+  if(!CLUB || !CLUB.id) return [];
+  try { return await sbFetch('events', '?club_id=eq.' + CLUB.id + '&order=date_start.desc'); }
+  catch(e){ console.error(e); return []; }
+}
+function _closeCopyModal(){ const m = document.getElementById('modalCopyEvent'); if(m) m.remove(); }
+
+async function openNewEventModal(){
+  if(!CLUB || !CLUB.id){ showToast('Ingen förening kopplad till eventet', 'error'); return; }
+  _showCopyModal('new', await _getClubEvents());
+}
+async function openCopyLayoutModal(){
+  if(!CLUB || !CLUB.id){ showToast('Ingen förening kopplad till eventet', 'error'); return; }
+  const events = (await _getClubEvents()).filter(e => e.id !== EVENT_ID);
+  if(!events.length){ showToast('Inga tidigare event att kopiera från', 'error'); return; }
+  _showCopyModal('current', events);
+}
+
+function _showCopyModal(mode, events){
+  _closeCopyModal();
+  const isNew = mode === 'new';
+  const opts = events.map(e => '<option value="' + e.id + '">' + ((e.name||'(namnlöst)')) + (e.date_start ? ' (' + e.date_start + ')' : '') + '</option>').join('');
+  const modal = document.createElement('div');
+  modal.id = 'modalCopyEvent';
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal._mode = mode;
+  modal.innerHTML = `
+    <div class="modal" style="max-width:760px;width:100%">
+      <div class="modal-header">
+        <div class="modal-title">${isNew ? '➕ Skapa nytt event' : ('📋 Kopiera upplägg till ' + ((EVENT && EVENT.name) || 'detta event'))}</div>
+        <button class="modal-close" onclick="_closeCopyModal()">✕</button>
+      </div>
+      <div class="modal-body" id="copyModalBody">
+        ${isNew ? `<div class="form-group"><label class="form-label">Eventnamn</label><input type="text" id="ceName" placeholder="t.ex. Åsacupen 2027" style="width:100%"></div>
+        <div class="inline-2" style="max-width:420px">
+          <div class="form-group"><label class="form-label">Första eventdag</label><input type="date" id="ceStart" style="width:100%"></div>
+          <div class="form-group"><label class="form-label">Sista eventdag</label><input type="date" id="ceEnd" style="width:100%"></div>
+        </div>` : ''}
+        <div class="form-group">
+          <label class="form-label">${isNew ? 'Kopiera upplägg från tidigare år?' : 'Kopiera upplägg från'}</label>
+          <select id="ceSource" style="width:100%">${isNew ? '<option value="">Nej tack – skapa tomt event</option>' : ''}${opts}</select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="_closeCopyModal()">Avbryt</button>
+        <button class="btn btn-primary" id="ceNextBtn" onclick="_copyPreviewStep()">${isNew ? 'Nästa →' : 'Visa förhandsgranskning →'}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function _copyPreviewStep(){
+  const modal = document.getElementById('modalCopyEvent');
+  const isNew = modal._mode === 'new';
+  const sourceId = document.getElementById('ceSource').value;
+  let fields = null, targetStart, targetEnd;
+  if(isNew){
+    const name = (document.getElementById('ceName').value||'').trim();
+    targetStart = document.getElementById('ceStart').value;
+    targetEnd = document.getElementById('ceEnd').value;
+    if(!name || !targetStart || !targetEnd){ showToast('Fyll i namn och datum', 'error'); return; }
+    if(!sourceId){ await _createEmptyEvent(name, targetStart, targetEnd); return; }
+    fields = { name: name, start: targetStart, end: targetEnd };
+  } else {
+    targetStart = EVENT && EVENT.date_start; targetEnd = EVENT && EVENT.date_end;
+    if(!targetStart){ showToast('Detta event saknar startdatum – sätt det i Inställningar först', 'error'); return; }
+    if(!sourceId){ showToast('Välj ett källevent', 'error'); return; }
+  }
+  const btn = document.getElementById('ceNextBtn'); btn.disabled = true; btn.textContent = 'Laddar…';
+  try { await _buildPreview(sourceId, targetStart, targetEnd, fields); }
+  catch(e){ console.error(e); showToast('Kunde inte ladda förhandsgranskning', 'error'); btn.disabled = false; btn.textContent = isNew ? 'Nästa →' : 'Visa förhandsgranskning →'; }
+}
+
+function _mapDate(srcDate, srcStart, targetStart){
+  if(!srcDate || !srcStart || !targetStart) return targetStart || srcDate;
+  const off = Math.round((new Date(srcDate+'T00:00:00') - new Date(srcStart+'T00:00:00')) / 86400000);
+  const nd = new Date(new Date(targetStart+'T00:00:00').getTime() + off*86400000);
+  return nd.getFullYear() + '-' + String(nd.getMonth()+1).padStart(2,'0') + '-' + String(nd.getDate()).padStart(2,'0');
+}
+
+async function _buildPreview(sourceId, targetStart, targetEnd, fields){
+  const srcEvents = await sbFetch('events', '?id=eq.' + sourceId);
+  const srcStart = srcEvents.length ? srcEvents[0].date_start : null;
+  const shifts = await sbFetch('shifts', '?event_id=eq.' + sourceId + '&order=date.asc,time_start.asc');
+  if(!shifts.length){ showToast('Källeventet har inga pass', 'error'); _closeCopyModal(); return; }
+  const inList = '(' + shifts.map(s => s.id).join(',') + ')';
+  const [bookings, feedback, slots] = await Promise.all([
+    sbFetch('bookings', '?shift_id=in.' + inList + '&select=shift_id'),
+    sbFetch('feedback', '?shift_id=in.' + inList + '&select=shift_id,staffing_score'),
+    sbFetch('shift_slots', '?shift_id=in.' + inList + '&select=shift_id,slot_number,team&order=slot_number.asc')
+  ]);
+  const bookCount = {}; bookings.forEach(b => { bookCount[b.shift_id] = (bookCount[b.shift_id]||0)+1; });
+  const fbAgg = {}; feedback.forEach(f => { if(f.staffing_score!=null){ (fbAgg[f.shift_id]=fbAgg[f.shift_id]||[]).push(f.staffing_score); } });
+  const slotTeams = {}; slots.forEach(sl => { (slotTeams[sl.shift_id]=slotTeams[sl.shift_id]||[]).push(sl.team); });
+  const rows = shifts.map(s => {
+    const booked = bookCount[s.id] || 0;
+    const scores = fbAgg[s.id] || [];
+    const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+    let adj = 0; if(avg!==null){ if(avg < 2.5) adj = 1; else if(avg > 3.5) adj = -1; }
+    return { title:s.title, time_start:s.time_start, time_end:s.time_end, team:s.team, location:s.location,
+      contact_name:s.contact_name, contact_phone:s.contact_phone, notes:s.notes,
+      date:_mapDate(s.date, srcStart, targetStart), booked:booked, avg:avg, adj:adj,
+      suggested:Math.max(0, booked + adj), srcTeams:(slotTeams[s.id]||[]) };
+  });
+  _copyState = { fields:fields, rows:rows };
+  _renderPreview();
+}
+
+function _renderPreview(){
+  const st = _copyState;
+  const wd = ['sön','mån','tis','ons','tor','fre','lör'];
+  const rowsHtml = st.rows.map((r,i) => {
+    const d = new Date(r.date+'T00:00:00');
+    const adjLabel = r.adj>0 ? '<span style="color:var(--green)">+1</span>' : (r.adj<0 ? '<span style="color:#c0392b">−1</span>' : '<span style="color:var(--muted)">±0</span>');
+    return '<tr style="border-bottom:1px solid var(--border)">' +
+      '<td style="padding:.4rem .5rem">' + r.title + '</td>' +
+      '<td style="padding:.4rem .5rem;white-space:nowrap;color:var(--muted)">' + wd[d.getDay()] + ' ' + r.date + '<br>' + (r.time_start||'').slice(0,5) + '–' + (r.time_end||'').slice(0,5) + '</td>' +
+      '<td style="padding:.4rem .5rem;text-align:center">' + r.booked + '</td>' +
+      '<td style="padding:.4rem .5rem;text-align:center">' + (r.avg===null ? '–' : r.avg.toFixed(1)) + '</td>' +
+      '<td style="padding:.4rem .5rem;text-align:center;font-size:12px">' + adjLabel + '</td>' +
+      '<td style="padding:.4rem .5rem;text-align:center"><input type="number" min="0" value="' + r.suggested + '" id="ceSlot' + i + '" style="width:58px;text-align:center"></td></tr>';
+  }).join('');
+  document.getElementById('copyModalBody').innerHTML =
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Antal platser baseras på förra årets <strong>faktiska bokningar</strong>. Förslaget justerar ±1 utifrån snittbetyget för bemanning (3 = lagom; <2,5 → +1, >3,5 → −1). Justera fritt innan du skapar.</div>' +
+    '<div style="overflow:auto;max-height:50vh;border:1px solid var(--border);border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:13px">' +
+    '<thead><tr style="text-align:left;background:var(--bg)"><th style="padding:.5rem">Pass</th><th style="padding:.5rem">Dag/tid</th><th style="padding:.5rem;text-align:center">Bokn.</th><th style="padding:.5rem;text-align:center">Snitt</th><th style="padding:.5rem;text-align:center">Just.</th><th style="padding:.5rem;text-align:center">Platser</th></tr></thead>' +
+    '<tbody>' + rowsHtml + '</tbody></table></div>';
+  const btn = document.getElementById('ceNextBtn');
+  btn.textContent = st.fields ? 'Skapa event (' + st.rows.length + ' pass)' : 'Kopiera in ' + st.rows.length + ' pass';
+  btn.disabled = false;
+  btn.setAttribute('onclick', '_confirmCopy()');
+}
+
+async function _confirmCopy(){
+  const st = _copyState;
+  st.rows.forEach((r,i) => { const el = document.getElementById('ceSlot'+i); r.finalSlots = el ? Math.max(0, parseInt(el.value,10)||0) : r.suggested; });
+  const btn = document.getElementById('ceNextBtn'); btn.disabled = true; btn.textContent = 'Skapar…';
+  try {
+    let targetId = EVENT_ID;
+    if(st.fields){
+      const ev = await sbInsertReturn('events', { club_id: (CLUB && CLUB.id) || (EVENT && EVENT.club_id) || null, name: st.fields.name, date_start: st.fields.start, date_end: st.fields.end });
+      if(!ev || !ev.id) throw new Error('Kunde inte skapa event');
+      targetId = ev.id;
+    }
+    let created = 0;
+    for(const r of st.rows){
+      const shift = await sbInsertReturn('shifts', { event_id: targetId, title: r.title, date: r.date,
+        time_start: (r.time_start||'').trim(), time_end: (r.time_end||'').trim(), slots: r.finalSlots,
+        team: r.team || null, location: r.location || null, contact_name: r.contact_name || null,
+        contact_phone: r.contact_phone || null, notes: r.notes || null });
+      if(shift && shift.id && r.finalSlots > 0){
+        const src = (r.srcTeams && r.srcTeams.length) ? r.srcTeams : [r.team || ''];
+        const slotRows = [];
+        for(let n=1; n<=r.finalSlots; n++){ slotRows.push({ shift_id: shift.id, slot_number: n, team: src[(n-1)%src.length] || (r.team||'') }); }
+        await fetch(SUPABASE_URL + '/rest/v1/shift_slots', { method:'POST', headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'}, body: JSON.stringify(slotRows) });
+      }
+      created++;
+    }
+    _closeCopyModal();
+    showToast(created + ' pass skapade!');
+    if(st.fields){ setTimeout(function(){ window.location.href = 'admin.html?event=' + targetId; }, 800); }
+    else { setTimeout(function(){ window.location.reload(); }, 800); }
+  } catch(e){ console.error(e); showToast('Något gick fel: ' + (e.message||e), 'error'); btn.disabled = false; btn.textContent = 'Försök igen'; }
+}
+
+async function _createEmptyEvent(name, start, end){
+  try {
+    const ev = await sbInsertReturn('events', { club_id: (CLUB && CLUB.id) || (EVENT && EVENT.club_id) || null, name: name, date_start: start, date_end: end });
+    if(!ev || !ev.id) throw new Error('Kunde inte skapa event');
+    _closeCopyModal();
+    window.location.href = 'admin.html?event=' + ev.id;
+  } catch(e){ console.error(e); showToast('Kunde inte skapa event: ' + (e.message||e), 'error'); }
+}
+
 function showToast(msg, type) {
   type = type || 'success';
   const isMobile = window.innerWidth <= 900;
