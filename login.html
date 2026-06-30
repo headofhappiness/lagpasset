@@ -282,19 +282,22 @@ sb.auth.onAuthStateChange(async (event, session) => {
 // Kolla om redan inloggad (bara vid vanlig sidladdning)
 if(!isRecoveryLink){
   (async () => {
-    // Säkerhetstimeout: om sessionskollen hänger (t.ex. korrupt session),
-    // falla tillbaka till inloggningsformuläret istället för att snurra för evigt.
+    // Säkerhetstimeout: om sessionskollen hänger (t.ex. korrupt/utgången session)
+    // rensar vi den lokala sessionen och visar inloggningsformuläret – annars
+    // hänger getSession ~7s vid VARJE sidladdning eftersom den trasiga sessionen blir kvar.
     let settled = false;
+    const _clearStaleAuth = () => { try { Object.keys(localStorage).forEach(k => { if(/^sb-.*-auth-token$/.test(k)) localStorage.removeItem(k); }); } catch(_e){} };
     const fallback = setTimeout(() => {
       if(!settled){
         settled = true;
+        _clearStaleAuth();
         show('loginForm');
       }
-    }, 8000);
+    }, 4500);
     try {
       const sessionPromise = sb.auth.getSession();
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('getSession timeout')), 7000)
+        setTimeout(() => reject(new Error('getSession timeout')), 3500)
       );
       const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
       if(settled) return; // timeouten hann redan visa loginForm
@@ -307,6 +310,7 @@ if(!isRecoveryLink){
       }
     } catch(e){
       console.error('Inloggningskoll misslyckades:', e);
+      _clearStaleAuth(); // rensa den trasiga sessionen så nästa laddning blir snabb
       if(!settled){
         settled = true;
         clearTimeout(fallback);
