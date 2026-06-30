@@ -777,6 +777,11 @@ Hälsningar,
         <div class="stat-card"><div class="stat-num" id="statCount">0</div><div class="stat-label">Svar inkomna</div></div>
       </div>
 
+      <div id="reminderBox" style="display:none;margin-bottom:1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.9rem 1.1rem;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap">
+        <div style="font-size:13px;color:var(--text);line-height:1.45"><strong id="reminderCount">–</strong> deltagare har bokat ett pass men inte lämnat feedback ännu.</div>
+        <button class="btn btn-primary" id="reminderBtn" onclick="sendFeedbackReminders()">📧 Påminn de som inte svarat</button>
+      </div>
+
       <!-- Intresseanmälningar - kollapsbar -->
       <div style="margin-bottom:1rem">
         <div onclick="toggleVolunteerPanel()" style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;user-select:none">
@@ -5071,6 +5076,51 @@ async function _createEmptyEvent(name, start, end){
   } catch(e){ console.error(e); showToast('Kunde inte skapa event: ' + (e.message||e), 'error'); }
 }
 
+/* ═══════════ FEEDBACK-PÅMINNELSE ═══════════ */
+async function _reminderAuth(){
+  try { const r = await _sbAuth.auth.getSession(); return (r && r.data && r.data.session) ? r.data.session.access_token : null; }
+  catch(e){ return null; }
+}
+async function loadReminderCount(){
+  const box = document.getElementById('reminderBox');
+  if(!box) return;
+  if(typeof IS_DEMO !== 'undefined' && IS_DEMO) return;
+  const token = await _reminderAuth();
+  if(!token) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-feedback-reminders', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_id: EVENT_ID, dry_run: true })
+    });
+    const out = await res.json();
+    if(res.ok && typeof out.count === 'number'){
+      const cEl = document.getElementById('reminderCount'); if(cEl) cEl.textContent = out.count;
+      const bEl = document.getElementById('reminderBtn'); if(bEl) bEl.textContent = '📧 Påminn de som inte svarat (' + out.count + ' st)';
+      box.style.display = out.count > 0 ? 'flex' : 'none';
+    }
+  } catch(e){ console.error('loadReminderCount:', e); }
+}
+async function sendFeedbackReminders(){
+  const token = await _reminderAuth();
+  if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
+  const cEl = document.getElementById('reminderCount');
+  const n = cEl ? cEl.textContent : '';
+  if(!confirm(n + ' personer har inte lämnat feedback – skicka påminnelse till alla med e-post?')) return;
+  const btn = document.getElementById('reminderBtn'); btn.disabled = true; btn.textContent = 'Skickar…';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-feedback-reminders', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_id: EVENT_ID, dry_run: false })
+    });
+    const out = await res.json();
+    if(!res.ok) throw new Error(out.error || ('Fel ' + res.status));
+    showToast('Påminnelse skickad till ' + (out.sent||0) + ' av ' + (out.recipients||0) + ' personer');
+    loadReminderCount();
+  } catch(e){ console.error(e); showToast('Kunde inte skicka: ' + (e.message||e), 'error'); btn.disabled = false; }
+}
+
 function showToast(msg, type) {
   type = type || 'success';
   const isMobile = window.innerWidth <= 900;
@@ -5209,6 +5259,7 @@ function renderFeedback(){
   if(!list) return;
   renderFeedbackTabs();
   renderStaffingAnalysis();
+  if(typeof loadReminderCount === 'function') loadReminderCount();
   if(typeof setFeedbackSummary === 'function') setFeedbackSummary('all');
   const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
   if(!DB.feedback || DB.feedback.length === 0){
