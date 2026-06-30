@@ -5136,6 +5136,22 @@ async function deleteStationTip(id){
   try { await sbDelete('station_tips', id); renderKB(); }
   catch(e){ console.error(e); showToast('Kunde inte ta bort', 'error'); }
 }
+function _stationFeedbackTexts(station){
+  const ids = (DB.shifts||[]).filter(function(s){ return _stationBase(s.title) === station; }).map(function(s){ return s.id; });
+  const out = [];
+  (DB.feedback||[]).forEach(function(f){
+    if(ids.indexOf(f.shift_id) === -1) return;
+    [f.improve, f.good, f.comment].forEach(function(t){ const v = t ? String(t).trim() : ''; if(v && out.indexOf(v) === -1) out.push(v); });
+  });
+  return out;
+}
+function _kbRenderSuggestions(i, note, list){
+  const box = document.getElementById('kbSuggest' + i);
+  if(!box) return;
+  if(!list.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted)">Ingen feedback eller förslag för den här stationen ännu.</div>'; return; }
+  box.innerHTML = '<div style="font-size:12.5px;color:var(--muted);margin-bottom:.4rem">' + note + '</div>' +
+    list.map(function(s,j){ return '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem"><input id="kbSug'+i+'_'+j+'" value="'+String(s).replace(/"/g,'&quot;')+'" style="flex:1;font-size:13.5px"><button class="btn btn-primary btn-sm" onclick="approveSuggestion('+i+','+j+')">✓ Godkänn</button><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove()">Avvisa</button></div>'; }).join('');
+}
 async function suggestStationTips(i){
   const station = _kbStations[i]; const box = document.getElementById('kbSuggest' + i); const btn = document.getElementById('kbAiBtn' + i);
   const token = await _reminderAuth();
@@ -5147,14 +5163,15 @@ async function suggestStationTips(i){
       body: JSON.stringify({ event_id: EVENT_ID, station: station })
     });
     const out = await res.json();
-    if(!res.ok) throw new Error(out.error || ('Fel ' + res.status));
-    const sugg = out.suggestions || [];
-    if(!sugg.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted)">' + (out.message || 'Inga förslag från årets feedback.') + '</div>'; }
-    else {
-      box.innerHTML = '<div style="font-size:12.5px;color:var(--muted);margin-bottom:.4rem">✨ AI-förslag – godkänn, redigera i fältet, eller avvisa:</div>' +
-        sugg.map(function(s,j){ return '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem"><input id="kbSug'+i+'_'+j+'" value="'+String(s).replace(/"/g,'&quot;')+'" style="flex:1;font-size:13.5px"><button class="btn btn-primary btn-sm" onclick="approveSuggestion('+i+','+j+')">✓ Godkänn</button><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove()">Avvisa</button></div>'; }).join('');
+    if(res.ok){
+      _kbRenderSuggestions(i, '✨ AI-förslag – godkänn, redigera i fältet, eller avvisa:', out.suggestions || []);
+    } else {
+      _kbRenderSuggestions(i, 'AI ej aktiverad än – här är årets feedback för stationen (redigera till korta tips innan du sparar):', _stationFeedbackTexts(station));
     }
-  } catch(e){ console.error(e); box.innerHTML = '<div style="font-size:13px;color:var(--red)">' + (e.message||e) + '</div>'; }
+  } catch(e){
+    console.error(e);
+    _kbRenderSuggestions(i, 'Kunde inte nå AI – här är årets feedback för stationen i stället:', _stationFeedbackTexts(station));
+  }
   btn.disabled = false; btn.textContent = '✨ AI-förslag';
 }
 async function approveSuggestion(i, j){
