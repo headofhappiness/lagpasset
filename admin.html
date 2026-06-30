@@ -5102,37 +5102,23 @@ async function loadReminderCount(){
   } catch(e){ console.error('loadReminderCount:', e); }
 }
 function _reminderDefaults(vcount){
-  const ev = (EVENT && EVENT.name) || 'eventet';
-  const club = (CLUB && CLUB.name) || 'föreningen';
-  const social = (vcount && vcount > 0)
-    ? ('Redan ' + vcount + (vcount === 1 ? ' person har' : ' personer har') + ' anmält att de vill hjälpa till nästa år – vi skulle behöva bli fler! Häng på, det kommer bli kul 🙌\n\n')
-    : '';
-  const message =
-    'Vilken härlig fotbollshelg vi haft! ⚽☀️\n\n' +
-    'Jag vet att bemanningen varit både för tunn och för tjock på olika pass, och att det är svårt för ' + club + ' att samla in och behålla erfarenhet år efter år. Därför har vi börjat testa ett litet system för bemanning och feedback – det är under utveckling, men vi hann prova feedback-delen ordentligt i år.\n\n' +
-    'Vi försöker bli bättre, och hjälps vi alla åt kan vi göra ' + ev + ' till en fantastisk cup. Din feedback är en del av det – det tar bara en minut.\n\n' +
-    '[KNAPP]\n\n' +
-    social +
-    'Tack för helgen, alla grymma spelare, ledare och föräldrar!\nLisa, förälder';
-  return { subject: 'Snälla lämna feedback 🫶', message: message };
+  return {
+    subject: 'Snälla lämna feedback 🫶',
+    message: 'Hej [namn]!\nVilken härlig fotbollshelg vi haft! ⚽☀️\n\nVi vet att det i år ibland varit underbemannat och ibland överbemannat. För att kunna använda er tid på bästa sätt framöver och bli ännu bättre så behöver vi din feed-back.\n\nDet tar max 1 minut.\n\n[Knapp: Lämna din feedback]\n\nVi behöver också bli fler som hjälps åt nästa år (fetstil)\nRedan 4 personer har anmält att de vill hjälpa till nästa år – vi skulle behöva bli fler! Häng på, det kommer bli kul 🙌\nTack för helgen alla grymma spelare, ledare och föräldrar!\nLisa, förälder'
+  };
 }
 function _reminderPreviewHtml(message){
   const clubName = (CLUB && CLUB.name) || 'Din förening';
   const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const body = esc(message).replace(/\n/g,'<br>');
+  let body = esc(message).replace(/\[namn\]/gi, 'Anna');
+  body = body.split('\n').map(function(line){ return /\(fetstil\)/i.test(line) ? ('<strong>' + line.replace(/\s*\(fetstil\)\s*/i,'').trim() + '</strong>') : line; }).join('\n');
+  body = body.replace(/\n/g,'<br>');
   const button = '<div style="margin:18px 0"><a href="#" onclick="return false" style="display:inline-block;background:#1a8c3a;color:#fff;text-decoration:none;padding:13px 28px;border-radius:100px;font-weight:bold;font-size:15px">Lämna din feedback →</a></div>';
-  let inner;
-  if(body.indexOf('[KNAPP]') !== -1){
-    const parts = body.split('[KNAPP]');
-    inner = '<div style="font-size:15px;line-height:1.6;color:#2d4a30">' + parts[0] + '</div>' + button + '<div style="font-size:15px;line-height:1.6;color:#2d4a30">' + parts.slice(1).join('') + '</div>';
-  } else {
-    inner = '<div style="font-size:15px;line-height:1.6;color:#2d4a30;margin-bottom:18px">' + body + '</div>' + button;
-  }
+  body = body.replace(/(?:<br>\s*)*\[Knapp:[^\]]*\](?:\s*<br>)*/i, button);
   return '<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;color:#1e2e20">' +
     '<div style="background:#111c13;padding:16px 24px;border-radius:12px 12px 0 0"><span style="color:#fff;font-size:15px;font-weight:700">' + esc(clubName) + '</span><span style="color:#4ade80;font-size:13px;font-weight:600"> &nbsp;·&nbsp; via LagPasset</span></div>' +
     '<div style="border:1px solid #dde8dd;border-top:none;border-radius:0 0 12px 12px;padding:28px 24px">' +
-    '<p style="font-size:16px;margin:0 0 12px">Hej Anna!</p>' +
-    inner +
+    '<div style="font-size:15px;line-height:1.6;color:#2d4a30">' + body + '</div>' +
     '<p style="font-size:13px;color:#6a8a6e;margin:18px 0 0;line-height:1.6">Fungerar inte knappen? Kopiera länken:<br><span style="color:#1a8c3a">https://lagpasset.se/guest.html?token=…&feedback=1</span></p>' +
     '</div><p style="text-align:center;font-size:12px;color:#aac0aa;margin-top:16px">Skickat via LagPasset.se</p></div>';
 }
@@ -5160,7 +5146,7 @@ async function sendFeedbackReminders(){
         <button class="modal-close" onclick="document.getElementById('modalReminder').remove()">✕</button>
       </div>
       <div class="modal-body">
-        <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Ändra ämne och text fritt – förhandsgranskningen uppdateras live. Skriv <strong>[KNAPP]</strong> där du vill ha feedback-knappen. "Hej [namn]!" och varje persons egen länk läggs till automatiskt.</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Ändra ämne och text fritt – förhandsgranskningen uppdateras live. <strong>[namn]</strong> = personens namn, <strong>[Knapp: Lämna din feedback]</strong> = feedback-knappen, och <strong>(fetstil)</strong> sist på en rad gör den raden fet.</div>
         <div class="form-group"><label class="form-label">Ämnesrad</label><input type="text" id="remSubject" value="${d.subject.replace(/"/g,'&quot;')}" style="width:100%"></div>
         <div class="form-group"><label class="form-label">Meddelande</label><textarea id="remMessage" rows="6" style="width:100%;resize:vertical" oninput="_updateReminderPreview()">${d.message}</textarea></div>
         <div class="form-label" style="margin-bottom:.4rem">Så här ser mejlet ut</div>
