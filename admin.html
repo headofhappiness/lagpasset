@@ -5809,8 +5809,8 @@ function renderStaffingAnalysis(){
     let adj = 0; if(avg < 2.5) adj = 1; else if(avg > 3.5) adj = -1;
     const oldSlots = shift ? (shift.slots||0) : 0;
     const rec = base === 0 ? oldSlots : Math.max(1, base + adj); // golv: aldrig auto-föreslå 0 för ett pass som fanns
-    const komTxt = usedAtt ? (present + ' kom / ' + booked + ' bokade') : (booked + ' bokade');
-    const basisLabel = (base === 0) ? 'förra årets antal platser' : (usedAtt ? 'avprickade (kom)' : 'antal bokade');
+    const komTxt = usedAtt ? (present + ' kom / ' + booked + ' uppskrivna') : (booked + ' uppskrivna');
+    const basisLabel = (base === 0) ? 'förra årets antal platser' : (usedAtt ? 'avprickade (kom)' : 'antal uppskrivna');
     const recTxt = '<strong style="color:#1a8c3a">Rekommenderat nästa år: ' + rec + ' platser</strong> <span style="color:var(--muted);font-weight:400">(baserat på ' + basisLabel + ')</span>';
     const conf = (scores.length < 3) ? ' <span style="color:#c0392b;font-weight:700">⚠ osäkert underlag</span>' : '';
     let badge, color, tint, verdict;
