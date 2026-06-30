@@ -262,6 +262,8 @@ setVH(); window.addEventListener('resize',setVH);
   </div>
   <div class="sidebar-event" id="sidebarEvent" style="display:none">📅 <span id="sidebarEventName"></span></div>
   <nav class="nav-items">
+    <div class="nav-section">Alla event</div>
+    <div id="eventNavList"><a class="nav-item" href="#" style="opacity:.55">Laddar…</a></div>
     <div class="nav-section">Översikt</div>
     <a class="nav-item active" onclick="showSection('dashboard')" href="#">
       <span class="nav-icon">📊</span> Översikt
@@ -1627,6 +1629,7 @@ async function loadEvent(){
         if(clubs.length) CLUB = clubs[0];
       } catch(e){ console.error('Klubb-fel:', e); }
     }
+    if(typeof renderEventNav === 'function') renderEventNav();
     // Ladda FAQ från faq-tabellen (efter CLUB är satt)
     try {
       const faqRows = CLUB && CLUB.id ? await sbFetch('faq', '?club_id=eq.' + CLUB.id + '&order=created_at.asc') : [];
@@ -4873,6 +4876,20 @@ async function toggleAutoReminder(){
 }
 /* ═══════════ KOPIERA / SKAPA EVENT ═══════════ */
 let _copyState = null;
+
+async function renderEventNav(){
+  const el = document.getElementById('eventNavList');
+  if(!el || !CLUB || !CLUB.id) return;
+  try {
+    const events = await sbFetch('events', '?club_id=eq.' + CLUB.id + '&order=date_start.desc');
+    let html = events.map(function(e){
+      const active = e.id === EVENT_ID;
+      return '<a class="nav-item' + (active ? ' active' : '') + '" href="admin.html?event=' + e.id + '"><span class="nav-icon">📅</span> ' + (e.name || '(namnlöst)') + '</a>';
+    }).join('');
+    html += '<a class="nav-item" href="#" onclick="openNewEventModal();return false" style="opacity:.85"><span class="nav-icon">➕</span> Nytt event</a>';
+    el.innerHTML = html || '<a class="nav-item" href="#" style="opacity:.55">Inga event ännu</a>';
+  } catch(e){ console.error('renderEventNav:', e); }
+}
 
 async function _getClubEvents(){
   if(!CLUB || !CLUB.id) return [];
