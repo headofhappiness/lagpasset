@@ -827,7 +827,7 @@ Hälsningar,
             <span style="font-size:1.1rem">⚖️</span>
             <div style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Bemanningsanalys</div>
           </div>
-          <div style="font-size:12.5px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Sammanställt från vad bemanningen svarat. Använd för att sätta rätt antal nästa år.</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Sammanställt från närvaro och vad bemanningen svarat. Visar rekommenderat antal per pass inför nästa år (samma uträkning som vid "Kopiera/Skapa event").</div>
           <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
         </div>
         <!-- AI-sammanfattning -->
@@ -5802,12 +5802,22 @@ function renderStaffingAnalysis(){
     const shift = DB.shifts.find(s => s.id === sid);
     let name = 'Okänt pass';
     if(shift){ const d = new Date(shift.date); name = shift.title + ' · ' + days[d.getDay()] + ' ' + shift.time_start.slice(0,5) + '–' + (shift.time_end||'–'); }
+    const shiftBookings = (DB.bookings||[]).filter(b => b.shift_id === sid);
+    const booked = shiftBookings.length;
+    const present = shiftBookings.filter(b => b.attendance==='present').length;
+    const usedAtt = shiftBookings.some(b => b.attendance==='present' || b.attendance==='absent');
+    const base = usedAtt ? present : booked;
+    let adj = 0; if(avg < 2.5) adj = 1; else if(avg > 3.5) adj = -1;
+    const oldSlots = shift ? (shift.slots||0) : 0;
+    const rec = base === 0 ? oldSlots : Math.max(0, base + adj);
+    const komTxt = usedAtt ? (present + ' kom / ' + booked + ' bokade') : (booked + ' bokade');
+    const recTxt = '<strong style="color:#1a8c3a">Rekommenderat nästa år: ' + rec + ' platser</strong>';
     if(avg <= 2.4){
-      html += row('FÖR LITE', '#c0392b', '#fdecea', name, scores.length + ' svar – upplevdes underbemannat. Fler behövs nästa år.');
+      html += row('FÖR LITE', '#c0392b', '#fdecea', name, scores.length + ' svar · ' + komTxt + ' · upplevdes underbemannat. ' + recTxt);
     } else if(avg >= 3.6){
-      html += row('FÖR MYCKET', '#e8a020', '#fff8e8', name, scores.length + ' svar – upplevdes överbemannat. Här räcker det med färre.');
+      html += row('FÖR MYCKET', '#e8a020', '#fff8e8', name, scores.length + ' svar · ' + komTxt + ' · upplevdes överbemannat. ' + recTxt);
     } else {
-      html += row('LAGOM', '#1a8c3a', '#e8f7ec', name, scores.length + ' svar – välbemannat. Behåll nivån.');
+      html += row('LAGOM', '#1a8c3a', '#e8f7ec', name, scores.length + ' svar · ' + komTxt + ' · välbemannat. ' + recTxt);
     }
   });
   rows.innerHTML = html;
