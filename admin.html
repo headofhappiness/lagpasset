@@ -961,6 +961,12 @@ Hälsningar,
         <button class="btn btn-primary" style="margin-top:.5rem" onclick="saveEventSettings()">Spara inställningar</button>
       </div>
 
+      <div class="card" style="border-color:#e8c0c0">
+        <div class="card-title" style="margin-bottom:.5rem;color:#c0392b">⚠️ Ta bort event</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:.85rem">Raderar det här eventet och allt som hör till det (pass, bokningar, feedback m.m.) permanent. Går inte att ångra. Stationernas "Viktiga kom ihåg" påverkas inte.</div>
+        <button class="btn btn-ghost" style="border-color:#e8c0c0;color:#c0392b" onclick="deleteCurrentEvent()">🗑 Ta bort detta event</button>
+      </div>
+
       <div class="card">
         <div class="card-title" style="margin-bottom:.5rem">📋 Nytt event / kopiera upplägg</div>
         <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:1rem">Skapa nästa års event från grunden eller utgå från ett tidigare års upplägg. Pass, tider och föreslaget antal platser fylls i automatiskt – baserat på förra årets faktiska bokningar och feedback. Du granskar och justerar innan något skapas.</div>
@@ -4906,6 +4912,30 @@ async function renderEventNav(){
     html += '<a class="nav-item" href="#" onclick="openNewEventModal();return false" style="opacity:.85"><span class="nav-icon">➕</span> Nytt event</a>';
     el.innerHTML = html || '<a class="nav-item" href="#" style="opacity:.55">Inga event ännu</a>';
   } catch(e){ console.error('renderEventNav:', e); }
+}
+
+async function deleteCurrentEvent(){
+  if(!EVENT || !EVENT.id){ showToast('Inget event laddat', 'error'); return; }
+  const name = (EVENT.name||'').trim();
+  const typed = prompt('Detta RADERAR eventet "' + name + '" och ALLT som hör till det (pass, bokningar, feedback) permanent.\n\nGår inte att ångra. Skriv eventets namn för att bekräfta:');
+  if(typed === null) return;
+  if((typed||'').trim() !== name){ showToast('Namnet stämde inte – avbrutet', 'error'); return; }
+  const token = await _reminderAuth();
+  if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
+  showToast('Tar bort eventet…');
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/delete-event', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_id: EVENT.id })
+    });
+    const out = await res.json();
+    if(!res.ok) throw new Error(out.error || ('Fel ' + res.status));
+    let dest = 'login.html';
+    try { const evs = await sbFetch('events', '?club_id=eq.' + (CLUB && CLUB.id) + '&order=date_start.desc'); if(evs && evs.length) dest = 'admin.html?event=' + evs[0].id; } catch(_e){}
+    alert('Eventet "' + name + '" är borttaget.');
+    window.location.href = dest;
+  } catch(e){ console.error(e); showToast('Kunde inte ta bort: ' + (e.message||e), 'error'); }
 }
 
 async function _getClubEvents(){
