@@ -4445,7 +4445,9 @@ function renderShiftDetail(cat, day) {
               ${email ? '<a href="mailto:'+email+'" onclick="event.stopPropagation()" style="font-size:12px;color:var(--muted);text-decoration:none">✉️ '+email+'</a>' : ''}
             </div>
           </div>
-          <div style="display:flex;gap:.3rem;flex-shrink:0">
+          <div style="display:flex;gap:.3rem;flex-shrink:0;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+            <button type="button" class="att-btn att-present${b.attendance==='present'?' on':''}" onclick="event.stopPropagation();setShiftAttendance(this,'${b.id}','present')">✓ Kom</button>
+            <button type="button" class="att-btn att-absent${b.attendance==='absent'?' on':''}" onclick="event.stopPropagation();setShiftAttendance(this,'${b.id}','absent')">✕ Kom inte</button>
             ${p ? '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editChild(\'' + p.id + '\')" title="Ändra person">✏️</button>' : '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editManualBooking(\'' + b.id + '\',\'' + s.id + '\')" title="Ändra">✏️</button>'}
             <button class="btn btn-ghost btn-sm" style="color:#c0392b" onclick="event.stopPropagation();removeBooking('${b.id}','${s.id}')" title="Ta bort från passet">🗑</button>
           </div>
