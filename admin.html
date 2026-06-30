@@ -5672,24 +5672,21 @@ async function generateAISummary(){
   const btn = document.getElementById('aiSummaryBtn');
   const out = document.getElementById('feedbackSummaryText');
   if(!DB.feedback || DB.feedback.length === 0){ out.textContent = 'Ingen feedback att sammanfatta.'; return; }
+  const token = await _reminderAuth();
+  if(!token){ out.textContent = 'Du måste vara inloggad för att generera sammanfattning.'; return; }
   btn.textContent = 'Genererar...';
   btn.disabled = true;
-  const lines = DB.feedback.map(f => {
-    const shift = DB.shifts.find(s => s.id === f.shift_id);
-    return (shift ? shift.title : 'Okänt pass') + ': Betyg ' + (f.rating||'?') + '/5, Bemanning ' + (f.staffing_score||'?') + '/5. ' + (f.comment||'');
-  }).join('\n');
+  out.textContent = '';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/summarize-feedback', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6', max_tokens:600,
-        messages:[{role:'user', content:'Sammanfatta denna feedback från idrottscupens bemanning på svenska. Ge konkreta insikter om vad som fungerade bra och vad som bör förbättras till nästa år. Var kortfattad (max 5 meningar):\n\n' + lines}]
-      })
+      headers:{ 'Authorization':'Bearer '+token, 'apikey':SUPABASE_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({ event_id: EVENT_ID })
     });
     const data = await res.json();
-    out.textContent = data.content?.[0]?.text || 'Kunde inte generera sammanfattning.';
-  } catch(e){ out.textContent = 'Fel: ' + e.message; }
+    if(!res.ok) throw new Error(data.error || ('Fel ' + res.status));
+    out.textContent = data.summary || 'Kunde inte generera sammanfattning.';
+  } catch(e){ out.textContent = 'Fel: ' + (e.message||e); }
   btn.textContent = 'Generera igen';
   btn.disabled = false;
 }
