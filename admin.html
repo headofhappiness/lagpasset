@@ -278,6 +278,10 @@ setVH(); window.addEventListener('resize',setVH);
     <a class="nav-item" onclick="showSection('pool')" href="#">
       <span class="nav-icon">🌟</span> Resurspool
     </a>
+    <div class="nav-section">Kunskapsbank</div>
+    <a class="nav-item" onclick="showSection('kb')" href="#">
+      <span class="nav-icon">📌</span> Viktiga kom ihåg
+    </a>
     <div class="nav-section">Kommunikation</div>
     <a class="nav-item" onclick="showSection('email')" href="#">
       <span class="nav-icon">📧</span> Mejla bemanning
@@ -891,6 +895,13 @@ Hälsningar,
 
     </div>
 
+
+    <!-- ═══ VIKTIGA KOM IHÅG ═══ -->
+    <div class="section" id="sec-kb">
+      <h2 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:.35rem">📌 Viktiga kom ihåg</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1.25rem">Praktiska lärdomar per station som sparas år efter år – stationsansvariga ser dem också. Lägg till själv, eller få AI-förslag från årets feedback.</p>
+      <div id="kbContent"><div style="color:var(--muted)">Laddar…</div></div>
+    </div>
 
     <!-- ═══ INSTÄLLNINGAR ═══ -->
     <div class="section" id="sec-settings">
@@ -1929,6 +1940,7 @@ function showSection(id){
   if(id==='pool'){ renderPoolTable(); renderResourceRequests(); }
   if(id==='settings'){ renderContactsTable(); renderSections(); }
   if(id==='email'){ renderFaqList(); renderLagChips(); renderStationChips(); updateRecipientCount(); }
+  if(id==='kb'){ renderKB(); }
   if(id==='feedback'){ renderFeedback(); const b=document.getElementById('volunteerBadge'); if(b&&b.textContent==='–') loadVolunteerBadge(); }
   if(id==='shifts'){ renderStationRows(); const cv=document.getElementById('shiftCategoryView'); const dv=document.getElementById('shiftDetailView'); if(cv) cv.style.display='block'; if(dv) dv.style.display='none'; }
   if(id==='dashboard') renderDashboard();
@@ -5074,6 +5086,82 @@ async function _createEmptyEvent(name, start, end){
     _closeCopyModal();
     window.location.href = 'admin.html?event=' + ev.id;
   } catch(e){ console.error(e); showToast('Kunde inte skapa event: ' + (e.message||e), 'error'); }
+}
+
+/* ═══════════ VIKTIGA KOM IHÅG (kunskapsbank per station) ═══════════ */
+function _stationBase(title){ return (title||'').replace(/\b(19|20)\d{2}\b/g,' ').replace(/\b\d{2}\b/g,' ').replace(/\s{2,}/g,' ').trim(); }
+let _kbStations = [];
+async function _loadStationTips(){
+  if(!CLUB || !CLUB.id) return [];
+  try { return await sbFetch('station_tips', '?club_id=eq.' + CLUB.id + '&order=created_at.asc'); } catch(e){ console.error(e); return []; }
+}
+async function renderKB(){
+  const wrap = document.getElementById('kbContent');
+  if(!wrap) return;
+  if(!CLUB || !CLUB.id){ wrap.innerHTML = '<div style="color:var(--muted)">Ingen förening kopplad till eventet.</div>'; return; }
+  const tips = await _loadStationTips();
+  const byStation = {};
+  tips.forEach(function(t){ (byStation[t.station] = byStation[t.station] || []).push(t); });
+  const set = {};
+  (DB.shifts||[]).forEach(function(s){ const b = _stationBase(s.title); if(b) set[b] = true; });
+  Object.keys(byStation).forEach(function(st){ set[st] = true; });
+  _kbStations = Object.keys(set).sort(function(a,b){ return a.localeCompare(b,'sv'); });
+  if(!_kbStations.length){ wrap.innerHTML = '<div style="color:var(--muted)">Inga stationer hittades för det här eventet.</div>'; return; }
+  wrap.innerHTML = _kbStations.map(function(st,i){ return _kbCard(st, i, byStation[st]||[]); }).join('');
+}
+function _kbCard(station, i, tips){
+  const esc = function(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  const tipsHtml = tips.length ? tips.map(function(t){
+    return '<div style="display:flex;align-items:flex-start;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--border)"><span style="margin-top:1px">📌</span><span style="flex:1;font-size:14px;color:var(--text)">' + esc(t.text) + '</span><button onclick="deleteStationTip(\'' + t.id + '\')" title="Ta bort" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:13px">✕</button></div>';
+  }).join('') : '<div style="font-size:13px;color:var(--muted);padding:.3rem 0">Inga kom ihåg än för den här stationen.</div>';
+  return '<div class="card" style="margin-bottom:1rem">' +
+    '<div class="card-title">' + esc(station) + '</div>' +
+    '<div style="margin:.5rem 0">' + tipsHtml + '</div>' +
+    '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem">' +
+      '<input id="kbInput' + i + '" type="text" placeholder="Nytt kom ihåg…" style="flex:1 1 220px;min-width:160px" onkeydown="if(event.key===\'Enter\')addStationTip(' + i + ')">' +
+      '<button class="btn btn-primary btn-sm" onclick="addStationTip(' + i + ')">Lägg till</button>' +
+      '<button class="btn btn-ghost btn-sm" id="kbAiBtn' + i + '" onclick="suggestStationTips(' + i + ')">✨ AI-förslag</button>' +
+    '</div>' +
+    '<div id="kbSuggest' + i + '" style="margin-top:.6rem"></div>' +
+  '</div>';
+}
+async function addStationTip(i){
+  const station = _kbStations[i]; const inp = document.getElementById('kbInput' + i);
+  const text = (inp.value||'').trim(); if(!text) return;
+  try { await sbInsert('station_tips', { club_id: CLUB.id, station: station, text: text }); renderKB(); }
+  catch(e){ console.error(e); showToast('Kunde inte spara', 'error'); }
+}
+async function deleteStationTip(id){
+  if(!confirm('Ta bort detta kom ihåg?')) return;
+  try { await sbDelete('station_tips', id); renderKB(); }
+  catch(e){ console.error(e); showToast('Kunde inte ta bort', 'error'); }
+}
+async function suggestStationTips(i){
+  const station = _kbStations[i]; const box = document.getElementById('kbSuggest' + i); const btn = document.getElementById('kbAiBtn' + i);
+  const token = await _reminderAuth();
+  if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Tänker…'; box.innerHTML = '';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/suggest-station-tips', {
+      method:'POST', headers:{ 'Authorization':'Bearer '+token, 'apikey':SUPABASE_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({ event_id: EVENT_ID, station: station })
+    });
+    const out = await res.json();
+    if(!res.ok) throw new Error(out.error || ('Fel ' + res.status));
+    const sugg = out.suggestions || [];
+    if(!sugg.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted)">' + (out.message || 'Inga förslag från årets feedback.') + '</div>'; }
+    else {
+      box.innerHTML = '<div style="font-size:12.5px;color:var(--muted);margin-bottom:.4rem">✨ AI-förslag – godkänn, redigera i fältet, eller avvisa:</div>' +
+        sugg.map(function(s,j){ return '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem"><input id="kbSug'+i+'_'+j+'" value="'+String(s).replace(/"/g,'&quot;')+'" style="flex:1;font-size:13.5px"><button class="btn btn-primary btn-sm" onclick="approveSuggestion('+i+','+j+')">✓ Godkänn</button><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove()">Avvisa</button></div>'; }).join('');
+    }
+  } catch(e){ console.error(e); box.innerHTML = '<div style="font-size:13px;color:var(--red)">' + (e.message||e) + '</div>'; }
+  btn.disabled = false; btn.textContent = '✨ AI-förslag';
+}
+async function approveSuggestion(i, j){
+  const station = _kbStations[i]; const inp = document.getElementById('kbSug'+i+'_'+j);
+  const text = inp ? (inp.value||'').trim() : ''; if(!text) return;
+  try { await sbInsert('station_tips', { club_id: CLUB.id, station: station, text: text }); showToast('Tillagt!'); renderKB(); }
+  catch(e){ console.error(e); showToast('Kunde inte spara', 'error'); }
 }
 
 /* ═══════════ FEEDBACK-PÅMINNELSE ═══════════ */

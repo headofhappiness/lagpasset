@@ -98,6 +98,13 @@ input,select,textarea{font-size:16px !important}
       <p id="heroSub">Du är ansvarig för den här stationen.</p>
     </div>
 
+    <!-- VIKTIGA KOM IHÅG -->
+    <div class="card" id="kbCard" style="display:none">
+      <div class="card-title">📌 Viktiga kom ihåg</div>
+      <div class="card-sub">Praktiska tips för den här stationen, samlade år efter år.</div>
+      <div id="kbList"></div>
+    </div>
+
     <!-- BESÄTTNING -->
     <div class="card">
       <div class="card-title">👥 Medlemmar på din station</div>
@@ -252,6 +259,32 @@ async function load(){
   }
 }
 
+function _stationBase(title){ return (title||'').replace(/\b(19|20)\d{2}\b/g,' ').replace(/\b\d{2}\b/g,' ').replace(/\s{2,}/g,' ').trim(); }
+async function loadStationKB(){
+  try {
+    const club = EVENT && EVENT.club_id;
+    if(!club) return;
+    const raw = (ANSVARIG && ANSVARIG.stations && ANSVARIG.stations.length ? ANSVARIG.stations : [STATION]).map(_stationBase).filter(Boolean);
+    const uniq = raw.filter(function(s,i){ return raw.indexOf(s) === i; });
+    if(!uniq.length) return;
+    const rows = await sbFetch('station_tips', '?club_id=eq.' + club + '&order=created_at.asc');
+    const relevant = (rows||[]).filter(function(t){ return uniq.indexOf(t.station) !== -1; });
+    if(!relevant.length) return;
+    const esc = function(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    const byStation = {};
+    relevant.forEach(function(t){ (byStation[t.station] = byStation[t.station] || []).push(t); });
+    const multi = uniq.length > 1;
+    let html = '';
+    Object.keys(byStation).forEach(function(st){
+      if(multi) html += '<div style="font-weight:700;color:var(--dark);margin:.7rem 0 .3rem">' + esc(st) + '</div>';
+      html += byStation[st].map(function(t){ return '<div style="display:flex;gap:.5rem;align-items:flex-start;padding:.35rem 0"><span>📌</span><span style="font-size:14px;line-height:1.45">' + esc(t.text) + '</span></div>'; }).join('');
+    });
+    const listEl = document.getElementById('kbList'), card = document.getElementById('kbCard');
+    if(listEl) listEl.innerHTML = html;
+    if(card) card.style.display = 'block';
+  } catch(e){ console.error('loadStationKB:', e); }
+}
+
 function render(){
   document.getElementById('loadingState').style.display='none';
   document.getElementById('main').style.display='block';
@@ -261,6 +294,7 @@ function render(){
   document.getElementById('stationName').textContent = stationsList.length > 1 ? 'Dina stationer' : stationsList[0];
   document.getElementById('heroSub').textContent = 'Du är ansvarig för: ' + stationsList.join(', ') + (ANSVARIG && ANSVARIG.name ? ' (' + ANSVARIG.name + ')' : '');
 
+  if(typeof loadStationKB === 'function') loadStationKB();
   // En sektion per station
   const list = document.getElementById('crewList');
   if(!SHIFTS.length){
