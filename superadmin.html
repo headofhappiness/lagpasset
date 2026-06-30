@@ -325,13 +325,11 @@ async function saveEdit(){
 
     // Uppdatera auth-användaren alltid (hanterar e-postbyte + lösenord + club_users)
     // Lösenord är valfritt — skickas bara med om det fyllts i
-    const fnResp = await fetch(SUPABASE_URL + '/functions/v1/create-admin-user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY, 'apikey': SUPABASE_KEY },
-      body: JSON.stringify({ clubName: name, contactName: contact||null, email, phone: phone||null, password: password||null, existingClubId: id })
+    const { data: fnData, error: fnErr } = await sb.functions.invoke('create-admin-user', {
+      body: { clubName: name, contactName: contact||null, email, phone: phone||null, password: password||null, existingClubId: id }
     });
-    const fnData = await fnResp.json();
-    if(!fnResp.ok || fnData.error) throw new Error(fnData.error || 'Okänt fel');
+    if(fnErr) throw fnErr;
+    if(fnData && fnData.error) throw new Error(fnData.error);
     closeEdit();
     await loadClubs();
   } catch(e){
