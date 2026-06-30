@@ -5139,14 +5139,17 @@ async function renderKB(){
   if(!_kbStations.length){ wrap.innerHTML = '<div style="color:var(--muted)">Inga stationer hittades för det här eventet.</div>'; return; }
   wrap.innerHTML = _kbStations.map(function(st,i){ return _kbCard(st, i, byStation[st]||[]); }).join('');
 }
-function _kbCard(station, i, tips){
+function _kbTipsHtml(tips){
   const esc = function(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
-  const tipsHtml = tips.length ? tips.map(function(t){
+  return tips.length ? tips.map(function(t){
     return '<div style="display:flex;align-items:flex-start;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--border)"><span style="margin-top:1px">📌</span><span style="flex:1;font-size:14px;color:var(--text)">' + esc(t.text) + '</span><button onclick="deleteStationTip(\'' + t.id + '\')" title="Ta bort" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:13px">✕</button></div>';
   }).join('') : '<div style="font-size:13px;color:var(--muted);padding:.3rem 0">Inga kom ihåg än för den här stationen.</div>';
+}
+function _kbCard(station, i, tips){
+  const esc = function(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
   return '<div class="card" style="margin-bottom:1rem">' +
     '<div class="card-title">' + esc(station) + '</div>' +
-    '<div style="margin:.5rem 0">' + tipsHtml + '</div>' +
+    '<div id="kbTips' + i + '" style="margin:.5rem 0">' + _kbTipsHtml(tips) + '</div>' +
     '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem">' +
       '<input id="kbInput' + i + '" type="text" placeholder="Nytt kom ihåg…" style="flex:1 1 220px;min-width:160px" onkeydown="if(event.key===\'Enter\')addStationTip(' + i + ')">' +
       '<button class="btn btn-primary btn-sm" onclick="addStationTip(' + i + ')">Lägg till</button>' +
@@ -5179,8 +5182,18 @@ function _kbRenderSuggestions(i, note, list){
   const box = document.getElementById('kbSuggest' + i);
   if(!box) return;
   if(!list.length){ box.innerHTML = '<div style="font-size:13px;color:var(--muted)">Ingen feedback eller förslag för den här stationen ännu.</div>'; return; }
-  box.innerHTML = '<div style="font-size:12.5px;color:var(--muted);margin-bottom:.4rem">' + note + '</div>' +
-    list.map(function(s,j){ return '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem"><input id="kbSug'+i+'_'+j+'" value="'+String(s).replace(/"/g,'&quot;')+'" style="flex:1;font-size:13.5px"><button class="btn btn-primary btn-sm" onclick="approveSuggestion('+i+','+j+')">✓ Godkänn</button><button class="btn btn-ghost btn-sm" onclick="this.parentNode.remove()">Avvisa</button></div>'; }).join('');
+  const rows = list.map(function(s,j){
+    return '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">' +
+      '<input type="checkbox" data-j="'+j+'" id="kbSugChk'+i+'_'+j+'" style="width:18px;height:18px;flex:0 0 auto;cursor:pointer">' +
+      '<input id="kbSug'+i+'_'+j+'" value="'+String(s).replace(/"/g,'&quot;')+'" style="flex:1;font-size:13.5px">' +
+      '<button class="btn btn-ghost btn-sm" title="Ta bort förslag" onclick="this.closest(\'div\').remove()">✕</button>' +
+    '</div>';
+  }).join('');
+  box.innerHTML =
+    '<div style="font-size:12.5px;color:var(--muted);margin-bottom:.5rem">' + note + '</div>' +
+    '<label style="display:inline-flex;align-items:center;gap:.4rem;font-size:13px;margin-bottom:.5rem;cursor:pointer"><input type="checkbox" onclick="_kbToggleAll('+i+',this.checked)" style="width:16px;height:16px"> Markera alla</label>' +
+    rows +
+    '<button class="btn btn-primary btn-sm" style="margin-top:.3rem" onclick="saveCheckedSuggestions('+i+')">💾 Spara markerade</button>';
 }
 async function suggestStationTips(i){
   const station = _kbStations[i]; const box = document.getElementById('kbSuggest' + i); const btn = document.getElementById('kbAiBtn' + i);
@@ -5204,11 +5217,34 @@ async function suggestStationTips(i){
   }
   btn.disabled = false; btn.textContent = '✨ AI-förslag';
 }
-async function approveSuggestion(i, j){
-  const station = _kbStations[i]; const inp = document.getElementById('kbSug'+i+'_'+j);
-  const text = inp ? (inp.value||'').trim() : ''; if(!text) return;
-  try { await sbInsert('station_tips', { club_id: CLUB.id, station: station, text: text }); showToast('Tillagt!'); renderKB(); }
-  catch(e){ console.error(e); showToast('Kunde inte spara', 'error'); }
+function _kbToggleAll(i, on){
+  const box = document.getElementById('kbSuggest'+i); if(!box) return;
+  box.querySelectorAll('input[type=checkbox]').forEach(function(c){ if(c.getAttribute('data-j')!==null) c.checked = on; });
+}
+async function _refreshKbTips(i, station){
+  const el = document.getElementById('kbTips'+i); if(!el) return;
+  try { const all = await _loadStationTips(); el.innerHTML = _kbTipsHtml(all.filter(function(t){ return t.station === station; })); }
+  catch(e){ console.error(e); }
+}
+async function saveCheckedSuggestions(i){
+  const box = document.getElementById('kbSuggest'+i); if(!box) return;
+  const checks = Array.prototype.slice.call(box.querySelectorAll('input[type=checkbox]')).filter(function(c){ return c.checked && c.getAttribute('data-j')!==null; });
+  if(!checks.length){ showToast('Markera minst ett förslag', 'error'); return; }
+  const station = _kbStations[i];
+  const picked = [];
+  checks.forEach(function(c){
+    const inp = document.getElementById('kbSug'+i+'_'+c.getAttribute('data-j'));
+    const text = inp ? (inp.value||'').trim() : '';
+    if(text) picked.push({ inp: inp, text: text });
+  });
+  if(!picked.length) return;
+  try {
+    for(var k=0;k<picked.length;k++){ await sbInsert('station_tips', { club_id: CLUB.id, station: station, text: picked[k].text }); }
+    showToast(picked.length + (picked.length===1 ? ' tillagt!' : ' tillagda!'));
+    picked.forEach(function(p){ const row = p.inp.closest('div'); if(row) row.remove(); });
+    await _refreshKbTips(i, station);
+    if(!box.querySelectorAll('input[type=checkbox][data-j]').length) box.innerHTML = '<div style="font-size:13px;color:var(--muted)">Sparat ✓</div>';
+  } catch(e){ console.error(e); showToast('Kunde inte spara', 'error'); }
 }
 
 /* ═══════════ FEEDBACK-PÅMINNELSE ═══════════ */
