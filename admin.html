@@ -819,9 +819,9 @@ Hälsningar,
         <div id="staffingCard" style="padding:1rem 1.1rem;display:none">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem">
             <span style="font-size:1.1rem">⚖️</span>
-            <div style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Bemanningsanalys – rekommenderat antal nästa år</div>
+            <div style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">Bemanningsanalys – förslag på antal nästa år</div>
           </div>
-          <div style="font-size:12.5px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Sammanställt från närvaro och vad bemanningen svarat. Visar rekommenderat antal per pass inför nästa år (samma uträkning som vid "Kopiera/Skapa event").</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Sammanställt från närvaro och vad bemanningen svarat. Visar förslag på antal per pass inför nästa år (samma uträkning som vid "Kopiera/Skapa event").</div>
           <div id="staffingRows" style="display:flex;flex-direction:column;gap:.55rem"></div>
         </div>
       </div>
@@ -5146,7 +5146,7 @@ function _updateCopyBasisSummary(){
     else if(r.basis === 'attendance') att++;
     else bok++;
   });
-  el.innerHTML = 'Rekommendationen baseras nu på: ' +
+  el.innerHTML = 'Förslaget baseras nu på: ' +
     '<span style="color:var(--green);font-weight:700">' + att + ' pass avprickade</span> · ' +
     '<span style="color:var(--dark);font-weight:700">' + bok + ' pass uppskrivna</span> · ' +
     '<span style="color:#c0392b;font-weight:700">' + old + ' pass förra året</span>';
@@ -5811,7 +5811,7 @@ function renderStaffingAnalysis(){
     const rec = base === 0 ? oldSlots : Math.max(1, base + adj); // golv: aldrig auto-föreslå 0 för ett pass som fanns
     const komTxt = usedAtt ? (present + ' kom / ' + booked + ' uppskrivna') : (booked + ' uppskrivna');
     const basisLabel = (base === 0) ? 'förra årets antal platser' : (usedAtt ? 'avprickade (kom)' : 'antal uppskrivna');
-    const recTxt = '<strong style="color:#1a8c3a">Rekommenderat nästa år: ' + rec + ' platser</strong> <span style="color:var(--muted);font-weight:400">(baserat på ' + basisLabel + ')</span>';
+    const recTxt = '<strong style="color:#1a8c3a">Förslag nästa år: ' + rec + ' platser</strong> <span style="color:var(--muted);font-weight:400">(baserat på ' + basisLabel + ')</span>';
     const conf = (scores.length < 3) ? ' <span style="color:#c0392b;font-weight:700">⚠ osäkert underlag</span>' : '';
     let badge, color, tint, verdict;
     if(avg <= 2.4){ badge='FÖR LITE'; color='#c0392b'; tint='#fdecea'; verdict='upplevdes underbemannat'; }
