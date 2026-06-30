@@ -2034,11 +2034,16 @@ function getStationStats(){
     const stations = {};
     DB.shifts.forEach(s=>{
       const key = s.title;
-      const taken = DB.bookings.filter(b=>b.shift_id===s.id).length;
+      const shiftBookings = DB.bookings.filter(b=>b.shift_id===s.id);
+      const taken = shiftBookings.length;
+      const present = shiftBookings.filter(b=>b.attendance==='present').length;
+      const marked = shiftBookings.filter(b=>b.attendance==='present'||b.attendance==='absent').length;
       const total = s.slots;
-      if(!stations[key]) stations[key] = {name:key, icon:iconMap[key]||'📌', cat:key, total:0, taken:0, shifts:0, weakest:null};
+      if(!stations[key]) stations[key] = {name:key, icon:iconMap[key]||'📌', cat:key, total:0, taken:0, present:0, marked:0, shifts:0, weakest:null};
       stations[key].total += total;
       stations[key].taken += taken;
+      stations[key].present += present;
+      stations[key].marked += marked;
       stations[key].shifts += 1;
       const pct = total>0 ? taken/total : 0;
       if(!stations[key].weakest || pct < stations[key].weakest.pct){
@@ -2122,7 +2127,7 @@ function renderStationRowsInto(targetId, compact){
       <span style="width:10px;height:10px;border-radius:50%;background:${col.dot};flex-shrink:0"></span>
       <span style="font-size:1.1rem;flex-shrink:0">${st.icon}</span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:700;color:var(--dark)">${st.name}${weakTxt}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--dark)">${st.name}${weakTxt}${st.marked ? ` <span style="font-size:12px;color:var(--green);font-weight:700">· ${st.present} kom</span>` : ''}</div>
         ${sub}
         <div style="height:6px;background:#e8ebe8;border-radius:3px;overflow:hidden;margin-top:.4rem;max-width:340px">
           <div style="height:6px;width:${st.pct}%;background:${col.bar};border-radius:3px"></div>
