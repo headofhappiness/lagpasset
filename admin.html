@@ -5092,21 +5092,36 @@ async function _buildPreview(sourceId, targetStart, targetEnd, fields){
   const slotTeams = {}; slots.forEach(sl => { (slotTeams[sl.shift_id]=slotTeams[sl.shift_id]||[]).push(sl.team); });
   const rows = shifts.map(s => {
     const usedAttendance = !!hasAtt[s.id];
-    const booked = usedAttendance ? (presentCount[s.id]||0) : (bookCount[s.id]||0);
+    const presentN = presentCount[s.id] || 0;
+    const bookedN = bookCount[s.id] || 0;
+    const basis = usedAttendance ? 'attendance' : 'bookings'; // standardval, kan ändras per pass i förhandsgranskningen
+    const base = basis === 'attendance' ? presentN : bookedN;
     const scores = fbAgg[s.id] || [];
     const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : null;
     let adj = 0; if(avg!==null){ if(avg < 2.5) adj = 1; else if(avg > 3.5) adj = -1; }
     const oldSlots = s.slots || 0;
-    const fallback = (booked === 0); // varken närvaro eller bokningar – passet bemannades ändå, använd förra årets antal
+    const fallback = (base === 0); // varken närvaro eller bokningar – passet bemannades ändå, använd förra årets antal
     return { title:s.title, time_start:s.time_start, time_end:s.time_end, team:s.team, location:s.location,
       contact_name:s.contact_name, contact_phone:s.contact_phone, notes:s.notes,
-      date:_mapDate(s.date, srcStart, targetStart), booked:booked, avg:avg, adj:adj, oldSlots:oldSlots, fallback:fallback, usedAttendance:usedAttendance,
-      suggested: fallback ? oldSlots : Math.max(0, booked + adj), srcTeams:(slotTeams[s.id]||[]) };
+      date:_mapDate(s.date, srcStart, targetStart), presentN:presentN, bookedN:bookedN, basis:basis, booked:base, avg:avg, adj:adj, oldSlots:oldSlots, fallback:fallback, usedAttendance:usedAttendance,
+      suggested: fallback ? oldSlots : Math.max(0, base + adj), srcTeams:(slotTeams[s.id]||[]) };
   });
   _copyState = { fields:fields, rows:rows };
   _renderPreview();
 }
 
+function _copyRowSuggested(r, basis){
+  const base = basis === 'attendance' ? r.presentN : r.bookedN;
+  return base === 0 ? r.oldSlots : Math.max(0, base + r.adj);
+}
+function _recalcCopyRow(i){
+  if(!_copyState || !_copyState.rows[i]) return;
+  const r = _copyState.rows[i];
+  const sel = document.getElementById('ceBasis' + i);
+  if(sel) r.basis = sel.value;
+  const inp = document.getElementById('ceSlot' + i);
+  if(inp) inp.value = _copyRowSuggested(r, r.basis);
+}
 function _renderPreview(){
   const st = _copyState;
   const wd = ['sön','mån','tis','ons','tor','fre','lör'];
@@ -5114,13 +5129,12 @@ function _renderPreview(){
     const d = new Date(r.date+'T00:00:00');
     const fb = r.fallback;
     const adjLabel = fb ? '<span style="color:var(--muted)">förra årets</span>' : (r.adj>0 ? '<span style="color:var(--green)">+1</span>' : (r.adj<0 ? '<span style="color:#c0392b">−1</span>' : '<span style="color:var(--muted)">±0</span>'));
-    const srcLabel = fb
-      ? '<span style="color:#c0392b">förra året</span>'
-      : (r.usedAttendance ? '<span style="color:var(--green)">kom</span>' : '<span style="color:var(--muted)">bokn.</span>');
-    const bookNum = fb
-      ? '<span style="color:#c0392b;font-weight:700" title="Varken närvaro eller bokningar – använder förra årets antal platser">0 ⚠</span>'
-      : (r.usedAttendance ? '<span style="color:var(--green);font-weight:700" title="Avprickad närvaro – de som faktiskt kom">' + r.booked + '</span>' : '<span style="font-weight:700">' + r.booked + '</span>');
-    const bookCell = bookNum + '<br><span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.03em">' + srcLabel + '</span>';
+    const noData = (r.presentN === 0 && r.bookedN === 0);
+    const bookCell = '<select id="ceBasis' + i + '" onchange="_recalcCopyRow(' + i + ')" style="font-size:12px;padding:3px 5px;max-width:150px">' +
+        '<option value="attendance"' + (r.basis==='attendance'?' selected':'') + '>Avprickade: ' + r.presentN + '</option>' +
+        '<option value="bookings"' + (r.basis==='bookings'?' selected':'') + '>Uppskrivna: ' + r.bookedN + '</option>' +
+      '</select>' +
+      (noData ? '<div style="font-size:10.5px;color:#c0392b;margin-top:2px">ingen data → förra året</div>' : '');
     return '<tr style="border-bottom:1px solid var(--border)' + (fb ? ';background:#fff8f0' : '') + '">' +
       '<td style="padding:.4rem .5rem">' + r.title + '</td>' +
       '<td style="padding:.4rem .5rem;white-space:nowrap;color:var(--muted)">' + wd[d.getDay()] + ' ' + r.date + '<br>' + (r.time_start||'').slice(0,5) + '–' + (r.time_end||'').slice(0,5) + '</td>' +
@@ -5131,9 +5145,9 @@ function _renderPreview(){
       '<td style="padding:.4rem .5rem;text-align:center"><input type="number" min="0" value="' + r.suggested + '" id="ceSlot' + i + '" style="width:58px;text-align:center"></td></tr>';
   }).join('');
   document.getElementById('copyModalBody').innerHTML =
-    '<div style="font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.5">Antal platser baseras på förra årets <strong>avprickade närvaro</strong> (de som faktiskt kom, <span style="color:var(--green)">✓</span>) där sådan finns – annars antal <strong>bokningar</strong>. Sedan ±1 utifrån snittbetyget (3 = lagom; &lt;2,5 → +1, &gt;3,5 → −1). Pass <strong>utan någon data</strong> (⚠) använder förra årets antal platser – justera eller sätt 0 om passet inte behövs. <strong>Under varje siffra står källan</strong>: <span style="color:var(--green)">kom</span> (närvaro – tryggast), <span style="color:var(--muted)">bokn.</span> (bokningar) eller <span style="color:#c0392b">förra året</span> – så ser du vilka rader du bör dubbelkolla för hand.</div>' +
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.5"><strong>Välj per pass</strong> vad förslaget ska räknas på – <strong>avprickade</strong> (de som faktiskt kom) eller <strong>uppskrivna</strong> (bokade). Avprickade är tryggast där det finns; uppskrivna är basen för t.ex. Åsacupen 2026 (papperslistor). Sedan justeras det <strong>±1 från snittbetyget</strong> (3 = lagom; &lt;2,5 → +1, &gt;3,5 → −1). Saknas båda används förra årets antal platser. Justera siffran för hand om du vill, eller sätt 0 om passet inte behövs.</div>' +
     '<div style="overflow:auto;max-height:50vh;border:1px solid var(--border);border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:13px">' +
-    '<thead><tr style="text-align:left;background:var(--bg)"><th style="padding:.5rem">Pass</th><th style="padding:.5rem">Dag/tid</th><th style="padding:.5rem;text-align:center">Förra</th><th style="padding:.5rem;text-align:center">Kom/bokn.</th><th style="padding:.5rem;text-align:center">Snitt</th><th style="padding:.5rem;text-align:center">Just.</th><th style="padding:.5rem;text-align:center">Förslag</th></tr></thead>' +
+    '<thead><tr style="text-align:left;background:var(--bg)"><th style="padding:.5rem">Pass</th><th style="padding:.5rem">Dag/tid</th><th style="padding:.5rem;text-align:center">Förra</th><th style="padding:.5rem;text-align:center">Räkna på</th><th style="padding:.5rem;text-align:center">Snitt</th><th style="padding:.5rem;text-align:center">Just.</th><th style="padding:.5rem;text-align:center">Förslag</th></tr></thead>' +
     '<tbody>' + rowsHtml + '</tbody></table></div>';
   const btn = document.getElementById('ceNextBtn');
   btn.textContent = st.fields ? 'Skapa event (' + st.rows.length + ' pass)' : 'Kopiera in ' + st.rows.length + ' pass';
