@@ -5200,6 +5200,10 @@ async function suggestStationTips(i){
   const token = await _reminderAuth();
   if(!token){ showToast('Du måste vara inloggad', 'error'); return; }
   btn.disabled = true; btn.textContent = 'Tänker…'; box.innerHTML = '';
+  // Filtrera bort förslag som redan är sparade för stationen (skiftlägesokänsligt)
+  let _saved = [];
+  try { const all = await _loadStationTips(); _saved = all.filter(function(t){ return t.station === station; }).map(function(t){ return (t.text||'').trim().toLowerCase(); }); } catch(e){}
+  const _dedupe = function(list){ return (list||[]).filter(function(s){ return _saved.indexOf(String(s).trim().toLowerCase()) === -1; }); };
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/suggest-station-tips', {
       method:'POST', headers:{ 'Authorization':'Bearer '+token, 'apikey':SUPABASE_KEY, 'Content-Type':'application/json' },
@@ -5207,13 +5211,13 @@ async function suggestStationTips(i){
     });
     const out = await res.json();
     if(res.ok){
-      _kbRenderSuggestions(i, '✨ AI-förslag – godkänn, redigera i fältet, eller avvisa:', out.suggestions || []);
+      _kbRenderSuggestions(i, '✨ AI-förslag – bocka i, redigera, spara:', _dedupe(out.suggestions || []));
     } else {
-      _kbRenderSuggestions(i, 'AI ej aktiverad än – här är årets feedback för stationen (redigera till korta tips innan du sparar):', _stationFeedbackTexts(station));
+      _kbRenderSuggestions(i, 'AI ej aktiverad än – här är årets feedback för stationen (redigera till korta tips innan du sparar):', _dedupe(_stationFeedbackTexts(station)));
     }
   } catch(e){
     console.error(e);
-    _kbRenderSuggestions(i, 'Kunde inte nå AI – här är årets feedback för stationen i stället:', _stationFeedbackTexts(station));
+    _kbRenderSuggestions(i, 'Kunde inte nå AI – här är årets feedback för stationen i stället:', _dedupe(_stationFeedbackTexts(station)));
   }
   btn.disabled = false; btn.textContent = '✨ AI-förslag';
 }
