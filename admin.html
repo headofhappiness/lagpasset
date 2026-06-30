@@ -5106,7 +5106,7 @@ async function _buildPreview(sourceId, targetStart, targetEnd, fields){
     return { title:s.title, time_start:s.time_start, time_end:s.time_end, team:s.team, location:s.location,
       contact_name:s.contact_name, contact_phone:s.contact_phone, notes:s.notes,
       date:_mapDate(s.date, srcStart, targetStart), presentN:presentN, bookedN:bookedN, basis:basis, booked:base, avg:avg, adj:adj, oldSlots:oldSlots, fallback:fallback, usedAttendance:usedAttendance,
-      suggested: fallback ? oldSlots : Math.max(0, base + adj), srcTeams:(slotTeams[s.id]||[]) };
+      cnt: scores.length, suggested: fallback ? oldSlots : Math.max(1, base + adj), srcTeams:(slotTeams[s.id]||[]) };
   });
   _copyState = { fields:fields, rows:rows };
   _renderPreview();
@@ -5114,7 +5114,7 @@ async function _buildPreview(sourceId, targetStart, targetEnd, fields){
 
 function _copyRowSuggested(r, basis){
   const base = basis === 'attendance' ? r.presentN : r.bookedN;
-  return base === 0 ? r.oldSlots : Math.max(0, base + r.adj);
+  return base === 0 ? r.oldSlots : Math.max(1, base + r.adj);
 }
 function _recalcCopyRow(i){
   if(!_copyState || !_copyState.rows[i]) return;
@@ -5169,7 +5169,7 @@ function _renderPreview(){
       '<td style="padding:.4rem .5rem;white-space:nowrap;color:var(--muted)">' + wd[d.getDay()] + ' ' + r.date + '<br>' + (r.time_start||'').slice(0,5) + '–' + (r.time_end||'').slice(0,5) + '</td>' +
       '<td style="padding:.4rem .5rem;text-align:center;color:var(--muted)">' + r.oldSlots + '</td>' +
       '<td style="padding:.4rem .5rem;text-align:center">' + bookCell + '</td>' +
-      '<td style="padding:.4rem .5rem;text-align:center">' + (r.avg===null ? '–' : r.avg.toFixed(1)) + '</td>' +
+      '<td style="padding:.4rem .5rem;text-align:center">' + (r.avg===null ? '–' : r.avg.toFixed(1)) + ((r.cnt && r.cnt < 3) ? ' <span title="Få svar – osäkert underlag" style="color:#c0392b">⚠</span>' : '') + '</td>' +
       '<td style="padding:.4rem .5rem;text-align:center;font-size:12px">' + adjLabel + '</td>' +
       '<td style="padding:.4rem .5rem;text-align:center"><input type="number" min="0" value="' + r.suggested + '" id="ceSlot' + i + '" style="width:58px;text-align:center"></td></tr>';
   }).join('');
@@ -5811,17 +5811,16 @@ function renderStaffingAnalysis(){
     const base = usedAtt ? present : booked;
     let adj = 0; if(avg < 2.5) adj = 1; else if(avg > 3.5) adj = -1;
     const oldSlots = shift ? (shift.slots||0) : 0;
-    const rec = base === 0 ? oldSlots : Math.max(0, base + adj);
+    const rec = base === 0 ? oldSlots : Math.max(1, base + adj); // golv: aldrig auto-föreslå 0 för ett pass som fanns
     const komTxt = usedAtt ? (present + ' kom / ' + booked + ' bokade') : (booked + ' bokade');
     const basisLabel = (base === 0) ? 'förra årets antal platser' : (usedAtt ? 'avprickade (kom)' : 'antal bokade');
     const recTxt = '<strong style="color:#1a8c3a">Rekommenderat nästa år: ' + rec + ' platser</strong> <span style="color:var(--muted);font-weight:400">(baserat på ' + basisLabel + ')</span>';
-    if(avg <= 2.4){
-      html += row('FÖR LITE', '#c0392b', '#fdecea', name, scores.length + ' svar · ' + komTxt + ' · upplevdes underbemannat. ' + recTxt);
-    } else if(avg >= 3.6){
-      html += row('FÖR MYCKET', '#e8a020', '#fff8e8', name, scores.length + ' svar · ' + komTxt + ' · upplevdes överbemannat. ' + recTxt);
-    } else {
-      html += row('LAGOM', '#1a8c3a', '#e8f7ec', name, scores.length + ' svar · ' + komTxt + ' · välbemannat. ' + recTxt);
-    }
+    const conf = (scores.length < 3) ? ' <span style="color:#c0392b;font-weight:700">⚠ osäkert underlag</span>' : '';
+    let badge, color, tint, verdict;
+    if(avg <= 2.4){ badge='FÖR LITE'; color='#c0392b'; tint='#fdecea'; verdict='upplevdes underbemannat'; }
+    else if(avg >= 3.6){ badge='FÖR MYCKET'; color='#e8a020'; tint='#fff8e8'; verdict='upplevdes överbemannat'; }
+    else { badge='LAGOM'; color='#1a8c3a'; tint='#e8f7ec'; verdict='välbemannat'; }
+    html += row(badge, color, tint, name, scores.length + ' svar' + conf + ' · ' + komTxt + ' · ' + verdict + '. ' + recTxt);
   });
   rows.innerHTML = html;
   card.style.display = 'block';
