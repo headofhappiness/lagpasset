@@ -2584,6 +2584,23 @@ function renderShiftDetailInline(shiftId){
   content.innerHTML = html;
 }
 
+function _attSummaryHtml(shiftId){
+  const bk = (DB.bookings||[]).filter(b => b.shift_id === shiftId);
+  if(!bk.length) return '';
+  let present=0, absent=0;
+  bk.forEach(b => { if(b.attendance==='present') present++; else if(b.attendance==='absent') absent++; });
+  const notMarked = bk.length - present - absent;
+  const parts = [];
+  if(present) parts.push('<span style="color:var(--green)">✓ ' + present + ' kom</span>');
+  if(absent) parts.push('<span style="color:var(--red)">✕ ' + absent + ' kom inte</span>');
+  if(notMarked) parts.push('<span style="color:var(--muted)">' + notMarked + ' ej avprickad' + (notMarked===1?'':'e') + '</span>');
+  return parts.join('');
+}
+function _updateAttSummary(shiftId){
+  if(!shiftId) return;
+  const el = document.getElementById('attsum-' + shiftId);
+  if(el) el.innerHTML = _attSummaryHtml(shiftId);
+}
 async function setShiftAttendance(btn, bookingId, value){
   const wrap = btn.parentNode;
   const pres = wrap.querySelector('.att-present');
@@ -2595,6 +2612,7 @@ async function setShiftAttendance(btn, bookingId, value){
   try {
     await sbUpdate('bookings', bookingId, { attendance: newVal });
     const bk = DB.bookings.find(b => b.id === bookingId); if(bk) bk.attendance = newVal;
+    if(bk) _updateAttSummary(bk.shift_id);
   } catch(e){
     console.error(e);
     pres.classList.toggle('on', prevP); abs.classList.toggle('on', prevA);
@@ -4510,6 +4528,7 @@ function renderShiftDetail(cat, day) {
       <tr id="${rowId}" style="display:none">
         <td colspan="6" style="background:#fafbfa;padding:1rem 1.25rem">
           <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Valt detta pass (${taken} av ${total})</div>
+          <div id="attsum-${s.id}" style="display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:.6rem;font-size:12.5px;font-weight:700">${_attSummaryHtml(s.id)}</div>
           ${peopleRows}
           ${emptyRows}
         </td>
