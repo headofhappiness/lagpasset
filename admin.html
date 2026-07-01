@@ -384,17 +384,17 @@ setVH(); window.addEventListener('resize',setVH);
         <div id="stationOverview" style="display:flex;flex-direction:column;gap:.6rem"></div>
       </div>
 
-      <!-- ④ Status per lag (DOLD tills vidare - visar "klart" även när pass inte tagits fullt ut) -->
-      <div class="card" style="display:none">
+      <!-- ④ Uppskrivna & närvaro per lag -->
+      <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Status per lag</div>
-            <div class="card-sub">Hur många i varje lag som valt pass</div>
+            <div class="card-title">Uppskrivna &amp; närvaro per lag</div>
+            <div class="card-sub">Bokade pass per lag och hur många som faktiskt kom. Kom / Kom inte / No-show fylls i när närvaro prickas av.</div>
           </div>
         </div>
         <div class="table-wrap" style="overflow-x:auto">
           <table>
-            <thead><tr><th>Lag</th><th>Platser totalt</th><th>Har valt</th><th>Saknas</th><th>Status</th></tr></thead>
+            <thead><tr><th>Lag</th><th>Uppskrivna</th><th>Kom</th><th>Kom inte</th><th>No-show</th></tr></thead>
             <tbody id="lagStatusTable"></tbody>
           </table>
         </div>
@@ -2004,28 +2004,31 @@ function renderDashboard(){
   // ④ Lag-status tabell
   const tbody = document.getElementById('lagStatusTable');
   if(DB.participants.length > 0){
-    const bookedSet = new Set(DB.bookings.map(b => b.participant_id).filter(Boolean));
+    const partById = {}; DB.participants.forEach(p => { partById[p.id] = p; });
     const teams = {};
-    DB.participants.forEach(p => {
-      const t = p.team || '–';
-      if(!teams[t]) teams[t] = { name: t, members: 0, booked: 0 };
-      teams[t].members += 1;
-      if(bookedSet.has(p.id)) teams[t].booked += 1;
+    DB.bookings.forEach(b => {
+      const p = b.participant_id ? partById[b.participant_id] : null;
+      const t = (p && p.team) || '–';
+      if(!teams[t]) teams[t] = { name: t, uppskrivna: 0, kom: 0, ejkom: 0 };
+      teams[t].uppskrivna += 1;
+      if(b.attendance === 'present') teams[t].kom += 1;
+      else if(b.attendance === 'absent') teams[t].ejkom += 1;
     });
     // Filtrera bort ogiltiga lagkoder (förnamn som Belle, Nova etc)
     const validTeam = t => /^([FP]\d{2}|FJ|HJ|DU|\u2013)$/.test(t);
     const rows = Object.values(teams).filter(t => validTeam(t.name)).sort((a,b) => a.name.localeCompare(b.name));
-    tbody.innerHTML = rows.map(t => {
-      const rem = t.members - t.booked;
-      const badgeCls = rem===0?'badge-green':rem<=2?'badge-amber':'badge-red';
+    tbody.innerHTML = rows.length ? rows.map(t => {
+      const avprickade = t.kom + t.ejkom;
+      const noshow = avprickade > 0 ? Math.round(t.ejkom / avprickade * 100) : null;
+      const nsCls = noshow === 0 ? 'badge-green' : noshow <= 20 ? 'badge-amber' : 'badge-red';
       return `<tr>
         <td class="td-name">${t.name}</td>
-        <td>${t.members}</td>
-        <td><strong style="color:var(--green)">${t.booked}</strong></td>
-        <td>${rem}</td>
-        <td><span class="badge ${badgeCls}">${rem===0?'Klart ✓':rem+' kvar'}</span></td>
+        <td>${t.uppskrivna}</td>
+        <td><strong style="color:var(--green)">${t.kom}</strong></td>
+        <td>${t.ejkom || '–'}</td>
+        <td>${noshow === null ? '<span style="color:var(--muted)" title="Ingen närvaro avprickad än">–</span>' : '<span class="badge '+nsCls+'">'+noshow+'%</span>'}</td>
       </tr>`;
-    }).join('');
+    }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem;font-style:italic">Inga bokningar än.</td></tr>';
   } else {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem;font-style:italic">Inga deltagare importerade ännu.</td></tr>';
   }
