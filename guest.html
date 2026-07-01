@@ -1550,7 +1550,8 @@ async function submitLiveBooking(){
     // Skapa ny bokning
     const result = await sbInsert('bookings', {
       shift_id: currentShift.id,
-      participant_id: LIVE.participant.id
+      participant_id: LIVE.participant.id,
+      team: (LIVE.participant && LIVE.participant.team) || null
     });
     if(result && result.length) LIVE.bookings.push(result[0]);
     // Uppdatera deltagarens telefon om ändrad
