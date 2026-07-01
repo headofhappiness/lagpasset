@@ -838,7 +838,9 @@ Hälsningar,
             <div style="display:flex;align-items:center;gap:.45rem"><span style="font-size:1.1rem">🤖</span><span style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">AI-sammanfattning</span></div>
             <button class="btn btn-ghost btn-sm" onclick="generateAISummary()" id="aiSummaryBtn">Generera sammanfattning</button>
           </div>
+          <div id="aiSummaryNotice" style="display:none;margin-top:.5rem;font-size:12.5px;font-weight:700;color:#b07000;background:#fff8e8;border:1px solid rgba(232,160,32,.45);border-radius:8px;padding:.45rem .65rem"></div>
           <div id="feedbackSummaryText" style="font-size:13.5px;color:var(--text);line-height:1.65;margin-top:.5rem"></div>
+          <div id="aiSummaryMeta" style="display:none;font-size:12px;color:var(--muted);margin-top:.55rem"></div>
         </div>
         <div id="feedbackList">
           <div class="feedback-row" data-type="servering">
@@ -5689,15 +5691,50 @@ function _mdToHtml(md){
   close();
   return html;
 }
+// Visar den SPARADE sammanfattningen (ligger kvar tills man genererar igen) + meta + notis om nya svar
+function renderAISummary(){
+  const out = document.getElementById('feedbackSummaryText');
+  const btn = document.getElementById('aiSummaryBtn');
+  const meta = document.getElementById('aiSummaryMeta');
+  const notice = document.getElementById('aiSummaryNotice');
+  if(!out) return;
+  const current = (DB.feedback||[]).length;
+  const saved = (EVENT && EVENT.ai_summary) || '';
+  const savedCount = (EVENT && EVENT.ai_summary_count) || 0;
+  if(saved){
+    out.innerHTML = _mdToHtml(saved);
+    if(btn) btn.textContent = 'Generera igen';
+    if(meta){
+      let when = '';
+      try { if(EVENT.ai_summary_at) when = new Date(EVENT.ai_summary_at).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short' }); } catch(_e){}
+      meta.innerHTML = 'Baserad på <strong>' + savedCount + ' svar</strong>' + (when ? ' · genererad ' + when : '') + ' · uppdateras bara när du klickar "Generera igen".';
+      meta.style.display = 'block';
+    }
+    const diff = current - savedCount;
+    if(notice){
+      if(diff > 0){
+        notice.innerHTML = '🔔 <strong>' + diff + (diff === 1 ? ' nytt svar' : ' nya svar') + '</strong> har inkommit sedan sammanfattningen gjordes – klicka <strong>Generera igen</strong> för att ta med ' + (diff === 1 ? 'det' : 'dem') + '.';
+        notice.style.display = 'block';
+      } else { notice.style.display = 'none'; }
+    }
+  } else {
+    out.innerHTML = '<span style="color:var(--muted)">Ingen sammanfattning än – klicka <strong>Generera sammanfattning</strong> för att skapa en av ' + current + ' svar. Den uppdateras bara när du klickar.</span>';
+    if(btn) btn.textContent = 'Generera sammanfattning';
+    if(meta) meta.style.display = 'none';
+    if(notice) notice.style.display = 'none';
+  }
+}
 async function generateAISummary(){
   const btn = document.getElementById('aiSummaryBtn');
   const out = document.getElementById('feedbackSummaryText');
   if(!DB.feedback || DB.feedback.length === 0){ out.textContent = 'Ingen feedback att sammanfatta.'; return; }
   const token = await _reminderAuth();
   if(!token){ out.textContent = 'Du måste vara inloggad för att generera sammanfattning.'; return; }
-  btn.textContent = 'Genererar...';
+  const prevText = btn.textContent;
+  btn.textContent = 'Genererar…';
   btn.disabled = true;
-  out.textContent = '';
+  const notice = document.getElementById('aiSummaryNotice'); if(notice) notice.style.display = 'none';
+  out.innerHTML = '<span style="color:var(--muted)">Genererar sammanfattning…</span>';
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/summarize-feedback', {
       method:'POST',
@@ -5706,9 +5743,16 @@ async function generateAISummary(){
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || ('Fel ' + res.status));
-    out.innerHTML = _mdToHtml(data.summary || 'Kunde inte generera sammanfattning.');
-  } catch(e){ out.textContent = 'Fel: ' + (e.message||e); }
-  btn.textContent = 'Generera igen';
+    if(EVENT){
+      EVENT.ai_summary = data.summary || '';
+      EVENT.ai_summary_count = (typeof data.count === 'number') ? data.count : (DB.feedback||[]).length;
+      EVENT.ai_summary_at = new Date().toISOString();
+    }
+    renderAISummary();
+  } catch(e){
+    out.textContent = 'Fel: ' + (e.message||e);
+    btn.textContent = prevText || 'Generera igen';
+  }
   btn.disabled = false;
 }
 
@@ -5717,6 +5761,7 @@ function renderFeedback(){
   if(!list) return;
   renderFeedbackTabs();
   renderStaffingAnalysis();
+  renderAISummary();
   if(typeof loadReminderCount === 'function') loadReminderCount();
   if(typeof setFeedbackSummary === 'function') setFeedbackSummary('all');
   const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
