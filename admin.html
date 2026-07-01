@@ -5669,6 +5669,26 @@ async function addVolunteerInterest(){
   btn.disabled = false; btn.textContent = 'Lägg till';
 }
 
+// Enkel markdown -> HTML (rubriker, fetstil, punktlistor) med luft mellan, för AI-sammanfattningen
+function _mdToHtml(md){
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const inline = s => esc(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  const lines = String(md||'').split(/\r?\n/);
+  let html = '', listType = null;
+  const close = () => { if(listType){ html += (listType==='ol' ? '</ol>' : '</ul>'); listType = null; } };
+  const openList = t => { if(listType !== t){ close(); html += (t==='ol' ? '<ol' : '<ul') + ' style="margin:.35rem 0;padding-left:1.3rem;display:flex;flex-direction:column;gap:.6rem">'; listType = t; } };
+  for(const raw of lines){
+    const line = raw.trim();
+    let m;
+    if(!line){ close(); continue; }
+    if(m = line.match(/^#{1,6}\s+(.*)$/)){ close(); html += '<div style="font-weight:800;font-size:14.5px;color:var(--dark);margin:1rem 0 .4rem;font-family:Nunito,sans-serif">' + inline(m[1]) + '</div>'; }
+    else if(m = line.match(/^(\d+)[.)]\s+(.*)$/)){ openList('ol'); html += '<li>' + inline(m[2]) + '</li>'; }
+    else if(m = line.match(/^[-*]\s+(.*)$/)){ openList('ul'); html += '<li>' + inline(m[1]) + '</li>'; }
+    else { close(); html += '<p style="margin:.5rem 0;line-height:1.6">' + inline(line) + '</p>'; }
+  }
+  close();
+  return html;
+}
 async function generateAISummary(){
   const btn = document.getElementById('aiSummaryBtn');
   const out = document.getElementById('feedbackSummaryText');
@@ -5686,7 +5706,7 @@ async function generateAISummary(){
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || ('Fel ' + res.status));
-    out.textContent = data.summary || 'Kunde inte generera sammanfattning.';
+    out.innerHTML = _mdToHtml(data.summary || 'Kunde inte generera sammanfattning.');
   } catch(e){ out.textContent = 'Fel: ' + (e.message||e); }
   btn.textContent = 'Generera igen';
   btn.disabled = false;
