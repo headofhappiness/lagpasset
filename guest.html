@@ -280,6 +280,7 @@ setVH(); window.addEventListener('resize',setVH);
         <h1 id="step1Title">Välj ditt pass</h1>
         <div class="green-line"></div>
         <p class="step-sub" id="step1Sub"></p>
+        <div id="familySwitcher" style="display:none;margin:.6rem 0 0"></div>
       </div>
       <div class="event-box" id="eventBox"><span class="event-icon">🏆</span><span id="eventInfo"></span></div>
 
@@ -1360,6 +1361,14 @@ async function initLive(token){
     const contacts = await sbFetch('contacts', '?event_id=eq.' + eventId + '&order=area.asc').catch(() => []);
     const faq = await sbFetch('faq', '?club_id=eq.' + (event.club_id||'') + '&is_active=eq.true&order=created_at.asc').catch(() => []);
     LIVE = { participant, event, shifts, bookings, shiftSlots, contacts, faq };
+    // Familj = deltagare med samma mejl i eventet (förälder med barn i flera lag)
+    LIVE.family = [participant];
+    if(participant.email){
+      try {
+        const fam = await sbFetch('participants', '?event_id=eq.' + eventId + '&email=eq.' + encodeURIComponent(participant.email) + '&select=*&order=team.asc');
+        if(fam && fam.length > 1) LIVE.family = fam;
+      } catch(_e){}
+    }
     renderLiveView();
   } catch(e){
     console.error('Live-fel:', e);
@@ -1389,6 +1398,29 @@ async function loadVolunteerSocialProof(){
   } catch(e){ console.error('socialProof:', e); }
 }
 
+// Lag-växlare: en förälder med barn i flera lag kan boka pass för varje lag från en länk
+function renderFamilySwitcher(){
+  const host = document.getElementById('familySwitcher');
+  if(!host) return;
+  const fam = (LIVE && LIVE.family) || [];
+  if(fam.length <= 1){ host.style.display = 'none'; host.innerHTML = ''; return; }
+  host.style.display = 'block';
+  host.innerHTML =
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:.4rem">Du har barn i flera lag – välj vilket lag du bokar pass för:</div>' +
+    '<div style="display:flex;gap:.4rem;flex-wrap:wrap">' +
+    fam.map(function(m){
+      const active = m.id === LIVE.participant.id;
+      const booked = LIVE.bookings.some(function(b){ return b.participant_id === m.id; });
+      return '<button type="button" onclick="switchFamilyMember(\'' + m.id + '\')" style="border:1.5px solid ' + (active ? 'var(--green)' : 'var(--border)') + ';background:' + (active ? 'var(--green)' : '#fff') + ';color:' + (active ? '#fff' : 'var(--text)') + ';border-radius:100px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer">' + (m.team || 'Lag') + (booked ? ' ✓' : '') + '</button>';
+    }).join('') +
+    '</div>';
+}
+function switchFamilyMember(id){
+  const m = (LIVE.family || []).find(function(x){ return x.id === id; });
+  if(!m) return;
+  LIVE.participant = m;
+  renderLiveView();
+}
 function renderLiveView(){
   const p = LIVE.participant, ev = LIVE.event;
   if(typeof loadVolunteerSocialProof === 'function') loadVolunteerSocialProof();
@@ -1404,6 +1436,7 @@ function renderLiveView(){
   // Hälsning
   const sub = document.getElementById('step1Sub');
   if(sub) sub.textContent = 'Hej ' + p.name + '! Välj ett pass nedan.';
+  renderFamilySwitcher();
 
   // Min nuvarande bokning
   const myBooking = LIVE.bookings.find(b => b.participant_id === p.id);
