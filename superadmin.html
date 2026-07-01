@@ -118,7 +118,8 @@ td{padding:.7rem .5rem;border-bottom:1px solid var(--border);font-size:14px;vert
 <script>
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// sessionStorage: inloggningen rensas när webbläsaren stängs (matchar login.html/admin.html)
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.sessionStorage } });
 
 let events = [];
 

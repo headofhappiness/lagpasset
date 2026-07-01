@@ -98,7 +98,8 @@ input:focus{outline:none;border-color:var(--green)}
 const SUPABASE_URL = 'https://acqwpmigracdzkjrddwk.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac';
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// sessionStorage: inloggningen rensas när webbläsaren stängs (men överlever sidladdning)
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.sessionStorage } });
 
 function show(id){
   ['checking','loginForm','forgotForm','resetForm'].forEach(s=>{
@@ -283,7 +284,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
 // Visa formuläret DIREKT så sidan aldrig blockeras av en seg/hängande auth-server;
 // hittas en giltig session i bakgrunden skickas man vidare automatiskt.
 if(!isRecoveryLink){
-  const _clearStaleAuth = () => { try { Object.keys(localStorage).forEach(k => { if(/^sb-.*auth-token/.test(k)) localStorage.removeItem(k); }); } catch(_e){} };
+  const _clearStaleAuth = () => { try { [localStorage, sessionStorage].forEach(store => Object.keys(store).forEach(k => { if(/^sb-.*auth-token/.test(k)) store.removeItem(k); })); } catch(_e){} };
   show('loginForm');
   (async () => {
     try {
