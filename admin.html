@@ -4601,17 +4601,12 @@ function setFeedbackSummary(type){
     el.innerHTML = FEEDBACK_SUMMARIES[type] || FEEDBACK_SUMMARIES.all;
     return;
   }
-  // Riktig admin: faktisk räkning, ingen fejkad text
-  if(!DB.feedback || DB.feedback.length === 0){
-    el.innerHTML = 'Ingen feedback har kommit in än. Sammanfattningen skapas automatiskt när svar kommit in.';
-    return;
-  }
-  const rel = DB.feedback.filter(f => {
-    if(type === 'all') return true;
-    const s = DB.shifts.find(x => x.id === f.shift_id);
-    return s && s.title.toLowerCase() === type;
-  });
-  el.innerHTML = rel.length + ' svar' + (type==='all' ? ' totalt' : ' för ' + type) + '. En sammanfattande analys skapas automatiskt utifrån svaren.';
+  // Riktig admin: AI-sammanfattningen (feedbackSummaryText) ägs helt av
+  // renderAISummary() och ska ligga kvar tills man klickar "Generera igen".
+  // setFeedbackSummary rör därför INTE rutan för skarp admin – tidigare skrev
+  // den över den sparade sammanfattningen med en ren svarsräknare varje gång
+  // vyn ritades om (och vid klick på stations-flikar). Antalet svar visas nu
+  // i stället som "Baserad på X svar" i AI-sammanfattningens meta-rad.
 }
 
 function filterFeedback(type, el) {
