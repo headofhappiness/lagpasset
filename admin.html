@@ -836,7 +836,7 @@ Hälsningar,
         <div id="feedbackSummary" style="padding:1rem 1.1rem;border-bottom:1px solid var(--border);background:#f0f7ff">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
             <div style="display:flex;align-items:center;gap:.45rem"><span style="font-size:1.1rem">🤖</span><span style="font-size:15px;font-weight:800;color:var(--dark);font-family:'Nunito',sans-serif">AI-sammanfattning</span></div>
-            <button class="btn btn-ghost btn-sm" onclick="generateAISummary()" id="aiSummaryBtn">Generera sammanfattning</button>
+            <button class="btn btn-primary" onclick="generateAISummary()" id="aiSummaryBtn">🔄 Generera sammanfattning</button>
           </div>
           <div id="aiSummaryMeta" style="display:none;font-size:12.5px;font-weight:700;color:#1a6b2e;background:#eaf6ec;border:1px solid rgba(26,140,58,.28);border-radius:8px;padding:.45rem .65rem;margin-top:.6rem"></div>
           <div id="aiSummaryNotice" style="display:none;margin-top:.5rem;font-size:12.5px;font-weight:700;color:#b07000;background:#fff8e8;border:1px solid rgba(232,160,32,.45);border-radius:8px;padding:.45rem .65rem"></div>
@@ -5701,7 +5701,7 @@ function renderAISummary(){
   const savedCount = (EVENT && EVENT.ai_summary_count) || 0;
   if(saved){
     out.innerHTML = _mdToHtml(saved);
-    if(btn) btn.textContent = 'Generera igen';
+    if(btn) btn.textContent = '🔄 Generera igen';
     if(meta){
       let when = '';
       try { if(EVENT.ai_summary_at) when = new Date(EVENT.ai_summary_at).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short' }); } catch(_e){}
@@ -5713,7 +5713,7 @@ function renderAISummary(){
     if(notice) notice.style.display = 'none';
   } else {
     out.innerHTML = '<span style="color:var(--muted)">Ingen sammanfattning än – klicka <strong>Generera sammanfattning</strong> för att skapa en av ' + current + ' svar. Den uppdateras bara när du klickar.</span>';
-    if(btn) btn.textContent = 'Generera sammanfattning';
+    if(btn) btn.textContent = '🔄 Generera sammanfattning';
     if(meta) meta.style.display = 'none';
     if(notice) notice.style.display = 'none';
   }
@@ -5725,7 +5725,7 @@ async function generateAISummary(){
   const token = await _reminderAuth();
   if(!token){ out.textContent = 'Du måste vara inloggad för att generera sammanfattning.'; return; }
   const prevText = btn.textContent;
-  btn.textContent = 'Genererar…';
+  btn.textContent = '⏳ Genererar…';
   btn.disabled = true;
   const notice = document.getElementById('aiSummaryNotice'); if(notice) notice.style.display = 'none';
   out.innerHTML = '<span style="color:var(--muted)">Genererar sammanfattning…</span>';
