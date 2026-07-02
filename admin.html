@@ -5705,16 +5705,12 @@ function renderAISummary(){
     if(meta){
       let when = '';
       try { if(EVENT.ai_summary_at) when = new Date(EVENT.ai_summary_at).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short' }); } catch(_e){}
-      meta.innerHTML = 'Baserad på <strong>' + savedCount + ' svar</strong>' + (when ? ' · genererad ' + when : '') + ' · uppdateras bara när du klickar "Generera igen".';
+      meta.innerHTML = 'Baserad på <strong>' + savedCount + ' svar</strong>' + (when ? ' · genererad ' + when : '') + '. Nu finns <strong>' + current + ' svar</strong> inkomna. Uppdateras genom att klicka "Generera igen".';
       meta.style.display = 'block';
     }
-    const diff = current - savedCount;
-    if(notice){
-      if(diff > 0){
-        notice.innerHTML = '🔔 <strong>' + diff + (diff === 1 ? ' nytt svar' : ' nya svar') + '</strong> har inkommit sedan sammanfattningen gjordes – klicka <strong>Generera igen</strong> för att ta med ' + (diff === 1 ? 'det' : 'dem') + '.';
-        notice.style.display = 'block';
-      } else { notice.style.display = 'none'; }
-    }
+    // Antalet nya svar visas nu inline i meta-raden ("Nu finns X svar inkomna"),
+    // så den separata notisrutan behövs inte längre.
+    if(notice) notice.style.display = 'none';
   } else {
     out.innerHTML = '<span style="color:var(--muted)">Ingen sammanfattning än – klicka <strong>Generera sammanfattning</strong> för att skapa en av ' + current + ' svar. Den uppdateras bara när du klickar.</span>';
     if(btn) btn.textContent = 'Generera sammanfattning';
