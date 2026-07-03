@@ -942,6 +942,14 @@ Hälsningar,
           </div>
         </div>
         <div class="form-group">
+          <label class="form-label">Tränare</label>
+          <label style="display:flex;align-items:center;gap:.55rem;font-size:14px;cursor:pointer">
+            <input type="checkbox" id="setTrainersNeedShift">
+            <span>Tränare ska också ha pass (annars undantas de från pass &amp; påminnelser)</span>
+          </label>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Tränarbarn markeras automatiskt vid import (från Ledare-listan). Enskilda kan även markeras manuellt.</div>
+        </div>
+        <div class="form-group">
           <label class="form-label">Typ av deltagande</label>
           <select id="setParticipation">
             <option value="obligatoriskt">Obligatoriskt – alla måste välja ett pass</option>
@@ -1678,6 +1686,8 @@ function fillEventSettings(){
   setVal('setParticipation', EVENT.participation || 'obligatoriskt');
   setVal('setUnit', EVENT.shift_unit || 'pass');
   setVal('setTarget', EVENT.effort_target || 1);
+  const cbTrain = document.getElementById('setTrainersNeedShift');
+  if(cbTrain) cbTrain.checked = !!EVENT.trainers_need_shift;
   if(typeof updateTargetUnit === 'function') updateTargetUnit();
 }
 
@@ -1699,10 +1709,12 @@ async function saveEventSettings(){
   const participation = document.getElementById('setParticipation').value;
   const unit = document.getElementById('setUnit').value;
   const target = parseFloat(document.getElementById('setTarget').value) || 1;
+  const trainersNeedShift = !!(document.getElementById('setTrainersNeedShift') && document.getElementById('setTrainersNeedShift').checked);
   const data = {
     name, date_start: start, date_end: end || start,
     signup_deadline: deadline, reminder_days: reminderDays,
-    participation: participation, shift_unit: unit, effort_target: target
+    participation: participation, shift_unit: unit, effort_target: target,
+    trainers_need_shift: trainersNeedShift
   };
   try {
     await sbUpdate('events', EVENT_ID, data);
@@ -6322,7 +6334,20 @@ function _startMultiGroupImport(headers, data, iGrupp, iKopp){
   const counts = {};
   spelareRows.forEach(r => { const g = String(r[iGrupp]||'').trim(); if(g) counts[g] = (counts[g]||0)+1; });
   const groups = Object.keys(counts).sort().map(name => ({ name, count: counts[name], checked: _isLikelyCupTeam(name) }));
-  _importMultiGroup = { iGrupp, iKopp, spelareRows, groups };
+  // Tränare = Ledare-raderna. Fånga deras mejl + namn för att auto-markera tränarbarn.
+  const c = _importCols;
+  const ledEmails = new Set(), ledNames = new Set();
+  data.forEach(r => {
+    if (String(r[iKopp]||'').trim().toLowerCase() === 'ledare') {
+      const e = c.epost1 !== undefined ? String(r[c.epost1]||'').trim().toLowerCase() : '';
+      if (e) ledEmails.add(e);
+      const fn = c.fornamn !== undefined ? String(r[c.fornamn]||'').trim() : '';
+      const en = c.efternamn !== undefined ? String(r[c.efternamn]||'').trim() : '';
+      const nm = (fn + ' ' + en).trim().toLowerCase();
+      if (nm) ledNames.add(nm);
+    }
+  });
+  _importMultiGroup = { iGrupp, iKopp, spelareRows, groups, ledEmails, ledNames };
   _renderGroupChecklist();
   document.getElementById('importTeamLabel').textContent = 'Hela klubben (Medlemsgrupper)';
   document.getElementById('importRowCount').textContent = spelareRows.length + ' spelare';
@@ -6370,7 +6395,7 @@ async function _importFamiliesAndParticipants(built){
   let created=0, updated=0;
   for(const x of built){
     const fam=await resolveFamily(x);
-    const rec={ name:x.childName, child_name:x.childName, email:x.email, phone:x.phone, team:x.team, parent_name:x.p1.name, parent_email:x.p1.email, parent_phone:x.p1.phone, family_id:(fam&&fam.id)?fam.id:null };
+    const rec={ name:x.childName, child_name:x.childName, email:x.email, phone:x.phone, team:x.team, parent_name:x.p1.name, parent_email:x.p1.email, parent_phone:x.p1.phone, family_id:(fam&&fam.id)?fam.id:null, is_trainer_child: !!x.isTrainerChild };
     const key=x.childName.toLowerCase()+'||'+(x.team||'');
     const existing=partByKey[key];
     if(existing && existing.id){ await sbUpdate('participants',existing.id,rec); Object.assign(existing,rec); updated++; }
@@ -6396,7 +6421,12 @@ async function runImportGroups(){
     const p1={name:_firstVal(r,c.malsman1)||null,email:lc(_firstVal(r,c.malsman1ep)),phone:_firstVal(r,c.malsman1tel)||null};
     const p2={name:_firstVal(r,c.malsman2)||null,email:lc(_firstVal(r,c.malsman2ep)),phone:_firstVal(r,c.malsman2tel)||null};
     const familjeId=c.familjeid!==undefined?(String(r[c.familjeid]||'').trim()||null):null;
-    return {childName,lastName:en,team,phone,email,p1,p2,familjeId};
+    // Tränarbarn = en förälder (Målsman) finns bland Ledare (mejl- eller namn-match)
+    const isTrainerChild = !!(
+      (p1.email && mg.ledEmails.has(p1.email)) || (p2.email && mg.ledEmails.has(p2.email)) ||
+      (p1.name && mg.ledNames.has(String(p1.name).toLowerCase())) || (p2.name && mg.ledNames.has(String(p2.name).toLowerCase()))
+    );
+    return {childName,lastName:en,team,phone,email,p1,p2,familjeId,isTrainerChild};
   }).filter(x=>x.childName && x.team);
   if(!built.length){ showToast('Inga spelare i valda grupper.', 'error'); return; }
   const isDemo=(typeof IS_DEMO!=='undefined'&&IS_DEMO);
@@ -6404,12 +6434,13 @@ async function runImportGroups(){
   if(isDemo){ await new Promise(r=>setTimeout(r,700)); showImportResult('✅', built.length+' spelare importerade', chosen.size+' lag.'); btn.disabled=false; btn.textContent='Importera →'; return; }
   try{
     const res=await _importFamiliesAndParticipants(built);
+    const nTrainer=built.filter(x=>x.isTrainerChild).length;
     DB.participants.sort((a,b)=>(a.team||'').localeCompare(b.team||'')||(a.name||'').localeCompare(b.name||''));
     if(typeof renderChildTable==='function')renderChildTable();
     if(typeof renderDashboard==='function')renderDashboard();
     showImportResult('✅', res.created+' importerade'+(res.updated?' · '+res.updated+' uppdaterade':''),
-      (res.familiesCreated?res.familiesCreated+' nya familjer skapade. ':'')+chosen.size+' lag · syskon i olika lag kopplas ihop automatiskt.');
-    showToast(res.created+' importerade');
+      (res.familiesCreated?res.familiesCreated+' nya familjer skapade. ':'')+chosen.size+' lag'+(nTrainer?' · '+nTrainer+' tränarbarn auto-markerade':'')+' · syskon i olika lag kopplas ihop automatiskt.');
+    showToast(res.created+' importerade'+(nTrainer?', '+nTrainer+' tränarbarn':''));
   }catch(e){ console.error(e); showImportResult('❌','Import misslyckades', e.message||'Okänt fel.'); }
   btn.disabled=false; btn.textContent='Importera →';
 }
