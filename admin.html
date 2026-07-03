@@ -942,12 +942,13 @@ Hälsningar,
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Tränare</label>
-          <label style="display:flex;align-items:center;gap:.55rem;font-size:14px;cursor:pointer">
-            <input type="checkbox" id="setTrainersNeedShift">
-            <span>Tränare ska också ha pass (annars undantas de från pass &amp; påminnelser)</span>
-          </label>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Tränarbarn markeras automatiskt vid import: ett barn undantas <strong>bara i det lag där en förälder är tränare</strong> (Ledare) – inte i andra lag där föräldern bara är förälder. Enskilda kan även markeras manuellt.</div>
+          <label class="form-label">Hur ska tränare hanteras?</label>
+          <select id="setTrainerPolicy" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;background:#fff">
+            <option value="per_team">Undantas i laget de tränar (rekommenderas)</option>
+            <option value="family">Undantas i alla sina barns lag</option>
+            <option value="normal">Som alla andra – tränare får också pass</option>
+          </select>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Tränare känns igen automatiskt vid import (Ledare-listan). <strong>Undantas i laget de tränar</strong> = bara barnet i det lag föräldern tränar slipper pass; syskon i andra lag bemannar som vanligt. Enskilda kan även markeras/avmarkeras manuellt.</div>
         </div>
         <div class="form-group">
           <label class="form-label">Typ av deltagande</label>
@@ -1686,8 +1687,8 @@ function fillEventSettings(){
   setVal('setParticipation', EVENT.participation || 'obligatoriskt');
   setVal('setUnit', EVENT.shift_unit || 'pass');
   setVal('setTarget', EVENT.effort_target || 1);
-  const cbTrain = document.getElementById('setTrainersNeedShift');
-  if(cbTrain) cbTrain.checked = !!EVENT.trainers_need_shift;
+  const selPol = document.getElementById('setTrainerPolicy');
+  if(selPol) selPol.value = EVENT.trainer_policy || 'per_team';
   if(typeof updateTargetUnit === 'function') updateTargetUnit();
 }
 
@@ -1709,12 +1710,12 @@ async function saveEventSettings(){
   const participation = document.getElementById('setParticipation').value;
   const unit = document.getElementById('setUnit').value;
   const target = parseFloat(document.getElementById('setTarget').value) || 1;
-  const trainersNeedShift = !!(document.getElementById('setTrainersNeedShift') && document.getElementById('setTrainersNeedShift').checked);
+  const trainerPolicy = (document.getElementById('setTrainerPolicy') && document.getElementById('setTrainerPolicy').value) || 'per_team';
   const data = {
     name, date_start: start, date_end: end || start,
     signup_deadline: deadline, reminder_days: reminderDays,
     participation: participation, shift_unit: unit, effort_target: target,
-    trainers_need_shift: trainersNeedShift
+    trainer_policy: trainerPolicy
   };
   try {
     await sbUpdate('events', EVENT_ID, data);
