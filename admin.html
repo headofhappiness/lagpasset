@@ -5682,7 +5682,7 @@ function _mdToHtml(md){
     let m;
     if(!line){ close(); continue; }
     if(m = line.match(/^#{1,6}\s+(.*)$/)){ close(); html += '<div style="font-weight:800;font-size:14.5px;color:var(--dark);margin:1rem 0 .4rem;font-family:Nunito,sans-serif">' + inline(m[1]) + '</div>'; }
-    else if(m = line.match(/^(\d+)[.)]\s+(.*)$/)){ openList('ol'); html += '<li>' + inline(m[2]) + '</li>'; }
+    else if(m = line.match(/^(\d+)[.)]\s+(.*)$/)){ openList('ol'); html += '<li value="' + m[1] + '" style="margin-left:.1rem">' + inline(m[2]) + '</li>'; }
     else if(m = line.match(/^[-*]\s+(.*)$/)){ openList('ul'); html += '<li>' + inline(m[1]) + '</li>'; }
     else { close(); html += '<p style="margin:.5rem 0;line-height:1.6">' + inline(line) + '</p>'; }
   }
