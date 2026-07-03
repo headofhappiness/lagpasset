@@ -4619,18 +4619,19 @@ function filterFeedback(type, el) {
     row.style.display = show ? '' : 'none';
     if(show) visible.push(row.dataset.feedbackId);
   });
-  // Uppdatera stat-korten för aktuellt filter
-  const subset = type === 'all' ? DB.feedback : DB.feedback.filter(f => {
-    const s = DB.shifts.find(sh => sh.id === f.shift_id);
-    return s && s.title.toLowerCase() === type;
-  });
-  const sc = document.getElementById('statCount'); if(sc) sc.textContent = subset.length;
-  const ratings = subset.map(f => f.rating).filter(r => r != null && !isNaN(r));
+  // Topp-korten (Snitt bemanning, Snitt fungerade, Svar inkomna) visar ALLTID
+  // totalen for hela eventet - inte den valda stationen (annars blir det otydligt).
+  const all = DB.feedback || [];
+  const sc = document.getElementById('statCount'); if(sc) sc.textContent = all.length;
+  const ratings = all.map(f => f.rating).filter(r => r != null && !isNaN(r));
   const sa = document.getElementById('statAvg');
   if(sa) sa.textContent = ratings.length ? (ratings.reduce((a,b)=>a+Number(b),0)/ratings.length).toFixed(1) : '–';
-  const sratings = subset.map(f => f.staffing_score).filter(r => r != null && !isNaN(r));
+  const sratings = all.map(f => f.staffing_score).filter(r => r != null && !isNaN(r));
   const ssa = document.getElementById('statStaffingAvg');
   if(ssa) ssa.textContent = sratings.length ? (sratings.reduce((a,b)=>a+Number(b),0)/sratings.length).toFixed(1) : '–';
+  // AI-rutan foljer vald station:
+  FEEDBACK_SCOPE = type;
+  if(typeof renderAISummary === 'function') renderAISummary(type);
 }
 
 // ── AI-sammanställning ──
@@ -5689,63 +5690,84 @@ function _mdToHtml(md){
   close();
   return html;
 }
-// Visar den SPARADE sammanfattningen (ligger kvar tills man genererar igen) + meta + notis om nya svar
-function renderAISummary(){
+// Vald station i Feedback-vyn ('all' = hela eventet, annars stations-titel i gemener)
+let FEEDBACK_SCOPE = 'all';
+function _scopeFeedback(scope){
+  if(!scope || scope === 'all') return (DB.feedback||[]);
+  return (DB.feedback||[]).filter(f => { const s = DB.shifts.find(sh => sh.id === f.shift_id); return s && (s.title||'').toLowerCase() === scope; });
+}
+function _scopeLabel(scope){
+  if(!scope || scope === 'all') return '';
+  const s = DB.shifts.find(sh => (sh.title||'').toLowerCase() === scope);
+  return s ? s.title : scope;
+}
+// Hämtar sparad sammanfattning för scope; faller tillbaka på gamla kolumnerna för 'all'
+function _scopeSaved(scope){
+  const map = (EVENT && EVENT.ai_summaries && typeof EVENT.ai_summaries === 'object') ? EVENT.ai_summaries : {};
+  if(map[scope] && map[scope].summary) return map[scope];
+  if((!scope || scope === 'all') && EVENT && EVENT.ai_summary) return { summary: EVENT.ai_summary, count: EVENT.ai_summary_count || 0, at: EVENT.ai_summary_at };
+  return null;
+}
+// Visar den SPARADE sammanfattningen för vald station (ligger kvar tills man genererar igen) + meta
+function renderAISummary(scope){
+  scope = scope || FEEDBACK_SCOPE || 'all';
   const out = document.getElementById('feedbackSummaryText');
   const btn = document.getElementById('aiSummaryBtn');
   const meta = document.getElementById('aiSummaryMeta');
   const notice = document.getElementById('aiSummaryNotice');
   if(!out) return;
-  const current = (DB.feedback||[]).length;
-  const saved = (EVENT && EVENT.ai_summary) || '';
-  const savedCount = (EVENT && EVENT.ai_summary_count) || 0;
-  if(saved){
-    out.innerHTML = _mdToHtml(saved);
+  const current = _scopeFeedback(scope).length;
+  const label = _scopeLabel(scope);
+  const forStation = label ? ' för <strong>' + label + '</strong>' : '';
+  const rec = _scopeSaved(scope);
+  if(rec && rec.summary){
+    out.innerHTML = _mdToHtml(rec.summary);
     if(btn) btn.textContent = '🔄 Generera igen';
     if(meta){
       let when = '';
-      try { if(EVENT.ai_summary_at) when = new Date(EVENT.ai_summary_at).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short' }); } catch(_e){}
-      meta.innerHTML = 'Baserad på <strong>' + savedCount + ' svar</strong>' + (when ? ' · genererad ' + when : '') + '. Nu finns <strong>' + current + ' svar</strong> inkomna. Uppdateras genom att klicka "Generera igen".';
+      try { if(rec.at) when = new Date(rec.at).toLocaleString('sv-SE', { dateStyle:'short', timeStyle:'short' }); } catch(_e){}
+      meta.innerHTML = 'Sammanfattning' + forStation + ' · baserad på <strong>' + (rec.count||0) + ' svar</strong>' + (when ? ' · genererad ' + when : '') + '. Nu finns <strong>' + current + ' svar</strong> inkomna. Uppdateras genom att klicka "Generera igen".';
       meta.style.display = 'block';
     }
-    // Antalet nya svar visas nu inline i meta-raden ("Nu finns X svar inkomna"),
-    // så den separata notisrutan behövs inte längre.
     if(notice) notice.style.display = 'none';
   } else {
-    out.innerHTML = '<span style="color:var(--muted)">Ingen sammanfattning än – klicka <strong>Generera sammanfattning</strong> för att skapa en av ' + current + ' svar. Den uppdateras bara när du klickar.</span>';
+    out.innerHTML = '<span style="color:var(--muted)">Ingen sammanfattning än' + forStation + ' – klicka <strong>Generera sammanfattning</strong> för att skapa en av ' + current + ' svar' + (label ? ' på den här stationen' : '') + '. Den uppdateras bara när du klickar.</span>';
     if(btn) btn.textContent = '🔄 Generera sammanfattning';
     if(meta) meta.style.display = 'none';
     if(notice) notice.style.display = 'none';
   }
 }
 async function generateAISummary(){
+  const scope = FEEDBACK_SCOPE || 'all';
   const btn = document.getElementById('aiSummaryBtn');
   const out = document.getElementById('feedbackSummaryText');
-  if(!DB.feedback || DB.feedback.length === 0){ out.textContent = 'Ingen feedback att sammanfatta.'; return; }
+  const label = _scopeLabel(scope);
+  const scopeCount = _scopeFeedback(scope).length;
+  if(scopeCount === 0){ out.innerHTML = '<span style="color:var(--muted)">Ingen feedback att sammanfatta' + (label ? ' för ' + label : '') + ' än.</span>'; return; }
   const token = await _reminderAuth();
   if(!token){ out.textContent = 'Du måste vara inloggad för att generera sammanfattning.'; return; }
   const prevText = btn.textContent;
   btn.textContent = '⏳ Genererar…';
   btn.disabled = true;
   const notice = document.getElementById('aiSummaryNotice'); if(notice) notice.style.display = 'none';
-  out.innerHTML = '<span style="color:var(--muted)">Genererar sammanfattning…</span>';
+  out.innerHTML = '<span style="color:var(--muted)">Genererar sammanfattning' + (label ? ' för ' + label : '') + '…</span>';
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/summarize-feedback', {
       method:'POST',
       headers:{ 'Authorization':'Bearer '+token, 'apikey':SUPABASE_KEY, 'Content-Type':'application/json' },
-      body: JSON.stringify({ event_id: EVENT_ID })
+      body: JSON.stringify({ event_id: EVENT_ID, scope: scope })
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || ('Fel ' + res.status));
     if(EVENT){
-      EVENT.ai_summary = data.summary || '';
-      EVENT.ai_summary_count = (typeof data.count === 'number') ? data.count : (DB.feedback||[]).length;
-      EVENT.ai_summary_at = new Date().toISOString();
+      if(!EVENT.ai_summaries || typeof EVENT.ai_summaries !== 'object') EVENT.ai_summaries = {};
+      EVENT.ai_summaries[scope] = { summary: data.summary || '', count: (typeof data.count === 'number') ? data.count : scopeCount, at: new Date().toISOString() };
+      if(scope === 'all'){ EVENT.ai_summary = data.summary || ''; EVENT.ai_summary_count = EVENT.ai_summaries[scope].count; EVENT.ai_summary_at = EVENT.ai_summaries[scope].at; }
     }
-    renderAISummary();
+    renderAISummary(scope);
   } catch(e){
     out.textContent = 'Fel: ' + (e.message||e);
-    btn.textContent = prevText || 'Generera igen';
+    btn.textContent = prevText || '🔄 Generera igen';
   }
   btn.disabled = false;
 }
@@ -5755,7 +5777,8 @@ function renderFeedback(){
   if(!list) return;
   renderFeedbackTabs();
   renderStaffingAnalysis();
-  renderAISummary();
+  FEEDBACK_SCOPE = 'all';
+  renderAISummary('all');
   if(typeof loadReminderCount === 'function') loadReminderCount();
   if(typeof setFeedbackSummary === 'function') setFeedbackSummary('all');
   const isDemo = (typeof IS_DEMO !== 'undefined' && IS_DEMO);
