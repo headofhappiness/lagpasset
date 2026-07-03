@@ -5992,6 +5992,7 @@ const _COL_SYNONYMS = {
   malsman2:   ['målsman 2','målsman2','malsman 2','vårdnadshavare 2','förälder 2','guardian 2'],
   malsman2ep: [],
   malsman2tel:[],
+  familjeid:  ['familjeid','famid','family id','familj id','familjenr','hushålls-id','hushallsid'],
 };
 
 function _detectCols(headers) {
@@ -6153,6 +6154,7 @@ function renderImportMapping(headers) {
     { key: 'malsman2',   label: 'Målsman 2 namn' },
     { key: 'malsman2ep', label: 'Målsman 2 e-post' },
     { key: 'malsman2tel',label: 'Målsman 2 telefon' },
+    { key: 'familjeid',  label: 'FamiljeID (hushåll)' },
   ];
 
   area.innerHTML = fields.map(f => {
@@ -6189,92 +6191,105 @@ async function runImport() {
   const btn = document.getElementById('importRunBtn');
   btn.disabled = true; btn.textContent = 'Importerar...';
 
-  // Bygg rader
-  const rows = _importData
-    .map(r => {
-      const c = _importCols;
-      // Namn: förnamn+efternamn eller ett namnfält
-      const fn = c.fornamn   !== undefined ? String(r[c.fornamn]  ||'').trim() : '';
-      const en = c.efternamn !== undefined ? String(r[c.efternamn]||'').trim() : '';
-      const nn = c.namn      !== undefined ? String(r[c.namn]     ||'').trim() : '';
-      const name = (fn && en) ? fn + ' ' + en : (nn || fn || en);
+  const c = _importCols;
+  const lc = v => { const s = (v || '').toString().trim().toLowerCase(); return s || null; };
 
-      // Telefon: leta i flera kolumner, ta första icke-tomma
-      const phone = _firstVal(r, c.tel1, c.tel2, c.tel3, c.malsman1tel, c.malsman2tel) || null;
+  // Bygg berikade rader: barn + BÅDA föräldrar (Målsman 1 & 2) + FamiljeID
+  const built = _importData.map(r => {
+    const fn = c.fornamn   !== undefined ? String(r[c.fornamn]  ||'').trim() : '';
+    const en = c.efternamn !== undefined ? String(r[c.efternamn]||'').trim() : '';
+    const nn = c.namn      !== undefined ? String(r[c.namn]     ||'').trim() : '';
+    const childName = (fn && en) ? fn + ' ' + en : (nn || fn || en);
+    const phone = _firstVal(r, c.tel1, c.tel2, c.tel3, c.malsman1tel, c.malsman2tel) || null;
+    const email = lc(_firstVal(r, c.epost1, c.malsman1ep, c.malsman2ep));
+    const p1 = { name: _firstVal(r, c.malsman1) || null, email: lc(_firstVal(r, c.malsman1ep)), phone: _firstVal(r, c.malsman1tel) || null };
+    const p2 = { name: _firstVal(r, c.malsman2) || null, email: lc(_firstVal(r, c.malsman2ep)), phone: _firstVal(r, c.malsman2tel) || null };
+    const familjeId = c.familjeid !== undefined ? (String(r[c.familjeid] || '').trim() || null) : null;
+    return { childName, lastName: en, phone, email, p1, p2, familjeId };
+  }).filter(x => x.childName);
 
-      // E-post: barnets egna, annars målsman 1, annars målsman 2
-      const rawEmail = _firstVal(r, c.epost1, c.malsman1ep, c.malsman2ep);
-      const email = rawEmail ? rawEmail.toLowerCase() : null;
-
-      // Målsman
-      const parentName  = _firstVal(r, c.malsman1, c.malsman2) || null;
-      const parentPhone = _firstVal(r, c.malsman1tel, c.malsman2tel) || null;
-      const parentEmail = _firstVal(r, c.malsman1ep, c.malsman2ep) || null;
-
-      return { event_id: EVENT_ID, name, email, phone, team: selectedTeam,
-               parent_name: parentName, parent_phone: parentPhone, parent_email: parentEmail,
-               token: _genToken() };
-    })
-    .filter(r => r.name);
-
-  const invalid = _importData.length - rows.length;
-
-  if (!rows.length) {
+  const invalid = _importData.length - built.length;
+  if (!built.length) {
     showToast('Inga giltiga rader hittades. Kontrollera kolumnmappningen.', 'error');
     btn.disabled = false; btn.textContent = 'Importera →';
     return;
   }
 
   if (isDemo) {
-    // Demo: simulera
     await new Promise(r => setTimeout(r, 700));
-    showImportResult('✅', rows.length + ' deltagare importerade', invalid ? invalid + ' rader hoppades över (ogiltiga).' : 'Alla rader importerades utan problem.', rows.slice(0, 3));
+    showImportResult('✅', built.length + ' medlemmar importerade', invalid ? invalid + ' rader hoppades över (ogiltiga).' : 'Alla rader importerades utan problem.');
     btn.disabled = false; btn.textContent = 'Importera →';
     return;
   }
 
-  // Riktig import: kolla dubbletter via e-post
   try {
-    const existingEmails = new Set(
-      (DB.participants || []).map(p => (p.email||'').toLowerCase()).filter(Boolean)
-    );
-    const existingNames = new Set(
-      (DB.participants || []).map(p => (p.name||'').toLowerCase())
-    );
-    const newRows = rows.filter(r =>
-      (!r.email || !existingEmails.has(r.email)) && !existingNames.has((r.name||'').toLowerCase())
-    );
-    const skipped = rows.length - newRows.length;
+    // Ladda befintliga familjer för eventet → index för matchning (FamiljeID + föräldermejl)
+    let families = [];
+    try { families = await sbFetch('families', '?event_id=eq.' + EVENT_ID + '&select=*') || []; } catch(_e) { families = []; }
+    const famBySrc = {}, famByEmail = {};
+    families.forEach(f => {
+      if (f.source_family_id) famBySrc[String(f.source_family_id)] = f;
+      [f.parent1_email, f.parent2_email].forEach(e => { if (e) famByEmail[e.toLowerCase()] = f; });
+    });
+    const startFamCount = families.length;
 
-    if (!newRows.length) {
-      showImportResult('ℹ️', 'Inga nya deltagare', 'Alla ' + rows.length + ' rader finns redan i systemet (samma e-post).', []);
-      btn.disabled = false; btn.textContent = 'Importera →';
-      return;
+    // Hitta befintlig familj (FamiljeID → föräldermejl) eller skapa ny
+    async function resolveFamily(x) {
+      if (x.familjeId && famBySrc[x.familjeId]) return famBySrc[x.familjeId];
+      for (const e of [x.p1.email, x.p2.email]) { if (e && famByEmail[e]) return famByEmail[e]; }
+      const label = 'Familjen ' + (x.lastName || x.p1.name || x.childName);
+      const fam = await sbInsertReturn('families', {
+        event_id: EVENT_ID, label,
+        parent1_name: x.p1.name, parent1_email: x.p1.email, parent1_phone: x.p1.phone,
+        parent2_name: x.p2.name, parent2_email: x.p2.email, parent2_phone: x.p2.phone,
+        source_family_id: x.familjeId
+      });
+      if (fam && fam.id) {
+        if (x.familjeId) famBySrc[x.familjeId] = fam;
+        [x.p1.email, x.p2.email].forEach(e => { if (e) famByEmail[e] = fam; });
+        families.push(fam);
+      }
+      return fam;
     }
 
-    // Batch-insert (max 100 i taget)
-    let inserted = 0;
-    for (let i = 0; i < newRows.length; i += 100) {
-      const batch = newRows.slice(i, i + 100);
-      const result = await sbInsert('participants', batch);
-      if (result && result.length) {
-        result.forEach(p => DB.participants.push(p));
-        inserted += result.length;
+    // Idempotent upsert på (namn + lag) → syskon (olika namn) skapas var för sig,
+    // och re-import av samma lag uppdaterar i stället för att dubblera.
+    const partByKey = {};
+    (DB.participants || []).forEach(p => { partByKey[(p.name||'').toLowerCase() + '||' + (p.team||'')] = p; });
+
+    let created = 0, updated = 0;
+    for (const x of built) {
+      const fam = await resolveFamily(x);
+      const rec = {
+        name: x.childName, child_name: x.childName, email: x.email, phone: x.phone,
+        team: selectedTeam, parent_name: x.p1.name, parent_email: x.p1.email, parent_phone: x.p1.phone,
+        family_id: (fam && fam.id) ? fam.id : null
+      };
+      const key = x.childName.toLowerCase() + '||' + selectedTeam;
+      const existing = partByKey[key];
+      if (existing && existing.id) {
+        await sbUpdate('participants', existing.id, rec);
+        Object.assign(existing, rec); updated++;
+      } else {
+        const p = await sbInsertReturn('participants', Object.assign({ event_id: EVENT_ID, token: _genToken() }, rec));
+        if (p && p.id) { DB.participants.push(p); partByKey[key] = p; created++; }
       }
     }
+    const familiesCreated = families.length - startFamCount;
 
-    DB.participants.sort((a, b) => (a.team||'').localeCompare(b.team||'') || a.name.localeCompare(b.name));
-    renderChildTable();
-    renderDashboard();
+    DB.participants.sort((a, b) => (a.team||'').localeCompare(b.team||'') || (a.name||'').localeCompare(b.name||''));
+    if (typeof renderChildTable === 'function') renderChildTable();
+    if (typeof renderDashboard === 'function') renderDashboard();
     showImportResult(
       '✅',
-      inserted + ' deltagare importerade',
+      created + ' importerade' + (updated ? ' · ' + updated + ' uppdaterade' : ''),
       [
-        skipped   ? skipped + ' hoppades över (finns redan).' : '',
-        invalid   ? invalid + ' rader saknade namn/e-post och ignorerades.' : '',
-      ].filter(Boolean).join(' ') || 'Alla rader importerades utan problem.'
+        familiesCreated ? familiesCreated + ' nya familjer skapade (båda föräldrarnas kontakt sparad).' : '',
+        'Syskon i andra lag kopplas automatiskt till samma familj.',
+        invalid ? invalid + ' rader saknade namn och ignorerades.' : ''
+      ].filter(Boolean).join(' ')
     );
-    showToast(inserted + ' deltagare importerade');
+    showToast(created + ' importerade' + (updated ? ', ' + updated + ' uppdaterade' : ''));
   } catch(e) {
     console.error(e);
     showImportResult('❌', 'Import misslyckades', e.message || 'Okänt fel. Försök igen.');
