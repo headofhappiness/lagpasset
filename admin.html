@@ -1102,12 +1102,12 @@ Hälsningar,
         ondragleave="this.style.borderColor='var(--border)';this.style.background='var(--bg)'"
         ondrop="event.preventDefault();this.style.borderColor='var(--border)';this.style.background='var(--bg)';handleImportDrop(event)">
         <div style="font-size:2rem;margin-bottom:.5rem">📄</div>
-        <div style="font-weight:700;color:var(--dark);margin-bottom:.25rem">Dra hit en CSV-fil eller klicka</div>
-        <div style="font-size:13px;color:var(--muted)">Exportera ett lag i taget från ert medlemssystem</div>
-        <input type="file" id="importFileInput" accept=".csv,.txt" style="display:none" onchange="handleImportFile(this.files[0])">
+        <div style="font-weight:700;color:var(--dark);margin-bottom:.25rem">Dra hit SportAdmin-exporten (.xls) eller klicka</div>
+        <div style="font-size:13px;color:var(--muted)">Exportera ett lag i taget – filen läses direkt, ingen omvandling behövs. (.xls, .xlsx eller .csv)</div>
+        <input type="file" id="importFileInput" accept=".xls,.xlsx,.csv,.txt" style="display:none" onchange="handleImportFile(this.files[0])">
       </div>
-      <div style="background:var(--amber-light);border:1px solid rgba(232,160,32,.35);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:#7a5a00;margin-top:.85rem;line-height:1.6">
-        💡 <strong>Har du Excel?</strong> Öppna filen → Arkiv → Spara som → välj <strong>CSV (kommaavgränsad)</strong> → ladda upp här.
+      <div style="background:var(--green-light);border:1px solid rgba(26,140,58,.3);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:#1a6b2e;margin-top:.85rem;line-height:1.6">
+        🔒 <strong>Personnummer importeras aldrig</strong> – den kolumnen läses inte in. Kolumnerna (namn, lag, målsman m.m.) känns igen automatiskt.
       </div>
     </div>
 
@@ -6065,8 +6065,30 @@ function handleImportDrop(e) {
 
 function handleImportFile(file) {
   if (!file) return;
-  if (!file.name.match(/\.(csv|txt)$/i)) {
-    showToast('Välj en CSV-fil (.csv).', 'error');
+  const isExcel = /\.(xlsx?|xlsm)$/i.test(file.name);
+  const isCsv = /\.(csv|txt)$/i.test(file.name);
+  if (!isExcel && !isCsv) {
+    showToast('Välj en .xls, .xlsx eller .csv-fil.', 'error');
+    return;
+  }
+  if (isExcel) {
+    if (typeof XLSX === 'undefined') {
+      showToast('Excel-läsaren laddades inte. Kontrollera anslutningen.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+        _processImportRows(rows);
+      } catch (err) {
+        showToast('Kunde inte läsa Excel-filen: ' + (err.message || err), 'error');
+      }
+    };
+    reader.onerror = function() { showToast('Kunde inte läsa filen.', 'error'); };
+    reader.readAsArrayBuffer(file);
     return;
   }
   if (typeof Papa === 'undefined') {
@@ -6076,25 +6098,38 @@ function handleImportFile(file) {
   Papa.parse(file, {
     header: false,
     skipEmptyLines: true,
-    complete: function(results) {
-      const rows = results.data;
-      if (!rows.length) { showToast('Filen verkar tom.', 'error'); return; }
-      const headers = rows[0].map(h => String(h).trim());
-      _importData = rows.slice(1).filter(r => r.some(c => String(c).trim()));
-      _importCols = _detectCols(headers);
-      _importHeaders = headers;
-      renderImportMapping(headers);
-      renderImportPreview(headers, _importData.slice(0, 5));
-      const team = document.getElementById('importTeamSelect').value;
-      document.getElementById('importTeamLabel').textContent = team || '(ej valt)';
-      document.getElementById('importRowCount').textContent = _importData.length;
-      document.getElementById('importStep1').style.display = 'none';
-      document.getElementById('importStep2').style.display = 'block';
-      document.getElementById('importRunBtn').style.display = 'inline-flex';
-      document.getElementById('importStats').textContent = 'Kontrollera att kolumnerna stämmer nedan.';
-    },
+    complete: function(results) { _processImportRows(results.data); },
     error: function(err) { showToast('Kunde inte läsa filen: ' + err.message, 'error'); }
   });
+}
+
+// Gemensam bearbetning för både CSV och Excel (.xls/.xlsx).
+// Droppar ALLTID personnummer-kolumnen så värdet aldrig visas eller importeras
+// (Lisas stående regel: personnummer läses/importeras aldrig).
+function _processImportRows(rows) {
+  rows = (rows || []).filter(r => Array.isArray(r) && r.some(c => String(c).trim()));
+  if (!rows.length) { showToast('Filen verkar tom.', 'error'); return; }
+  let headers = rows[0].map(h => String(h).trim());
+  let data = rows.slice(1);
+  const pnrRe = /personnummer|person\s*nr|\bpnr\b|f[öo]delsedatum|\bssn\b/i;
+  const dropIdx = headers.map((h, i) => pnrRe.test(h) ? i : -1).filter(i => i >= 0);
+  if (dropIdx.length) {
+    const keep = i => dropIdx.indexOf(i) === -1;
+    headers = headers.filter((_, i) => keep(i));
+    data = data.map(r => r.filter((_, i) => keep(i)));
+  }
+  _importHeaders = headers;
+  _importData = data;
+  _importCols = _detectCols(headers);
+  renderImportMapping(headers);
+  renderImportPreview(headers, _importData.slice(0, 5));
+  const team = document.getElementById('importTeamSelect').value;
+  document.getElementById('importTeamLabel').textContent = team || '(ej valt)';
+  document.getElementById('importRowCount').textContent = _importData.length;
+  document.getElementById('importStep1').style.display = 'none';
+  document.getElementById('importStep2').style.display = 'block';
+  document.getElementById('importRunBtn').style.display = 'inline-flex';
+  document.getElementById('importStats').textContent = 'Kontrollera att kolumnerna stämmer nedan.';
 }
 
 function renderImportMapping(headers) {
