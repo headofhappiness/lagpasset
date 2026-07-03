@@ -1361,14 +1361,18 @@ async function initLive(token){
     const contacts = await sbFetch('contacts', '?event_id=eq.' + eventId + '&order=area.asc').catch(() => []);
     const faq = await sbFetch('faq', '?club_id=eq.' + (event.club_id||'') + '&is_active=eq.true&order=created_at.asc').catch(() => []);
     LIVE = { participant, event, shifts, bookings, shiftSlots, contacts, faq };
-    // Familj = deltagare med samma mejl i eventet (förälder med barn i flera lag)
+    // Familj = deltagarens hela hushåll. Primärt via family_id (från SportAdmin-
+    // importen); mejl-gissning som RESERV tills family_id finns.
     LIVE.family = [participant];
-    if(participant.email){
-      try {
+    try {
+      if(participant.family_id){
+        const fam = await sbFetch('participants', '?event_id=eq.' + eventId + '&family_id=eq.' + encodeURIComponent(participant.family_id) + '&select=*&order=team.asc');
+        if(fam && fam.length > 1) LIVE.family = fam;
+      } else if(participant.email){
         const fam = await sbFetch('participants', '?event_id=eq.' + eventId + '&email=eq.' + encodeURIComponent(participant.email) + '&select=*&order=team.asc');
         if(fam && fam.length > 1) LIVE.family = fam;
-      } catch(_e){}
-    }
+      }
+    } catch(_e){}
     renderLiveView();
   } catch(e){
     console.error('Live-fel:', e);
@@ -1406,12 +1410,13 @@ function renderFamilySwitcher(){
   if(fam.length <= 1){ host.style.display = 'none'; host.innerHTML = ''; return; }
   host.style.display = 'block';
   host.innerHTML =
-    '<div style="font-size:13px;color:var(--muted);margin-bottom:.4rem">Du har barn i flera lag – välj vilket lag du bokar pass för:</div>' +
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:.4rem">Du har flera barn/lag – välj vilket du bokar pass för (✓ = redan bokat):</div>' +
     '<div style="display:flex;gap:.4rem;flex-wrap:wrap">' +
     fam.map(function(m){
       const active = m.id === LIVE.participant.id;
       const booked = LIVE.bookings.some(function(b){ return b.participant_id === m.id; });
-      return '<button type="button" onclick="switchFamilyMember(\'' + m.id + '\')" style="border:1.5px solid ' + (active ? 'var(--green)' : 'var(--border)') + ';background:' + (active ? 'var(--green)' : '#fff') + ';color:' + (active ? '#fff' : 'var(--text)') + ';border-radius:100px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer">' + (m.team || 'Lag') + (booked ? ' ✓' : '') + '</button>';
+      const label = m.child_name ? (m.child_name + (m.team ? ' · ' + m.team : '')) : (m.team || m.name || 'Lag');
+      return '<button type="button" onclick="switchFamilyMember(\'' + m.id + '\')" style="border:1.5px solid ' + (active ? 'var(--green)' : 'var(--border)') + ';background:' + (active ? 'var(--green)' : '#fff') + ';color:' + (active ? '#fff' : 'var(--text)') + ';border-radius:100px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer">' + label + (booked ? ' ✓' : '') + '</button>';
     }).join('') +
     '</div>';
 }
