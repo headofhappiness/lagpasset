@@ -5976,6 +5976,7 @@ function exportFeedback(){
 // ════════════════════════════════════════════════════════════
 let _importData  = [];  // alla rader
 let _importCols  = {};  // { namn, epost, telefon, lag, barn } → kolumnindex
+let _importMultiGroup = null; // SportAdmin "Medlemsgrupper": { cols, spelareRows, groups:[{name,count,checked}] }
 
 // Import: kolumnsynonymer för auto-detektering
 const _COL_SYNONYMS = {
@@ -6122,6 +6123,14 @@ function _processImportRows(rows) {
   _importHeaders = headers;
   _importData = data;
   _importCols = _detectCols(headers);
+
+  // SportAdmin "Medlemsgrupper" = EN fil med alla lag (kolumn "Grupp") + roll ("Gruppkoppling").
+  const iGrupp = headers.findIndex(h => /^grupp$/i.test(h));
+  const iKopp  = headers.findIndex(h => /gruppkoppling/i.test(h));
+  if (iGrupp >= 0 && iKopp >= 0) { _startMultiGroupImport(headers, data, iGrupp, iKopp); return; }
+  _importMultiGroup = null;
+
+  const _area0 = document.getElementById('importMappingArea'); if (_area0) _area0.style.gridTemplateColumns = '1fr 1fr';
   renderImportMapping(headers);
   renderImportPreview(headers, _importData.slice(0, 5));
   const team = document.getElementById('importTeamSelect').value;
@@ -6182,6 +6191,7 @@ function _genToken() {
 }
 
 async function runImport() {
+  if (_importMultiGroup) return runImportGroups();
   const selectedTeam = document.getElementById('importTeamSelect').value;
   if (!selectedTeam) {
     showToast('Välj ett lag innan du importerar.', 'error');
@@ -6297,6 +6307,113 @@ async function runImport() {
   btn.disabled = false; btn.textContent = 'Importera →';
 }
 
+// ── SportAdmin "Medlemsgrupper" – EN fil med alla lag ──────────────────────
+function _escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _isLikelyCupTeam(name){
+  const n = String(name||'');
+  // Exkludera uppenbara icke-lag även om namnet råkar innehålla ett årtal
+  if(/läger|skola|domare|träning|\bherr\b|\bdam\b|c-lag|\bcup\b|dagen|prova|knatte|fotbollsskola/i.test(n)) return false;
+  if(/\b(19|20)\d{2}\b/.test(n)) return true;   // årtal = åldersgrupp (t.ex. "FB P 2019")
+  if(/junior/i.test(n)) return true;            // Flick-/Pojk-/Damjunior
+  return false;
+}
+function _startMultiGroupImport(headers, data, iGrupp, iKopp){
+  const spelareRows = data.filter(r => String(r[iKopp]||'').trim().toLowerCase() === 'spelare');
+  const counts = {};
+  spelareRows.forEach(r => { const g = String(r[iGrupp]||'').trim(); if(g) counts[g] = (counts[g]||0)+1; });
+  const groups = Object.keys(counts).sort().map(name => ({ name, count: counts[name], checked: _isLikelyCupTeam(name) }));
+  _importMultiGroup = { iGrupp, iKopp, spelareRows, groups };
+  _renderGroupChecklist();
+  document.getElementById('importTeamLabel').textContent = 'Hela klubben (Medlemsgrupper)';
+  document.getElementById('importRowCount').textContent = spelareRows.length + ' spelare';
+  document.getElementById('importStats').textContent = 'Bocka i vilka grupper som är cup-lag – åldersgrupper är förvalda. Lagnamnet blir gruppnamnet. Personnummer importeras aldrig.';
+  const ph = document.getElementById('importPreviewHead'); if(ph) ph.innerHTML = '';
+  const pb = document.getElementById('importPreviewBody'); if(pb) pb.innerHTML = '';
+  document.getElementById('importStep1').style.display = 'none';
+  document.getElementById('importStep2').style.display = 'block';
+  document.getElementById('importRunBtn').style.display = 'inline-flex';
+}
+function _renderGroupChecklist(){
+  const area = document.getElementById('importMappingArea');
+  if(!area || !_importMultiGroup) return;
+  area.style.gridTemplateColumns = '1fr';
+  const g = _importMultiGroup.groups;
+  const nSel = g.filter(x=>x.checked).length;
+  const nPl  = g.filter(x=>x.checked).reduce((a,x)=>a+x.count,0);
+  area.innerHTML =
+    '<div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:.5rem">Vilka grupper är cup-lag? <span style="color:var(--muted);font-weight:500">(' + nSel + ' lag · ' + nPl + ' spelare valda)</span></div>' +
+    '<div style="display:flex;flex-direction:column;gap:.15rem;max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:.5rem .65rem">' +
+    g.map((x,i) =>
+      '<label style="display:flex;align-items:center;gap:.55rem;font-size:13.5px;padding:.25rem .1rem;cursor:pointer">' +
+      '<input type="checkbox" ' + (x.checked?'checked':'') + ' onchange="_importMultiGroup.groups[' + i + '].checked=this.checked;_renderGroupChecklist()">' +
+      '<span style="font-weight:600">' + _escHtml(x.name) + '</span>' +
+      '<span style="color:var(--muted);font-size:12px;margin-left:auto">' + x.count + ' spelare</span>' +
+      '</label>'
+    ).join('') +
+    '</div>';
+}
+// Delad: skapar/uppdaterar familjer + deltagare från berikade rader (varje rad har x.team)
+async function _importFamiliesAndParticipants(built){
+  let families=[]; try{ families = await sbFetch('families','?event_id=eq.'+EVENT_ID+'&select=*') || []; }catch(_e){ families=[]; }
+  const famBySrc={}, famByEmail={};
+  families.forEach(f=>{ if(f.source_family_id)famBySrc[String(f.source_family_id)]=f; [f.parent1_email,f.parent2_email].forEach(e=>{if(e)famByEmail[e.toLowerCase()]=f;}); });
+  const startFam=families.length;
+  async function resolveFamily(x){
+    if(x.familjeId && famBySrc[x.familjeId]) return famBySrc[x.familjeId];
+    for(const e of [x.p1.email,x.p2.email]){ if(e && famByEmail[e]) return famByEmail[e]; }
+    const label='Familjen '+(x.lastName||x.p1.name||x.childName);
+    const fam=await sbInsertReturn('families',{event_id:EVENT_ID,label,parent1_name:x.p1.name,parent1_email:x.p1.email,parent1_phone:x.p1.phone,parent2_name:x.p2.name,parent2_email:x.p2.email,parent2_phone:x.p2.phone,source_family_id:x.familjeId});
+    if(fam && fam.id){ if(x.familjeId)famBySrc[x.familjeId]=fam; [x.p1.email,x.p2.email].forEach(e=>{if(e)famByEmail[e]=fam;}); families.push(fam); }
+    return fam;
+  }
+  const partByKey={}; (DB.participants||[]).forEach(p=>{ partByKey[(p.name||'').toLowerCase()+'||'+(p.team||'')]=p; });
+  let created=0, updated=0;
+  for(const x of built){
+    const fam=await resolveFamily(x);
+    const rec={ name:x.childName, child_name:x.childName, email:x.email, phone:x.phone, team:x.team, parent_name:x.p1.name, parent_email:x.p1.email, parent_phone:x.p1.phone, family_id:(fam&&fam.id)?fam.id:null };
+    const key=x.childName.toLowerCase()+'||'+(x.team||'');
+    const existing=partByKey[key];
+    if(existing && existing.id){ await sbUpdate('participants',existing.id,rec); Object.assign(existing,rec); updated++; }
+    else{ const p=await sbInsertReturn('participants',Object.assign({event_id:EVENT_ID,token:_genToken()},rec)); if(p&&p.id){DB.participants.push(p);partByKey[key]=p;created++;} }
+  }
+  return { created, updated, familiesCreated: families.length-startFam };
+}
+async function runImportGroups(){
+  const mg=_importMultiGroup; if(!mg) return;
+  const btn=document.getElementById('importRunBtn');
+  const chosen=new Set(mg.groups.filter(x=>x.checked).map(x=>x.name));
+  if(!chosen.size){ showToast('Bocka i minst en grupp.', 'error'); return; }
+  const c=_importCols;
+  const lc=v=>{ const s=(v||'').toString().trim().toLowerCase(); return s||null; };
+  const built=mg.spelareRows.filter(r=>chosen.has(String(r[mg.iGrupp]||'').trim())).map(r=>{
+    const fn=c.fornamn!==undefined?String(r[c.fornamn]||'').trim():'';
+    const en=c.efternamn!==undefined?String(r[c.efternamn]||'').trim():'';
+    const nn=c.namn!==undefined?String(r[c.namn]||'').trim():'';
+    const childName=(fn&&en)?fn+' '+en:(nn||fn||en);
+    const team=String(r[mg.iGrupp]||'').trim();
+    const phone=_firstVal(r,c.tel1,c.tel2,c.tel3,c.malsman1tel,c.malsman2tel)||null;
+    const email=lc(_firstVal(r,c.epost1,c.malsman1ep,c.malsman2ep));
+    const p1={name:_firstVal(r,c.malsman1)||null,email:lc(_firstVal(r,c.malsman1ep)),phone:_firstVal(r,c.malsman1tel)||null};
+    const p2={name:_firstVal(r,c.malsman2)||null,email:lc(_firstVal(r,c.malsman2ep)),phone:_firstVal(r,c.malsman2tel)||null};
+    const familjeId=c.familjeid!==undefined?(String(r[c.familjeid]||'').trim()||null):null;
+    return {childName,lastName:en,team,phone,email,p1,p2,familjeId};
+  }).filter(x=>x.childName && x.team);
+  if(!built.length){ showToast('Inga spelare i valda grupper.', 'error'); return; }
+  const isDemo=(typeof IS_DEMO!=='undefined'&&IS_DEMO);
+  btn.disabled=true; btn.textContent='Importerar...';
+  if(isDemo){ await new Promise(r=>setTimeout(r,700)); showImportResult('✅', built.length+' spelare importerade', chosen.size+' lag.'); btn.disabled=false; btn.textContent='Importera →'; return; }
+  try{
+    const res=await _importFamiliesAndParticipants(built);
+    DB.participants.sort((a,b)=>(a.team||'').localeCompare(b.team||'')||(a.name||'').localeCompare(b.name||''));
+    if(typeof renderChildTable==='function')renderChildTable();
+    if(typeof renderDashboard==='function')renderDashboard();
+    showImportResult('✅', res.created+' importerade'+(res.updated?' · '+res.updated+' uppdaterade':''),
+      (res.familiesCreated?res.familiesCreated+' nya familjer skapade. ':'')+chosen.size+' lag · syskon i olika lag kopplas ihop automatiskt.');
+    showToast(res.created+' importerade');
+  }catch(e){ console.error(e); showImportResult('❌','Import misslyckades', e.message||'Okänt fel.'); }
+  btn.disabled=false; btn.textContent='Importera →';
+}
+
 function showImportResult(icon, title, sub) {
   document.getElementById('importStep2').style.display = 'none';
   document.getElementById('importRunBtn').style.display = 'none';
@@ -6307,7 +6424,7 @@ function showImportResult(icon, title, sub) {
 }
 
 function openImportModal() {
-  _importData = []; _importCols = {}; _importHeaders = [];
+  _importData = []; _importCols = {}; _importHeaders = []; _importMultiGroup = null;
   _populateImportTeams();
   document.getElementById('importStep1').style.display = 'block';
   document.getElementById('importStep2').style.display = 'none';
