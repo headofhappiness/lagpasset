@@ -947,7 +947,7 @@ Hälsningar,
             <input type="checkbox" id="setTrainersNeedShift">
             <span>Tränare ska också ha pass (annars undantas de från pass &amp; påminnelser)</span>
           </label>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Tränarbarn markeras automatiskt vid import (från Ledare-listan). Enskilda kan även markeras manuellt.</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Tränarbarn markeras automatiskt vid import: ett barn undantas <strong>bara i det lag där en förälder är tränare</strong> (Ledare) – inte i andra lag där föräldern bara är förälder. Enskilda kan även markeras manuellt.</div>
         </div>
         <div class="form-group">
           <label class="form-label">Typ av deltagande</label>
@@ -6334,20 +6334,24 @@ function _startMultiGroupImport(headers, data, iGrupp, iKopp){
   const counts = {};
   spelareRows.forEach(r => { const g = String(r[iGrupp]||'').trim(); if(g) counts[g] = (counts[g]||0)+1; });
   const groups = Object.keys(counts).sort().map(name => ({ name, count: counts[name], checked: _isLikelyCupTeam(name) }));
-  // Tränare = Ledare-raderna. Fånga deras mejl + namn för att auto-markera tränarbarn.
+  // Tränare = Ledare-raderna, samlade PER LAG (Grupp). Ett barn undantas bara i
+  // det lag där en förälder är Ledare – inte i andra lag där hen bara är förälder.
   const c = _importCols;
-  const ledEmails = new Set(), ledNames = new Set();
+  const ledByTeam = {}; // grupp -> { emails:Set, names:Set }
   data.forEach(r => {
     if (String(r[iKopp]||'').trim().toLowerCase() === 'ledare') {
+      const grupp = String(r[iGrupp]||'').trim();
+      if (!grupp) return;
+      if (!ledByTeam[grupp]) ledByTeam[grupp] = { emails: new Set(), names: new Set() };
       const e = c.epost1 !== undefined ? String(r[c.epost1]||'').trim().toLowerCase() : '';
-      if (e) ledEmails.add(e);
+      if (e) ledByTeam[grupp].emails.add(e);
       const fn = c.fornamn !== undefined ? String(r[c.fornamn]||'').trim() : '';
       const en = c.efternamn !== undefined ? String(r[c.efternamn]||'').trim() : '';
       const nm = (fn + ' ' + en).trim().toLowerCase();
-      if (nm) ledNames.add(nm);
+      if (nm) ledByTeam[grupp].names.add(nm);
     }
   });
-  _importMultiGroup = { iGrupp, iKopp, spelareRows, groups, ledEmails, ledNames };
+  _importMultiGroup = { iGrupp, iKopp, spelareRows, groups, ledByTeam };
   _renderGroupChecklist();
   document.getElementById('importTeamLabel').textContent = 'Hela klubben (Medlemsgrupper)';
   document.getElementById('importRowCount').textContent = spelareRows.length + ' spelare';
@@ -6421,11 +6425,12 @@ async function runImportGroups(){
     const p1={name:_firstVal(r,c.malsman1)||null,email:lc(_firstVal(r,c.malsman1ep)),phone:_firstVal(r,c.malsman1tel)||null};
     const p2={name:_firstVal(r,c.malsman2)||null,email:lc(_firstVal(r,c.malsman2ep)),phone:_firstVal(r,c.malsman2tel)||null};
     const familjeId=c.familjeid!==undefined?(String(r[c.familjeid]||'').trim()||null):null;
-    // Tränarbarn = en förälder (Målsman) finns bland Ledare (mejl- eller namn-match)
-    const isTrainerChild = !!(
-      (p1.email && mg.ledEmails.has(p1.email)) || (p2.email && mg.ledEmails.has(p2.email)) ||
-      (p1.name && mg.ledNames.has(String(p1.name).toLowerCase())) || (p2.name && mg.ledNames.has(String(p2.name).toLowerCase()))
-    );
+    // Tränarbarn PER LAG: en förälder (Målsman) är Ledare i SAMMA lag (Grupp)
+    const led = mg.ledByTeam[team];
+    const isTrainerChild = !!(led && (
+      (p1.email && led.emails.has(p1.email)) || (p2.email && led.emails.has(p2.email)) ||
+      (p1.name && led.names.has(String(p1.name).toLowerCase())) || (p2.name && led.names.has(String(p2.name).toLowerCase()))
+    ));
     return {childName,lastName:en,team,phone,email,p1,p2,familjeId,isTrainerChild};
   }).filter(x=>x.childName && x.team);
   if(!built.length){ showToast('Inga spelare i valda grupper.', 'error'); return; }
