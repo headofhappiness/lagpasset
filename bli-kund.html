@@ -118,14 +118,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green)}
       <input type="text" id="fclub" placeholder="Ex. Åsa IF">
     </div>
     <div class="form-group">
-      <label for="fsize">Ungefär hur många aktiva medlemmar? *</label>
-      <select id="fsize">
-        <option value="">Välj…</option>
-        <option value="under_500">Under 500</option>
-        <option value="500_1000">500–1 000</option>
-        <option value="1000_3000">1 000–3 000</option>
-        <option value="over_3000">Över 3 000</option>
-      </select>
+      <label for="fsize">Ungefär hur många lag brukar delta i era event? (valfritt)</label>
+      <input type="text" id="fsize" placeholder="Ex. 50 lag">
     </div>
     <div class="form-group">
       <label for="fmsg">Något du vill berätta på förhand? (valfritt)</label>
@@ -153,7 +147,7 @@ function sendForm(){
   var msg   = document.getElementById('fmsg').value.trim();
   var msgEl = document.getElementById('formMsg');
   msgEl.className = 'msg';
-  if(!name || !email || !club || !size){
+  if(!name || !email || !club){
     msgEl.className = 'msg err';
     msgEl.textContent = 'Fyll i de obligatoriska fälten (markerade med *).';
     return;
@@ -163,11 +157,11 @@ function sendForm(){
     msgEl.textContent = 'Ange en giltig e-postadress.';
     return;
   }
-  var sizeLabel = {'under_500':'Under 500','500_1000':'500–1 000','1000_3000':'1 000–3 000','over_3000':'Över 3 000'}[size] || size;
   var subject = encodeURIComponent('Intresseanmälan Lagpasset – ' + club);
   var body = encodeURIComponent(
     'Hej Lisa,\n\nJag/vi är intresserade av Lagpasset.\n\n' +
-    'Namn: ' + name + '\nFörening: ' + club + '\nAntal medlemmar: ' + sizeLabel + '\n' +
+    'Namn: ' + name + '\nFörening: ' + club + '\n' +
+    (size ? 'Antal lag: ' + size + '\n' : '') +
     (phone ? 'Telefon: ' + phone + '\n' : '') + 'E-post: ' + email + '\n' +
     (msg ? '\nMeddelande:\n' + msg + '\n' : '') + '\nHälsningar,\n' + name
   );
