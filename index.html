@@ -665,57 +665,25 @@ setVH(); window.addEventListener('resize',setVH);
 <section class="pricing" id="pricing">
   <div class="container">
     <div class="section-tag">Pris</div>
-    <h2>Priset anpassas efter er förening.</h2>
-    <p class="section-sub" style="margin-bottom:2rem;max-width:none">Samma funktioner för alla — ni väljer storlek baserat på antal aktiva medlemmar.</p>
+    <h2>30 kr per anmält lag.</h2>
+    <p class="section-sub" style="margin-bottom:2rem;max-width:none">Ni betalar utifrån hur många lag som deltar i ert event — samma rättvisa modell oavsett om ni är en liten klubbcup eller en stor turnering.</p>
 
-    <!-- Vad ingår – visas en gång -->
     <p style="text-align:center;font-size:13.5px;color:var(--muted);margin-bottom:2rem">Samma funktioner för alla och support ingår.</p>
 
-    <!-- Två kolumner: Per event vs Årsabonnemang -->
-    <div class="price-grid" style="max-width:720px;margin:0 auto">
-
-      <!-- Per event -->
-      <div class="price-card" style="background:#fff;border:2px solid var(--border)">
-        <div class="price-card-label" style="color:var(--muted)">Per event</div>
-        <div style="margin:1rem 0 .5rem">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Liten förening <span style="font-size:10px;opacity:.65;white-space:nowrap">· S · &lt;1 000</span></div>
-          <div style="display:flex;align-items:baseline;gap:.3rem;white-space:nowrap"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">3 995</span><span style="color:var(--muted);font-size:.9rem">kr</span></div>
+    <div style="max-width:420px;margin:0 auto">
+      <div class="price-card featured" style="background:var(--green-light);border:2.5px solid var(--green);box-shadow:0 4px 20px rgba(26,140,58,.15);text-align:center">
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:.4rem;margin:1rem 0 .3rem">
+          <span class="price-amount" style="font-size:3rem;color:var(--dark)">30</span>
+          <span style="color:#2d6a3a;font-size:1.1rem;font-weight:600">kr / lag</span>
         </div>
-        <div style="margin-bottom:.5rem">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Medelstor förening <span style="font-size:10px;opacity:.65;white-space:nowrap">· M · 1–3 000</span></div>
-          <div style="display:flex;align-items:baseline;gap:.3rem;white-space:nowrap"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">5 995</span><span style="color:var(--muted);font-size:.9rem">kr</span></div>
-        </div>
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:.2rem">Stor förening <span style="font-size:10px;opacity:.65;white-space:nowrap">· L · &gt;3 000</span></div>
-          <div style="display:flex;align-items:baseline;gap:.3rem;white-space:nowrap"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">9 995</span><span style="color:var(--muted);font-size:.9rem">kr</span></div>
-        </div>
-        <div class="price-note" style="margin-top:1rem;color:var(--muted)">Betala per tillfälle. Inga bindningar.</div>
+        <div style="font-size:13px;color:#2d6a3a;margin-bottom:1rem">Minst 3 995 kr per event</div>
+        <div class="price-note" style="margin-top:.5rem;color:#1a5c24;font-weight:600">Betala per event. Inga bindningar.</div>
       </div>
-
-      <!-- Årsabonnemang – featured -->
-      <div class="price-card featured" style="background:var(--green-light);border:2.5px solid var(--green);box-shadow:0 4px 20px rgba(26,140,58,.15)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
-          <div class="price-card-label" style="color:var(--green);margin:0">Årsabonnemang</div>
-          <span class="price-badge">Populärast</span>
-        </div>
-        <div style="margin:1rem 0 .5rem">
-          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Liten förening <span style="font-size:10px;opacity:.65;white-space:nowrap">· S · &lt;1 000</span></div>
-          <div style="display:flex;align-items:baseline;gap:.3rem;white-space:nowrap"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">4 995</span><span style="color:#2d6a3a;font-size:.9rem">kr/år</span></div>
-        </div>
-        <div style="margin-bottom:.5rem">
-          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Medelstor förening <span style="font-size:10px;opacity:.65;white-space:nowrap">· M · 1–3 000</span></div>
-          <div style="display:flex;align-items:baseline;gap:.3rem;white-space:nowrap"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">7 995</span><span style="color:#2d6a3a;font-size:.9rem">kr/år</span></div>
-        </div>
-        <div>
-          <div style="font-size:12px;color:#2d6a3a;margin-bottom:.2rem">Stor förening <span style="font-size:10px;opacity:.65;white-space:nowrap">· L · &gt;3 000</span></div>
-          <div style="display:flex;align-items:baseline;gap:.3rem;white-space:nowrap"><span class="price-amount" style="font-size:1.9rem;color:var(--dark)">14 995</span><span style="color:#2d6a3a;font-size:.9rem">kr/år</span></div>
-        </div>
-        <div class="price-note" style="margin-top:1rem;color:#1a5c24;font-weight:600">Obegränsat antal event under året.</div>
-      </div>
-
     </div>
-    <p style="font-size:13.5px;color:var(--muted);margin-top:1.5rem;text-align:center">Inga dolda avgifter. Årsabonnemang kan sägas upp med en månads varsel.</p>
-    <p style="font-size:13.5px;color:var(--muted);margin-top:.75rem;text-align:center">Arrangerar ni en cup med flera hundra lag från andra föreningar? Det är en annan skala – <a href="mailto:hej@lagpasset.se" style="color:var(--green);font-weight:600">hör av er</a> så sätter vi ihop en offert utifrån omfattningen.</p>
+
+    <p style="font-size:13.5px;color:var(--muted);margin-top:1.5rem;text-align:center">Exempel: en cup med 300 anmälda lag → 9 000 kr.</p>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:.5rem;text-align:center">Inga dolda avgifter.</p>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:.75rem;text-align:center">Arrangerar ni flera event per år? <a href="mailto:hej@lagpasset.se" style="color:var(--green);font-weight:600">Hör av er</a> för ett årsavtal.</p>
   </div>
 </section>
 
