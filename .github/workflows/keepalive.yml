@@ -1,0 +1,30 @@
+name: Supabase keep-alive
+
+# Haller Supabase-projektet aktivt sa gratisplanen inte pausar det efter
+# 7 dagars inaktivitet. Gor ENBART en lasning (select id limit 1) mot
+# REST-API:t - inget skrivs, inget kan ga sonder.
+#
+# Nyckeln nedan ar den PUBLIKA anon-nyckeln som redan ligger i frontend
+# (admin.html/guest.html m.fl.) - den exponerar ingenting nytt.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1,4'   # mandag & torsdag 06:00 UTC (2x/vecka = god marginal mot 7-dagarsgransen)
+  workflow_dispatch: {}      # gor att den ocksa kan koras manuellt fran Actions-fliken
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Las en rad fran Supabase (haller projektet vaket)
+        run: |
+          KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjcXdwbWlncmFjZHpranJkZHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4OTc1MTUsImV4cCI6MjA5NjQ3MzUxNX0.xx4t5mUkHNJanGdhy7HKSdolkYZKP6cCHQM72ktmrac'
+          CODE=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "https://acqwpmigracdzkjrddwk.supabase.co/rest/v1/clubs?select=id&limit=1" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "HTTP $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "Ovantat svar fran Supabase: $CODE - projektet kan behova vackas manuellt."
+            exit 1
+          fi
+          echo "OK - Supabase svarade 200, projektet halls aktivt."
