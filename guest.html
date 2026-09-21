@@ -561,7 +561,7 @@ function showFeedbackPreview(){
 const DEMO = {
   club:{ name:"Åsa IF", logo_url:null, accent:"#1a8c3a" },
   person:{ name:"Maria Lindgren", team:"FJ" }, // sätts via token i personlig länk
-  event:{ name:"Åsacupen 2026", deadline:"2026-06-18", reminder_days:5, contact_email:"kansli@asaif.com" },
+  event:{ name:"Åsacupen 2026", deadline:new Date(Date.now()+21*864e5).toISOString().slice(0,10), reminder_days:5, contact_email:"kansli@asaif.com" }, // demo: alltid ~3 veckor kvar så vyn är öppen
 
   // Kontaktpersoner (sätts av admin i Inställningar) — för frågor från medlemmar
   contacts:[
